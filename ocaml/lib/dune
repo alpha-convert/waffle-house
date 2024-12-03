@@ -1,0 +1,4 @@
+(library
+  (preprocess (pps ppx_jane ppxlib.metaquot ppx_bench))
+ (libraries ppxlib base_quickcheck core_bench core )
+ (name fast_gen))

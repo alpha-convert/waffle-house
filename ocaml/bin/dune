@@ -1,0 +1,5 @@
+(executable
+ (public_name fast_gen)
+ (name main)
+  (preprocess (pps ppxlib.metaquot ppx_jane ppx_bench))
+ (libraries fast_gen ppxlib base_quickcheck core_bench core))
