@@ -19,6 +19,9 @@ module For_monad = Monad.Make (struct
     let map = `Define_using_bind
   end)
 
+let join = For_monad.join
+
+
 module Monad_infix = For_monad.Monad_infix
 include Monad_infix
 module Let_syntax = For_monad.Let_syntax
@@ -30,3 +33,9 @@ let to_qc (sg : ('a Code.t) t) : ('a Base_quickcheck.Generator.t) Code.t =
       [%e Codegen.code_generate (f ~size_c:[%code size] ~random_c:[%code random]) ]
     )
   ]
+
+exception Unimplemented
+
+let weighted_union = raise Unimplemented
+let with_size = raise Unimplemented
+let size = raise Unimplemented
