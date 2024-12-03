@@ -4,6 +4,7 @@ open Tree;;
 open Core.Quickcheck.Generator;;
 open Core.Quickcheck.Let_syntax;;
 
+let hello = [%code "hello"]
 
 (* INLINES all definitions, plus the weighted_union, elimianting the sum. *)
 let gen =
@@ -21,6 +22,7 @@ let gen =
     fixed_point step
 
 let of_lazy lazy_t = create (fun ~size ~random -> generate (force lazy_t) ~size ~random)
+
 
 let gen_total =
   let rec lazy_t = lazy (create (fun ~size ~random ->
