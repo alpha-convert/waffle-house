@@ -3,14 +3,14 @@ open Staged_generator;;
 open Staged_generator.Let_syntax;;
 
 let gc =
-  recursive (fun (rec_call : Tree.tree recgen)->
+  recursive (fun gt ->
     let%bind n = size in
     gen_if [%code [%e n] <= 1] (return [%code Tree.Leaf]) (
       choose
       ([%code 1],(return [%code Tree.Leaf]))
       (n,
-        let%bind l = with_size (recurse rec_call) ~size_c:[%code [%e n]/2] in
-        let%bind r = with_size (recurse rec_call) ~size_c:[%code [%e n]/2] in
+        let%bind l = with_size (recurse gt) ~size_c:[%code [%e n]/2] in
+        let%bind r = with_size (recurse gt) ~size_c:[%code [%e n]/2] in
         return [%code Tree.Node([%e l],[%e r])]
        )
     )

@@ -8,18 +8,17 @@ let hello = [%code "hello"]
 
 (* INLINES all definitions, plus the weighted_union, elimianting the sum. *)
 let gen =
-  let step gt =
+  fixed_point (fun gt ->
       create (fun ~size ~random ->
           if size <= 1 then Leaf else
             let n = 1 + size in
             let k = Splittable_random.int random ~lo:0 ~hi:n in
-            if equal k 0 then Leaf else
+            if k <= 1 then Leaf else
               let l = generate gt ~size:(size / 2) ~random in
               let r = generate gt ~size:(size / 2) ~random in
               Node (l,r)
       )
-    in
-    fixed_point step
+    )
 
 let of_lazy lazy_t = create (fun ~size ~random -> generate (force lazy_t) ~size ~random)
 
