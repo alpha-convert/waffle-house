@@ -8,6 +8,7 @@ type 'a recgen = (unit -> 'a Core.Quickcheck.Generator.t) Code.t
 
 let return x = RandGen (fun ~size_c:_ ~random_c:_ -> Codegen.return x)
 let bind (RandGen r) ~f = RandGen (fun ~size_c ~random_c ->
+  (* TODO: I think we need a let-insertion here. *)
   let%bind a = r ~size_c ~random_c in
   let (RandGen r') = f a in
   r' ~size_c ~random_c
@@ -26,6 +27,7 @@ let choose ((w1,(RandGen g1)) : int Code.t * 'a t) ((w2,(RandGen g2)) : int Code
     let%bind w1w2_min = Codegen.gen_let [%code min [%e w1] [%e w2]] in 
     let%bind w1w2_max = Codegen.gen_let [%code max [%e w1] [%e w2]] in 
     let%bind rand = Codegen.gen_let [%code Splittable_random.int [%e random_c ] ~lo:[%e w1w2_min] ~hi:[%e w1w2_max] ] in
+    (* TODO: provide a version that elimintes this extra branch... *)
     Codegen.gen_if [%code [%e w1] < [%e w2]]
       ~tt:(
         Codegen.gen_if [%code [%e rand] < [%e w1]] ~tt:(g1 ~size_c ~random_c) ~ff:(g2 ~size_c ~random_c)
