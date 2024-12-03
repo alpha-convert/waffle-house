@@ -24,3 +24,18 @@ module For_monad = Monad.Make (struct
 module Monad_infix = For_monad.Monad_infix
 include Monad_infix
 module Let_syntax = For_monad.Let_syntax
+
+let gen_let (cx : 'a Code.t) : 'a Code.t t =
+  {code_gen = fun k ->
+    [%code 
+      let x = [%e cx] in [%e k [%code x]]
+    ]
+  }
+
+let gen_if (cb : bool Code.t) ~(tt : 'a t) ~(ff : 'a t) : 'a t = 
+  {
+    code_gen = fun k -> [%code
+      let b = [%e cb] in
+      if b then [%e run_code_gen tt k] else [%e run_code_gen ff k ]
+    ]
+  }
