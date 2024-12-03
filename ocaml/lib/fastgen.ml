@@ -9,7 +9,7 @@ open Core.Quickcheck.Let_syntax;;
 let gen =
   let step gt =
       create (fun ~size ~random ->
-          if equal size 0 then Leaf else
+          if size <= 1 then Leaf else
             let n = 1 + size in
             let k = Splittable_random.int random ~lo:0 ~hi:n in
             if equal k 0 then Leaf else
