@@ -1,6 +1,7 @@
 open Core;;
 open Code;;
 
+(* This is stolen from andras kovacs *)
 type 'a t = {code_gen : 'z. (('a -> 'z Code.t) -> 'z Code.t)}
 
 let run_code_gen {code_gen=f} k = f k
