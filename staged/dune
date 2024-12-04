@@ -1,3 +1,0 @@
-(env
-  (dev
-    (ocamlopt_flags (:standard -warn-error -A-32 -O3))))

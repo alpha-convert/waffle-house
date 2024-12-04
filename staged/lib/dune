@@ -1,4 +1,0 @@
-(library
-  (preprocess (pps ppx_stage.ppx ppx_jane ppx_bench))
- (libraries base_quickcheck core_bench splittable_random core )
- (name fast_gen))
