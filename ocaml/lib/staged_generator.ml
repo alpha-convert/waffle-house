@@ -23,15 +23,8 @@ We're proably gonna have to do it with some kind of static sorter, hardware styl
 *)
 let choose ((w1,(RandGen g1)) : int Code.t * 'a t) ((w2,(RandGen g2)) : int Code.t * 'a t) : 'a t = RandGen (
   fun ~size_c ~random_c ->
-    let%bind rand = Codegen.gen_let [%code Splittable_random.int [%e random_c ] ~lo:0 ~hi:([%e w1] + [%e w2]) ] in
-    (* TODO: provide a version that elimintes this extra branch... *)
-    Codegen.gen_if [%code [%e w1] < [%e w2]]
-      ~tt:(
-        Codegen.gen_if [%code [%e rand] < [%e w1]] ~tt:(g1 ~size_c ~random_c) ~ff:(g2 ~size_c ~random_c)
-      )
-      ~ff:(
-        Codegen.gen_if [%code [%e rand] < [%e w2]] ~tt:(g2 ~size_c ~random_c) ~ff:(g1 ~size_c ~random_c)
-      )
+    let%bind rand = Codegen.gen_let [%code Splittable_random.int [%e random_c] ~lo:0 ~hi:([%e w1] + [%e w2]) ] in
+    Codegen.gen_if [%code [%e rand] < [%e w1]] ~tt:(g1 ~size_c ~random_c) ~ff:(g2 ~size_c ~random_c)
 )
 
 let with_size (RandGen f) ~size_c =

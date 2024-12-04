@@ -16,36 +16,23 @@ let gc =
     )
   )
 
-  let splat =                            
-    let rec lazy_t () =
-      Base_quickcheck.Generator.create
-        (fun ~size ->
-           fun ~random ->
-             let b = size <= 1 in
-             if b
-             then Tree.Leaf
-             else
-               (let x = Splittable_random.int random ~lo:0 ~hi:(1 + size) in
-                let b = 1 < size in
-                if b
-                then
+let splat =                            
+      let rec lazy_t () =
+        Base_quickcheck.Generator.create
+          (fun ~size ->
+             fun ~random ->
+               let b = size <= 1 in
+               if b
+               then Tree.Leaf
+               else
+                 (let x = Splittable_random.int random ~lo:0 ~hi:(1 + size) in
                   let b = x < 1 in
-                  (if b
-                   then Tree.Leaf
-                   else
-                     Tree.Node
-                       ((Core.Quickcheck.Generator.generate ~size:(size / 2)
-                           ~random (lazy_t ())),
-                         (Core.Quickcheck.Generator.generate ~size:(size / 2)
-                            ~random (lazy_t ()))))
-                else
-                  (let b = x < size in
-                   if b
-                   then
-                     Tree.Node
-                       ((Core.Quickcheck.Generator.generate ~size:(size / 2)
-                           ~random (lazy_t ())),
-                         (Core.Quickcheck.Generator.generate ~size:(size / 2)
-                            ~random (lazy_t ())))
-                   else Tree.Leaf))) in
-    lazy_t ()
+                  if b
+                  then Tree.Leaf
+                  else
+                    Tree.Node
+                      ((Core.Quickcheck.Generator.generate ~size:(size / 2)
+                          ~random (lazy_t ())),
+                        (Core.Quickcheck.Generator.generate ~size:(size / 2)
+                           ~random (lazy_t ()))))) in
+      lazy_t ()
