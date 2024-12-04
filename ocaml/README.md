@@ -33,6 +33,7 @@ Build instructions:
 └─────────────────────────┴──────────────┴─────────────┴────────────┴────────────┴─────────────┴──────────┘
 
 ```
+---
 
 # What's the Problem?
 
@@ -43,7 +44,7 @@ let gen_list_of g = fixed_point (
     fun gl ->
         let%bind n = size in
         if n <= 0 then return [] else
-          let%bind xs = with_size gl (n-1) in
+          let%bind xs = with_size ~size:(n-1) gl in
           let%bind x = g in
           return (x :: xs)
 )
@@ -53,7 +54,7 @@ Given a generator `g : 'a Generator.t`, it builds a generator `gen_list_of g : (
 
 Let's focus in on the `else` branch, where we do the real work.
 ```ocaml
-let%bind xs = with_size gl (n-1) in
+let%bind xs = with_size ~size:(n-1) gl in
 let%bind x = g in
 return (x :: xs)
 ```
@@ -72,12 +73,108 @@ To simplify this further, we have to look at the definition of `'a Generator.t `
 type 'a t = unit -> size:int -> random:Splittable_random.t -> 'a
 
 let create (f : size:int -> random:Splittable_random.t -> 'a) : 'a t =
-    fun () -> f
+    fun () ~size ~random -> f ~size ~random
 
 let generate (g : 'a t) (size : int) (random : Splittable_random.t)  =
     g () ~size ~random
-
 ```
+
+A `'a Generator.t` (or just a `'a t`, when you're inside or have `Open`'d the `Generator` module) is a function that takes the size parameter, a random seed [2], and returns a `'a`. If you run this with different seeds and sizes, it gives you different `'a`s.
+
+Note that `create` and `generate` are inverses of each other: `generate (create f) ~size ~random == f ~size ~random` and `create (fun ~size ~random -> generate g ~size ~random) == g`.
+
+Let's take a look at the definitions of `return` and `bind`[3].
+
+```ocaml
+let bind t ~f =
+  create (fun ~size ~random ->
+    let x = generate t ~size ~random in
+    generate (f x) ~size ~random)
+
+let return x = create (fun ~size:_ ~random:_ -> x)
+```
+
+The first thing to say about this is that these function calls are *not inlined* by the OCaml compiler, as far as I can tell. Everywhere in the source of the generator you see a `bind` or a `return`, you jump to the code.
+
+Next, we note that they both *immediately* call `create`, with a higher order function. In OCaml, calling a higher order function with a lambda as an argument *almost always* heap-allocates a closure to pass to the higher-order function [4]. So right away, some allocation is happening, very single iteration through the generator. But if we inline these function definitions and use the equations about `create` and `generate` we realized earlier, we can get rid of them!
+
+```ocaml
+bind (with_size gl (n-1)) (fun xs ->
+    bind g (fun x ->
+        return (x::xs)
+    )
+)
+== (* inlining the first bind *)
+create (fun ~size ~random ->
+    let xs = generate (with_size gl (n-1)) ~size ~random in
+    generate (
+        (fun xs -> bind g (fun x -> return (x::xs))) xs (* note the explicit beta redex here!! *)
+    ) ~size ~random
+)
+== (* beta reduction *)
+create (fun ~size ~random ->
+    let xs = generate (with_size gl (n-1)) ~size ~random in
+    generate (
+        bind g (fun x -> return (x::xs))
+    ) ~size ~random
+)
+== (*inlining the second bind *)
+create (fun ~size ~random ->
+    let xs = generate (with_size gl (n-1)) ~size ~random in
+    generate (
+        create (fun ~size ~random ->
+            let x = generate g ~size ~random in
+            generate (
+                (fun x -> return (x::xs)) x
+            ) ~size ~random
+        )
+    ) ~size ~random
+)
+== (* beta reduction *)
+create (fun ~size ~random ->
+    let xs = generate (with_size gl (n-1)) ~size ~random in
+    generate (
+        create (fun ~size ~random ->
+            let x = generate g ~size ~random in
+            generate (
+                return (x::xs)
+            ) ~size ~random
+        )
+    ) ~size ~random
+)
+== (* rewrite with the create (generate ...) equation  *)
+create (fun ~size ~random ->
+    let xs = generate (with_size gl (n-1)) ~size ~random in
+    let x = generate g ~size ~random in
+    generate (
+        return (x::xs)
+    ) ~size ~random
+)
+== (* inline the definition of return *)
+create (fun ~size ~random ->
+    let xs = generate (with_size gl (n-1)) ~size ~random in
+    let x = generate g ~size ~random in
+    generate (
+        create (fun ~size:_ ~random:_ -> x::xs)
+    ) ~size ~random
+)
+== (* rewrite the create/generate equation again *)
+create (fun ~size ~random ->
+    let xs = generate (with_size gl (n-1)) ~size ~random in
+    let x = generate g ~size ~random in
+    x::xs
+)
+```
+
+----
 
 
 [1] I've simplified the definition by replacing the actual definition (which uses a `Staged.t`) with an equivalent one... a `'a Staged.t` is really just a `unit -> 'a`. This is a completely different sense of the word "staging" than the metaprogramming we're doing.
+
+[2] See the `splittable_random` library for details, this is the same in Haskell QuickCheck.
+
+[3] If you're struggling to understand this code (especially the code for `bind`), I'd highly recommend going to Haskell and writing the Monad instance for `data Foo a = MkFoo (Int -> Char -> a)`. Same concept here.
+
+[4] I believe the only exception is when the function captures no free variables.
+
+---
