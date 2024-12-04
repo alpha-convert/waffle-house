@@ -33,3 +33,51 @@ Build instructions:
 └─────────────────────────┴──────────────┴─────────────┴────────────┴────────────┴─────────────┴──────────┘
 
 ```
+
+# What's the Problem?
+
+Consider the following generator:
+
+```ocaml
+let gen_list_of g = fixed_point (
+    fun gl ->
+        let%bind n = size in
+        if n <= 0 then return [] else
+          let%bind xs = with_size gl (n-1) in
+          let%bind x = g in
+          return (x :: xs)
+)
+```
+
+Given a generator `g : 'a Generator.t`, it builds a generator `gen_list_of g : ('a list) Generator.t`. This happens recursively. First, we bind the size parameter to `n`. `size : int Generator.t` is the generator that just returns the current size paramter. If `n` is `<= 0`, we return the empty list. Otherwise, we bind `xs` to a *recursive* generator call with size paramter `n-1` (if we didn't decrease the size paramter, our generator would never terminate). Then, we bind `x` to a use of the argument generator `g`, and return `(x :: xs)`.
+
+Let's focus in on the `else` branch, where we do the real work.
+```ocaml
+let%bind xs = with_size gl (n-1) in
+let%bind x = g in
+return (x :: xs)
+```
+
+These `let%bind x0 = g0 in e`s desugar to calls to `Generator.bind g0 (fun x0 -> e)` via an OCaml preprocessor pass. So this code is really:
+```ocaml
+bind (with_size gl (n-1)) (fun xs ->
+    bind g (fun x ->
+        return (x::xs)
+    )
+)
+```
+
+To simplify this further, we have to look at the definition of `'a Generator.t ` in [generator.ml](https://github.com/janestreet/base_quickcheck/blob/master/src/generator.ml). There, we find the definition[1], along with two important functions. 
+```ocaml
+type 'a t = unit -> size:int -> random:Splittable_random.t -> 'a
+
+let create (f : size:int -> random:Splittable_random.t -> 'a) : 'a t =
+    fun () -> f
+
+let generate (g : 'a t) (size : int) (random : Splittable_random.t)  =
+    g () ~size ~random
+
+```
+
+
+[1] I've simplified the definition by replacing the actual definition (which uses a `Staged.t`) with an equivalent one... a `'a Staged.t` is really just a `unit -> 'a`. This is a completely different sense of the word "staging" than the metaprogramming we're doing.
