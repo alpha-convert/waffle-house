@@ -1,0 +1,4 @@
+(lang dune 3.17)
+(name handwritten)
+(sections (lib .) (bin ../../bin) (doc ../../doc/handwritten))
+(files (lib (META dune-package opam)) (bin (handwritten)) (doc (README.md)))
