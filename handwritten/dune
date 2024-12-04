@@ -1,3 +1,0 @@
-(env
-  (dev
-    (ocamlc_flags (:standard -warn-error -A-32))))
