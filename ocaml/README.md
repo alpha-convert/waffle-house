@@ -165,6 +165,70 @@ create (fun ~size ~random ->
     x::xs
 )
 ```
+Let's put this back into the definition of `gen_list_of`!
+```ocaml
+let gen_list_of g = fixed_point (
+    fun gl ->
+        let%bind n = Generator.size in
+        if n <= 0 then return [] else
+            create (fun ~size ~random ->
+                let xs = generate (with_size gl (n-1)) ~size ~random in
+                let x = generate g ~size ~random in
+                x::xs
+            )
+)
+```
+Doing another inlining step for the last bind (and eliminating a beta reduction), and another for the last `return`
+```ocaml
+let gen_list_of g = fixed_point (
+    fun gl ->
+        create (fun ~size ~random ->
+            let n = generate (Generator.size) ~size ~random in (* giving this its full name s: this isn't the argument `size` to create*)
+            generate (
+                if n <= 0 then (create (fun ~size ~random -> [])) else
+                    create (fun ~size ~random ->
+                        let xs = generate (with_size gl (n-1)) ~size ~random in
+                        let x = generate g ~size ~random in
+                        x::xs
+                    )
+                )
+            ) ~size ~random
+)
+```
+
+If we look at the definition of `Generator.size` [here](https://github.com/janestreet/base_quickcheck/blob/e429ad88cc4254dde71aee5adf17df3bd6a7521b/src/generator.ml#L22), it should be clear that `generate Generator.size ~size ~random = size` (the named variable of type `int` that's in scope from the surrounding `create`).
+
+We can also lift the `if` outside the call to `generate`, to get:
+```ocaml
+let gen_list_of g = fixed_point (
+    fun gl ->
+        create (fun ~size ~random ->
+            let n = size in
+            if n <= 0 then generate (create (fun ~size ~random -> []))
+            else generate (
+                create (fun ~size ~random ->
+                        let xs = generate (with_size gl (n-1)) ~size ~random in
+                        let x = generate g ~size ~random in
+                        x::xs
+                    )
+            )
+        )
+)
+```
+Inlining the last `generate/create` pairs, we get to our final version!
+```ocaml
+let gen_list_of g = fixed_point (
+    fun gl ->
+        create (fun ~size ~random ->
+            let n = size in
+            if n <= 0 then []
+            else 
+              let xs = generate (with_size gl (n-1)) ~size ~random in
+              let x = generate g ~size ~random in
+              x::xs
+        )
+)
+```
 
 ----
 
