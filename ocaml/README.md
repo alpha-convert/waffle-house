@@ -1,4 +1,15 @@
-Built on OCaml 4.10.3+trunk+flambda
+Built on OCaml 4.10.3+trunk+flambda.
+
+Build instructions:
+1. `opam switch create 4.10.3+trunk+flambda`, and run the `$eval(...)` command it generates.
+2. `git clone https://github.com/stedolan/ppx_stage` somewhere.
+3. `opam install dune ocaml-migrate-parsetree ppx_tools_versioned`
+4. `dune build` in the `ppx_stage` root directory.
+5. In the `ocaml/` directory of this repo, `opam install base_quickcheck core_bench splittable_random core`
+6. `opam pin add ppx_stage <directory where you put ppx_stage>`
+7. `dune build` this project.
+8. `dune exec fast_gen` to run the benchmarks.
+9. For VSCode support, `opam install ocaml-lsp-server` (maybe?)
 
 ```
 ┌─────────────────────────┬──────────────┬─────────────┬────────────┬────────────┬─────────────┬──────────┐
