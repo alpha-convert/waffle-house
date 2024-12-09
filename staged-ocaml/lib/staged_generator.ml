@@ -2,6 +2,7 @@ open Core;;
 
 open Codegen.Let_syntax;;
 
+(* maybe we want a CodeGen of all of this! *)
 type 'a t = RandGen of (size_c:(int Code.t) -> random_c:(Splittable_random.State.t Code.t) -> 'a Codegen.t)
 
 type 'a recgen = (unit -> 'a Core.Quickcheck.Generator.t) Code.t
