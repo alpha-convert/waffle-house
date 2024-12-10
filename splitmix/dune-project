@@ -17,8 +17,8 @@
 
 (package
  (name splitmix)
- (synopsis "A short synopsis")
- (description "A longer description")
+ (synopsis "Native SplitMix implementation")
+ (description "An implementation of the SplitMix algorithm using the C FFI of Ocaml")
  (depends ocaml dune)
  (tags
   ("add topics" "to describe" your project)))
