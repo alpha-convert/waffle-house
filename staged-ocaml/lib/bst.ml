@@ -50,8 +50,7 @@ let g_fast =
         let r = go ~lo:k ~hi:hi ~size:(size / 2) ~random in
         Node (l,k,v,r)
   in
-  let%bind n = size in
-  create (go ~lo:0 ~hi:n)
+  create (fun ~size ~random -> go ~lo:0 ~hi:size ~size ~random)
 
 
 let shrink = Base_quickcheck.Shrinker.atomic
