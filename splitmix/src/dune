@@ -1,4 +1,4 @@
 (library
  (public_name splitmix)
- (foreign_stubs (language c) (names splitmix))
+ (libraries core stdlib_upstream_compatible)
  (name splitmix))
