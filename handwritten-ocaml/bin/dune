@@ -2,7 +2,7 @@
  (public_name handwritten)
   (preprocess (pps ppx_jane ppx_bench))
  (name main)
- (libraries base_quickcheck core_bench splittable_random core ))
+ (libraries base_quickcheck core_bench splittable_random core qcheck crowbar splitmix))
 
 (env
   (dev
