@@ -1,0 +1,1 @@
+let seed = Splitmix.of_int (Int64.max_int)
