@@ -1,4 +1,0 @@
-(executable
- (public_name splitmix)
- (name main)
- (libraries splitmix))
