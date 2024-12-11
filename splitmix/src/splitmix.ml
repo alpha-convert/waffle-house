@@ -1,3 +1,4 @@
+open Core
 (* type state *)
 type t = { mutable seed : int64#; odd_gamma : int64# }
 
@@ -63,5 +64,37 @@ let perturb t salt =
   t.seed <- next
 ;;
 
-let bool state = 
+let bool (state @ local) = 
   I.equal (I.logand (next_int64 state) #1L) #0L
+
+(*let remainder_is_unbiased ~draw ~remainder ~draw_maximum ~remainder_maximum =
+    I.compare (I.sub draw remainder) (I.sub draw_maximum remainder_maximum) <= 0
+*)
+
+(*
+let int64 =
+  let rec between state ~lo ~hi =
+    let draw = next_int64 state in
+    if lo <= draw && draw <= hi then draw else between state ~lo ~hi
+  in
+  let rec non_negative_up_to state maximum =
+    let draw = I.logand (next_int64 state) (I.of_int64 Int64.max_value) in
+    let remainder = I.rem draw (I.succ maximum) in
+    if remainder_is_unbiased
+          ~draw
+          ~remainder
+          ~draw_maximum:(I.of_int64 Int64.max_value)
+          ~remainder_maximum:maximum
+    then remainder
+    else non_negative_up_to state maximum
+  in
+  fun state ~lo ~hi ->
+    if I.compare lo hi > 0
+    then Error.raise_s [%message "int64: crossed bounds" (lo : int64) (hi : int64)];
+    let diff = I.sub hi lo in
+    if diff = I.of_int64 (Int64.max_value)
+    then I.add (I.logand (next_int64 state) (Int64.max_value)) lo
+    else if diff >= 0L
+    then non_negative_up_to state diff + lo
+    else between state ~lo ~hi
+*)
