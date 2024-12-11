@@ -4,6 +4,8 @@ type t = { mutable seed : int64#; odd_gamma : int64# }
 
 module I = Stdlib_upstream_compatible.Int64_u
 
+module F = Stdlib_upstream_compatible.Float_u
+
 let of_int seed = { seed = I.of_int seed; odd_gamma = #0x9e37_79b9_7f4a_7c15L}
 
 let copy { seed; odd_gamma } = { seed; odd_gamma }
@@ -67,15 +69,13 @@ let perturb t salt =
 let bool (state @ local) = 
   I.equal (I.logand (next_int64 state) #1L) #0L
 
-(*let remainder_is_unbiased ~draw ~remainder ~draw_maximum ~remainder_maximum =
+let remainder_is_unbiased ~draw ~remainder ~draw_maximum ~remainder_maximum =
     I.compare (I.sub draw remainder) (I.sub draw_maximum remainder_maximum) <= 0
-*)
 
-(*
-let int64 =
+let int64u =
   let rec between state ~lo ~hi =
     let draw = next_int64 state in
-    if lo <= draw && draw <= hi then draw else between state ~lo ~hi
+    if I.compare lo draw <= 0 && I.compare draw hi <= 0 then draw else between state ~lo ~hi
   in
   let rec non_negative_up_to state maximum =
     let draw = I.logand (next_int64 state) (I.of_int64 Int64.max_value) in
@@ -88,13 +88,48 @@ let int64 =
     then remainder
     else non_negative_up_to state maximum
   in
-  fun state ~lo ~hi ->
+  fun (state @ local) ~lo ~hi ->
     if I.compare lo hi > 0
-    then Error.raise_s [%message "int64: crossed bounds" (lo : int64) (hi : int64)];
+    then Error.raise (Error.t_of_sexp (Sexplib0.Sexp.message "int64: crossed bounds" ["",Int64.sexp_of_t (I.to_int64 lo);"",Int64.sexp_of_t (I.to_int64 hi)] ));
+    let i64_max = I.of_int64 (Int64.max_value) in
     let diff = I.sub hi lo in
-    if diff = I.of_int64 (Int64.max_value)
-    then I.add (I.logand (next_int64 state) (Int64.max_value)) lo
-    else if diff >= 0L
-    then non_negative_up_to state diff + lo
+    if I.equal diff i64_max
+    then I.add (I.logand (next_int64 state) i64_max) lo
+    else if I.compare diff #0L >= 0
+    then I.add (non_negative_up_to state diff)lo
     else between state ~lo ~hi
-*)
+
+let double_ulp = 2. **. -53.
+
+(* TODO: fix this roundtrip through boxed float... *)
+let unit_floatu_from_int64u int64u = F.of_float (I.to_float (I.shift_right_logical int64u 11) *. double_ulp)
+
+let unit_floatu state = unit_floatu_from_int64u (next_int64 state)
+
+let floatu =
+  let rec finite_float state ~lo ~hi =
+    let range = F.sub hi lo in
+    if F.is_finite range
+    then F.add lo (F.mul (unit_floatu state) range)
+    else (
+      (* If [hi - lo] is infinite, then [hi + lo] is finite because [hi] and [lo] have
+         opposite signs. *)
+      let mid = F.div (F.add hi lo) #2. in
+      if bool state
+         (* Depending on rounding, the recursion with [~hi:mid] might be inclusive of [mid],
+         which would mean the two cases overlap on [mid]. The alternative is to increment
+         or decrement [mid] using [one_ulp] in either of the calls, but then if the first
+         case is exclusive we leave a "gap" between the two ranges. There's no perfectly
+         uniform solution, so we use the simpler code that does not call [one_ulp]. *)
+      then finite_float state ~lo ~hi:mid
+      else finite_float state ~lo:mid ~hi)
+  in
+  fun (state @ local) ~lo ~hi ->
+    if not (F.is_finite lo && F.is_finite hi) then
+      Error.raise (Error.t_of_sexp (Sexplib0.Sexp.message "float: bounds are not finite numbers" ["",Float.sexp_of_t (F.to_float lo);"",Float.sexp_of_t (F.to_float hi)] ));
+    if F.compare lo hi > 0 then
+      Error.raise (Error.t_of_sexp (Sexplib0.Sexp.message "float: bounds are crossed" ["",Float.sexp_of_t (F.to_float lo);"",Float.sexp_of_t (F.to_float hi)] ));
+    finite_float state ~lo ~hi
+;;
+
+
