@@ -28,7 +28,8 @@ let mix64_variant13 z =
 
 let mix_odd_gamma z =
   let z = I.logor (mix64_variant13 z) #1L in
-  let n = Utils.popcount (I.to_int64 (I.logxor z (I.shift_right_logical z 1))) in
+  (* TODO use immediate popcount here... ocaml intrinsics isn't building on arm64. *)
+  let n = Core.Int64.popcount (I.to_int64 (I.logxor z (I.shift_right_logical z 1))) in
   if n < 24 then I.logxor z #0xaaaa_aaaa_aaaa_aaaaL else z
 
 let next_seed t =
