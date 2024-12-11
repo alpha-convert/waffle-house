@@ -19,7 +19,7 @@
  (name handwritten)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml)
+ (depends ocaml unboxed_splitmix)
  (tags
   ("add topics" "to describe" your project)))
 

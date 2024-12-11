@@ -36,11 +36,6 @@ module BQ = struct
       let xs = gen_list_bool_faster ~size:(size - 1) ~random in
       x::xs
 
-  let rec gen_list_bool_faster_det  ~size ~random  = 
-    let n = size in
-    if n <= 0 then []
-    else false::(gen_list_bool_faster ~size:(size - 1) ~random)
-
   let[@tail_mod_cons] rec gen_list_bool_trmc ~(size @ local) ~random  = 
     let n = size in
     if n <= 0 then []
@@ -59,15 +54,22 @@ module BQ = struct
 end
 
 module JoeSplitmix = struct
+  let[@tail_mod_cons] rec gen_list_bool_faster ~(size @ local) ~(random @ local)  = 
+    if size <= 0 then []
+    else 
+      let x = Unboxed_splitmix.bool random in
+      x::(gen_list_bool_faster ~size:(size - 1) ~random)
+
   let rec gen_list_bool_imp ~size ~random  = 
     let n = ref size in
     let acc = ref [] in
     while !n > 0 do
-      acc := (Splitmix.bool random)::!acc;
+      acc := (Unboxed_splitmix.bool random)::!acc;
       decr n
     done;
     !acc
-end
+
+  end
 
 module QC = struct
   let gen_list_bool n =
@@ -142,10 +144,16 @@ let () = Bench.bench
     let g = QC.gen_list_bool n in
     fun () -> (QCheck2.Gen.generate1 g)
   );
+  Bench.Test.create_indexed ~name:"sm-gen-list-faster" ~args:sizes (
+    fun n -> Staged.stage @@ 
+    let u = Random.State.make_self_init () in
+    let s = Unboxed_splitmix.of_int (Random.State.int u Int.max_value) in
+    fun () -> (JoeSplitmix.gen_list_bool_faster ~size:n ~random:s)
+  );
   Bench.Test.create_indexed ~name:"sm-gen-list-imp" ~args:sizes (
     fun n -> Staged.stage @@ 
     let u = Random.State.make_self_init () in
-    let s = Splitmix.of_int (Random.State.int64_incl u Int64.min_value Int64.max_value) in
+    let s = Unboxed_splitmix.of_int (Random.State.int u Int.max_value) in
     fun () -> (JoeSplitmix.gen_list_bool_imp ~size:n ~random:s)
   );
 ]
