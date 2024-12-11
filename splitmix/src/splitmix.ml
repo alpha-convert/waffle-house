@@ -1,10 +1,14 @@
+(*
+This is a direct port of the Jane Street Splittable_random, using unboxed types instead of boxed ones.
+When we're generating lots of random data in a tight loop, the unboxed int64 arithmetic here makes a big difference!
+*)
+
 open Core
-(* type state *)
+module I = Stdlib_upstream_compatible.Int64_u
+module F = Stdlib_upstream_compatible.Float_u
+
 type t = { mutable seed : int64#; odd_gamma : int64# }
 
-module I = Stdlib_upstream_compatible.Int64_u
-
-module F = Stdlib_upstream_compatible.Float_u
 
 let of_int seed = { seed = I.of_int seed; odd_gamma = #0x9e37_79b9_7f4a_7c15L}
 
