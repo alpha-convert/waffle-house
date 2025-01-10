@@ -12,10 +12,12 @@
   crowbarBespoke
   baseType
   baseBespoke
+  baseSinglePass
+  stagedBespoke
   staged
   nat
   display)
- (libraries qcheck crowbar util core core_bench)
+ (libraries qcheck sexplib base crowbar util core core_bench)
  (preprocess
   (pps ppx_jane ppx_stage.ppx ppx_jane ppx_bench)))
 

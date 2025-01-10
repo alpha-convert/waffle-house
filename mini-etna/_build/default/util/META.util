@@ -1,0 +1,27 @@
+description = ""
+requires =
+"base
+ base_quickcheck
+ bin_prot
+ core
+ crowbar
+ fieldslib
+ ppx_assert.runtime-lib
+ ppx_bench.runtime-lib
+ ppx_compare.runtime-lib
+ ppx_enumerate.runtime-lib
+ ppx_expect.collector
+ ppx_expect.config
+ ppx_hash.runtime-lib
+ ppx_here.runtime-lib
+ ppx_inline_test.runtime-lib
+ ppx_module_timer.runtime
+ ppx_sexp_conv.runtime-lib
+ qcheck
+ typerep
+ unix
+ variantslib"
+archive(byte) = "util.cma"
+archive(native) = "util.cmxa"
+plugin(byte) = "util.cma"
+plugin(native) = "util.cmxs"
