@@ -1,0 +1,6 @@
+(executable
+ (public_name BST)
+ (name main)
+ (modules main) ; List all required modules here
+ (libraries base base_quickcheck BST)
+ (flags (:standard -w -32)))
