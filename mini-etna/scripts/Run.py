@@ -19,11 +19,11 @@ def run_tests():
     prepare_output_directory(output_directory)
 
     # List of strategies
-    strategies = ["bespoke", "type", "staged"]
+    strategies = ["bespoke", "type", "staged", "single", "max"]
 
     # List of properties
     properties = [
-        "prop_InsertValid",
+        # "prop_InsertValid",
         # "prop_DeleteValid",
         # "prop_UnionValid",
         "prop_InsertPost",
@@ -32,7 +32,7 @@ def run_tests():
         # "prop_InsertModel",
         # "prop_DeleteModel",
         # "prop_UnionModel",
-        "prop_InsertInsert",
+        # "prop_InsertInsert",
         # "prop_InsertDelete",
         # "prop_InsertUnion",
         # "prop_DeleteInsert",
