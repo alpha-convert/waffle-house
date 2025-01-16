@@ -1,4 +1,10 @@
 (library
-  (preprocess (pps ppx_stage.ppx ppx_jane ppx_bench))
- (libraries base_quickcheck core_bench splittable_random core )
+  (preprocess (pps ppx_stage.ppx ppx_jane ppx_bench ppxlib.metaquot))
+ (libraries base_quickcheck core_bench splittable_random core ppxlib)
+ (modules
+  impl
+  baseType
+  baseBespoke
+  baseTypeStaged
+  nat)
  (name fast_gen))
