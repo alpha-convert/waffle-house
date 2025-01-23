@@ -1,0 +1,61 @@
+# General build and temporary files
+_build/
+build/
+dist/
+out/
+*.o
+*.obj
+*.so
+*.dll
+*.exe
+*.log
+*.tmp
+*.cache
+*.bak
+*.swp
+
+# OCaml-specific files and directories
+*.cmx
+*.cmo
+*.cmi
+*.cmxa
+*.cmxs
+*.mli~
+*.annot
+*.byte
+*.native
+*.merlin
+ocamlbuild.*
+*.install
+dune-workspace
+dune-project
+*.dune
+_dune/
+*.opam
+.opam-switch/
+
+# Python-specific files and directories
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.ipynb_checkpoints/
+.venv/
+.env/
+pip-log.txt
+pip-delete-this-directory.txt
+pyvenv.cfg
+*.egg-info/
+.eggs/
+
+# Virtual environment directories
+env/
+venv/
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# IDE and editor-specific files
+.idea/
+.vscode/
+*.iml
