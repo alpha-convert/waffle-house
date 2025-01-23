@@ -1,5 +1,0 @@
-{
-    "prop_DeleteDelete_type.txt": 1.6552867195257142,
-    "prop_DeleteDelete_type_staged.txt": 0.627771778725454,
-    "prop_DeleteDelete_bespoke.txt": 0.00030415064490969996
-}
