@@ -1,0 +1,8 @@
+lib: [
+  "_build/install/default/lib/RBT/META"
+  "_build/install/default/lib/RBT/dune-package"
+  "_build/install/default/lib/RBT/opam"
+]
+bin: [
+  "_build/install/default/bin/RBT"
+]

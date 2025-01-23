@@ -19,35 +19,27 @@ def run_tests():
     prepare_output_directory(output_directory)
 
     # List of strategies
-    strategies = ["bespoke", "type", "staged", "single", "max"]
+    strategies = ["bespoke", "type", "type_staged"]
 
     # List of properties
     properties = [
         # "prop_InsertValid",
         # "prop_DeleteValid",
-        # "prop_UnionValid",
-        "prop_InsertPost",
+        # "prop_InsertPost",
         # "prop_DeletePost",
-        # "prop_UnionPost",
         # "prop_InsertModel",
         # "prop_DeleteModel",
-        # "prop_UnionModel",
         # "prop_InsertInsert",
         # "prop_InsertDelete",
-        # "prop_InsertUnion",
         # "prop_DeleteInsert",
-        # "prop_DeleteDelete",
-        # "prop_DeleteUnion",
-        # "prop_UnionDeleteInsert",
-        # "prop_UnionUnionIdem",
-        # "prop_UnionUnionAssoc",
+        "prop_DeleteDelete",
     ]
 
     # Run tests for each property and strategy
     for property_name in properties:
         for strategy in strategies:
             output_file = os.path.join(output_directory, f"{property_name}_{strategy}.txt")
-            command = ["dune", "exec", "BST", "--", "base", property_name, strategy, output_file]
+            command = ["dune", "exec", "RBT", "--", "base", property_name, strategy, output_file]
 
             print(f"Running: {' '.join(command)}")
 

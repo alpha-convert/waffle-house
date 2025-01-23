@@ -1,0 +1,20 @@
+(include_subdirs unqualified)
+
+(library
+ (name RBT)
+ (modules
+  impl
+  spec
+  test
+  qcheckType
+  qcheckBespoke
+  crowbarType
+  crowbarBespoke
+  baseType
+  baseBespoke
+  baseTypeStaged
+  nat
+  display)
+ (libraries qcheck crowbar util core)
+ (preprocess
+  (pps ppx_jane)))

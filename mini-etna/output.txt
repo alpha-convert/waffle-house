@@ -1,7 +1,5 @@
 {
-    "prop_InsertPost_bespoke.txt": 0.0028460025787353516,
-    "prop_InsertPost_staged.txt": 0.017416954040527344,
-    "prop_InsertPost_single.txt": 0.005409955978393555,
-    "prop_InsertPost_type.txt": 0.0015001296997070312,
-    "prop_InsertPost_max.txt": 0.004553079605102539
+    "prop_DeleteDelete_type.txt": 44.77425789833069,
+    "prop_DeleteDelete_type_staged.txt": 7.902299165725708,
+    "prop_DeleteDelete_bespoke.txt": 0.0034830570220947266
 }
