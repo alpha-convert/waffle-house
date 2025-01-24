@@ -1,10 +1,52 @@
 open Core
 open Fast_gen
+(* 
 open BaseType
 open BaseBespoke
 open BaseTypeStaged
 open Core_bench;;
+open Impl *)
+open Stage
+open Small
 
+(* Helper functions to calculate tree size and depth *)
+let rec tree_size = function
+  | Impl.E -> 0
+  | Impl.T (_, left, _, _, right) -> 1 + tree_size left + tree_size right
+
+let rec tree_depth = function
+  | Impl.E -> 0
+  | Impl.T (_, left, _, _, right) -> 1 + Int.max (tree_depth left) (tree_depth right)
+
+(* Generate and print trees for a given size and seed *)
+let compare_and_print_trees ~size ~seed =
+  let random_state = Splittable_random.State.of_int seed in
+  let list_base_type =
+    Base_quickcheck.Generator.generate
+      Small.quickcheck_generator
+      ~size
+      ~random:random_state
+  in
+  let random_state = Splittable_random.State.of_int seed in
+  let list_base_type_staged =
+    Base_quickcheck.Generator.generate
+      Stage.quickcheck_generator
+      ~size
+      ~random:random_state
+  in
+  printf "Seed: %d, Size: %d\n" seed size;
+  printf "BaseType:\n%s\n" (Sexp.to_string_hum ([%sexp_of: Custom.custom_list] list_base_type));
+  printf "BaseTypeStaged:\n%s\n\n" (Sexp.to_string_hum ([%sexp_of: Custom.custom_list] list_base_type_staged))
+
+(* Main function *)
+let () =
+  let sizes = [10] in (* Test sizes *)
+  let seeds = [42; 123; 67; 144; 7] in (* Deterministic seeds *)
+
+  List.iter sizes ~f:(fun size ->
+      List.iter seeds ~f:(fun seed ->
+          compare_and_print_trees ~size ~seed))
+(*
 (* Helper functions to calculate tree size and depth *)
 let rec tree_size = function
   | Impl.E -> 0
@@ -61,3 +103,4 @@ let () =
         fun n -> Staged.stage @@ fun () -> Quickcheck.random_value ~seed:`Nondeterministic ~size:n BaseTypeStaged.quickcheck_generator
       );
     ]
+*)

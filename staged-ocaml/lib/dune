@@ -6,5 +6,9 @@
   baseType
   baseBespoke
   baseTypeStaged
-  nat)
+  nat
+  small
+  stage
+  custom
+  )
  (name fast_gen))
