@@ -45,6 +45,7 @@ let () =
   List.iter sizes ~f:(fun size ->
       List.iter seeds ~f:(fun seed ->
           compare_and_print_trees ~size ~seed))
+
 (*
 (* Helper functions to calculate tree size and depth *)
 let rec tree_size = function
