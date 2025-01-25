@@ -1,4 +1,5 @@
 open Impl
+open Core
 
 module BaseTypeStaged : Base_quickcheck.Test.S with type t = rbt = struct
   type t = rbt [@@deriving sexp, quickcheck]
@@ -31,26 +32,43 @@ module BaseTypeStaged : Base_quickcheck.Test.S with type t = rbt = struct
                                        ~size:_size__026_
                                        ~random:_random__027_),
                                     (Base_quickcheck.Generator.generate
-                                       Nat.quickcheck_generator
+                                       Core.Int.quickcheck_generator
                                        ~size:_size__026_
                                        ~random:_random__027_),
                                     (Base_quickcheck.Generator.generate
-                                       Nat.quickcheck_generator
+                                       Core.Int.quickcheck_generator
                                        ~size:_size__026_
                                        ~random:_random__027_),
                                     (Base_quickcheck.Generator.generate
                                        quickcheck_generator_tree
                                        ~size:_size__026_
                                        ~random:_random__027_))))))) in
-         let _gen__022_ =
-           Base_quickcheck.Generator.weighted_union [_pair__024_]
-         and _gen__023_ =
+        let rng = Base_quickcheck.Generator.create (
+          fun ~size:_size_0__11_ ->
+            fun ~random:_random__012_ ->
+              Splittable_random.float _random__012_ ~lo:0. ~hi:0.2) in
+         let _, _gen__022_ = _pair__024_ in
+         let _, _gen__020_ = _pair__025_ in
+         let _gen__023_ =
+          Base_quickcheck.Generator.create (fun ~size ~random ->
+            let float_value =
+              Base_quickcheck.Generator.generate rng ~size ~random
+            in
+            if Float.(>=) float_value 0.1 then
+              Base_quickcheck.Generator.generate _gen__020_ ~size ~random
+            else
+              Base_quickcheck.Generator.generate _gen__022_ ~size ~random
+              )
+(*
            Base_quickcheck.Generator.weighted_union
-             [_pair__024_; _pair__025_] in
-         Base_quickcheck.Generator.bind Base_quickcheck.Generator.size
-           ~f:(function | 0 -> _gen__022_ | _ -> _gen__023_)) in
+             [_pair__024_; _pair__025_]
+*)       in
+        Base_quickcheck.Generator.create (fun ~size ~random ->
+            match size with
+            | 0 -> Base_quickcheck.Generator.generate _gen__022_ ~size ~random
+            | _ -> Base_quickcheck.Generator.generate _gen__023_ ~size ~random
+          )) in
     Base_quickcheck.Generator.of_lazy quickcheck_generator_tree
-
 (*
     let quickcheck_generator =
       let rec quickcheck_generator =

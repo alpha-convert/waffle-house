@@ -1,11 +1,10 @@
 open Core
 open Fast_gen
-(* 
 open BaseType
 open BaseBespoke
 open BaseTypeStaged
 open Core_bench;;
-open Impl *)
+open Impl
 open Stage
 open Small
 
@@ -23,25 +22,25 @@ let compare_and_print_trees ~size ~seed =
   let random_state = Splittable_random.State.of_int seed in
   let list_base_type =
     Base_quickcheck.Generator.generate
-      Small.quickcheck_generator
+      BaseType.quickcheck_generator
       ~size
       ~random:random_state
   in
   let random_state = Splittable_random.State.of_int seed in
   let list_base_type_staged =
     Base_quickcheck.Generator.generate
-      Stage.quickcheck_generator
+      BaseTypeStaged.quickcheck_generator
       ~size
       ~random:random_state
   in
   printf "Seed: %d, Size: %d\n" seed size;
-  printf "BaseType:\n%s\n" (Sexp.to_string_hum ([%sexp_of: Custom.custom_list] list_base_type));
-  printf "BaseTypeStaged:\n%s\n\n" (Sexp.to_string_hum ([%sexp_of: Custom.custom_list] list_base_type_staged))
+  printf "BaseType:\n%s\n" (Sexp.to_string_hum ([%sexp_of: Impl.rbt] list_base_type));
+  printf "BaseTypeStaged:\n%s\n\n" (Sexp.to_string_hum ([%sexp_of: Impl.rbt] list_base_type_staged))
 
 (* Main function *)
 let () =
   let sizes = [10] in (* Test sizes *)
-  let seeds = [42; 123; 67; 144; 7] in (* Deterministic seeds *)
+  let seeds = [42; 123; 67; 144; 7; 13; 234248; 1410421; 023923; 34740; 33; 78; 99; 00; 432; 1; 2; 3; 4; 5; 6; -148237557032047; 834234102] in (* Deterministic seeds *)
 
   List.iter sizes ~f:(fun size ->
       List.iter seeds ~f:(fun seed ->
