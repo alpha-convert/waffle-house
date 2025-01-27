@@ -19,18 +19,15 @@ module BaseTypeStaged : Base_quickcheck.Test.S with type t = rbt = struct
                  (fun ~size:_size__026_ ->
                     fun ~random:_random__027_ ->
                       T
-                        ((Base_quickcheck.Generator.generate
-                            quickcheck_generator_color
-                            ~size:_size__026_
-                            ~random:_random__027_),
+                        ((if Splittable_random.bool random then Impl.R else Impl.B),
                          (Base_quickcheck.Generator.generate
                             quickcheck_generator_tree
                             ~size:_size__026_
                             ~random:_random__027_),
-                            ((Splittable_random.int random
-                               ~lo:Int.min_value ~hi:Int.max_value) mod 128),
-                            ((Splittable_random.int random
-                               ~lo:Int.min_value ~hi:Int.max_value) mod 128),
+                        ((Splittable_random.int random
+                            ~lo:Int.min_value ~hi:Int.max_value) mod 128),
+                        ((Splittable_random.int random
+                            ~lo:Int.min_value ~hi:Int.max_value) mod 128),
                          (Base_quickcheck.Generator.generate
                             quickcheck_generator_tree
                             ~size:_size__026_

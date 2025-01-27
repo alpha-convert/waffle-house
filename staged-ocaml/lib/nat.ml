@@ -1,4 +1,4 @@
-include Core.Int
+include Core
 
 (* Define the type of natural numbers as an alias for Core.Int.t *)
 type t = Core.Int.t [@@deriving sexp, quickcheck]
@@ -23,7 +23,7 @@ let quickcheck_generator =
 let quickcheck_generator =
   Base_quickcheck.Generator.bind
     (Base_quickcheck.Generator.create (fun ~size:_ ~random ->
-       Splittable_random.int random ~lo:min_int ~hi:max_int))
+       Splittable_random.int random ~lo:Int.min_value ~hi:Int.max_value))
     (fun number ->
       Base_quickcheck.Generator.return (number mod 128))
 
