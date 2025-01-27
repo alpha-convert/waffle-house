@@ -12,12 +12,20 @@ let quickcheck_generator =
   )
 *)
 
+(*
 let quickcheck_generator =
   Base_quickcheck.Generator.create (fun ~size:_ ~random ->
     let number = Splittable_random.int random ~lo:0 ~hi:127 in
     number
   )
+*)
 
+let quickcheck_generator =
+  Base_quickcheck.Generator.bind
+    (Base_quickcheck.Generator.create (fun ~size:_ ~random ->
+       Splittable_random.int random ~lo:min_int ~hi:max_int))
+    (fun number ->
+      Base_quickcheck.Generator.return (number mod 128))
 
 (* QuickCheck shrinker: no shrinking logic for simplicity *)
 let quickcheck_shrinker =
