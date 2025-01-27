@@ -31,12 +31,16 @@ module BaseTypeStaged : Base_quickcheck.Test.S with type t = rbt = struct
                                   quickcheck_generator_tree
                                   ~size:_size__026_
                                   ~random:_random__027_),
-                               (Base_quickcheck.Generator.generate
-                                  Core.Int.quickcheck_generator
+                                (Base_quickcheck.Generator.generate
+                                  (Base_quickcheck.Generator.create
+                                     (fun ~size:_size__026_ ~random:_random__027_ ->
+                                        Splittable_random.int _random__027_ ~lo:0 ~hi:127))
                                   ~size:_size__026_
                                   ~random:_random__027_),
-                               (Base_quickcheck.Generator.generate
-                                  Core.Int.quickcheck_generator
+                                (Base_quickcheck.Generator.generate
+                                  (Base_quickcheck.Generator.create
+                                     (fun ~size:_size__026_ ~random:_random__027_ ->
+                                        Splittable_random.int _random__027_ ~lo:0 ~hi:127))
                                   ~size:_size__026_
                                   ~random:_random__027_),
                                (Base_quickcheck.Generator.generate

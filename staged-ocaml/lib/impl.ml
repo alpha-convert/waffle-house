@@ -6,7 +6,7 @@ let return x = Some x
 
 type color = R | B [@@deriving sexp, quickcheck]
 
-type tree = E | T of color *  tree * Core.Int.t * Core.Int.t * tree
+type tree = E | T of color *  tree * Nat.t * Nat.t * tree
 [@@deriving sexp, quickcheck]
 
 type key = int

@@ -13,8 +13,10 @@ let quickcheck_generator =
 *)
 
 let quickcheck_generator =
-  let open Base_quickcheck.Generator in
-  int >>= fun i -> return (i mod 128)
+  Base_quickcheck.Generator.create (fun ~size:_ ~random ->
+    let number = Splittable_random.int random ~lo:0 ~hi:127 in
+    number
+  )
 
 
 (* QuickCheck shrinker: no shrinking logic for simplicity *)
