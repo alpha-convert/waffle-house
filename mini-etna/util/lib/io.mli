@@ -8,7 +8,6 @@ val bmain :
   unit
 
 val main :
-  string ->
   (string * 'a Runner.property) list ->
   (string * 'a QCheck.arbitrary) list ->
   (string * 'a Crowbar.gen) list ->
@@ -16,7 +15,6 @@ val main :
   unit
 
 val etna :
-  string ->
   (string * 'a Runner.property) list ->
   (string * 'a QCheck.arbitrary) list ->
   (string * 'a Crowbar.gen) list ->

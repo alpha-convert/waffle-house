@@ -24,7 +24,7 @@ let quickcheck_generator =
   Base_quickcheck.Generator.bind
     (Base_quickcheck.Generator.create (fun ~size:_ ~random ->
        Splittable_random.int random ~lo:Int.min_value ~hi:Int.max_value))
-    (fun number ->
+    ~f:(fun number ->
       Base_quickcheck.Generator.return (number mod 128))
 
 (* QuickCheck shrinker: no shrinking logic for simplicity *)

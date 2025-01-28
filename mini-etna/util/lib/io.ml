@@ -55,10 +55,8 @@ let fmain t ts s ss =
     | None, _ -> Printf.printf "Test %s not found\n" t
     | _, None -> Printf.printf "Strategy %s not found\n" s
     | Some t', Some s' ->
-        Printf.fprintf oc "[%f start]\n" (Unix.gettimeofday ());
+        Printf.fprintf oc "[%f start %s]\n" (Unix.gettimeofday ()) seed;
         flush oc;
-        Printf.printf "Using seed: %s\n" seed;
-        Printf.fprintf oc "Using seed: %s\n" seed;
         brun t' s' seed
   
 (* piping helper functions *)
@@ -176,7 +174,8 @@ let afl_fork framework test strat filename : unit =
             Unix.kill pid' Sys.sigterm;
             let endtime = Unix.gettimeofday () in
             match status with
-            | Unix.WEXITED c -> Printf.fprintf oc "[%f exit %i]\n" endtime c
+            | Unix.WEXITED c -> 
+              Printf.fprintf oc "[%f exit %i]\n" endtime c
             | Unix.WSIGNALED c when c = Sys.sigalrm ->
                 Printf.fprintf oc "[%f exit timeout]\n" endtime
             | _ -> Printf.fprintf oc "[%f exit unexpected]\n" endtime))
@@ -192,7 +191,7 @@ let base_fork seed t ts s ss = _simple_fork (fun oc ->
    or
    dune exec BST -- crowbar prop_InsertPost crowbarType out2.txt
 *)
-let main (seed : string) (props : (string * 'a property) list)
+let main (props : (string * 'a property) list)
     (qstrats : (string * 'a arbitrary) list) (cstrats : (string * 'a gen) list)
     (bstrats : (string * 'a basegen) list) : unit =
   if Array.length Sys.argv < 5 then
@@ -208,6 +207,7 @@ let main (seed : string) (props : (string * 'a property) list)
     let testname = Sys.argv.(2) in
     let strategy = Sys.argv.(3) in
     let filename = Sys.argv.(4) in
+    let seed = Sys.argv.(5) in
     Printf.printf
       "Executing test %s into file %s using strategy %s on framework %s\n"
       testname filename strategy framework;

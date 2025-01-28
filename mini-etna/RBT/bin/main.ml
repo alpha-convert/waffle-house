@@ -68,4 +68,5 @@ let cstrategies : (string * rbt gen) list =
 let bstrategies : (string * rbt basegen) list =
   [ ("type", (module BaseType)); ("bespoke", (module BaseBespoke)); ("type_staged", (module BaseTypeStaged))]
 
-let () = main "random" properties qstrategies cstrategies bstrategies
+let () =
+  main properties qstrategies cstrategies bstrategies

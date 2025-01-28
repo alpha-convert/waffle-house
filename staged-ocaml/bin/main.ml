@@ -8,7 +8,7 @@ open Impl
 open Stage
 open Small
 
-(* Helper functions to calculate tree size and depth *)
+(* Helper functions to calculate tree size and depth
 let rec tree_size = function
   | Impl.E -> 0
   | Impl.T (_, left, _, _, right) -> 1 + tree_size left + tree_size right
@@ -45,7 +45,7 @@ let () =
   List.iter sizes ~f:(fun size ->
       List.iter seeds ~f:(fun seed ->
           compare_and_print_trees ~size ~seed))
-
+ *)
 (* Helper functions to calculate tree size and depth *)
 let rec tree_size = function
   | Impl.E -> 0
@@ -55,7 +55,7 @@ let rec tree_depth = function
   | Impl.E -> 0
   | Impl.T (_, left, _, _, right) -> 1 + Int.max (tree_depth left) (tree_depth right)
 
-(* Benchmark with size and depth measurements
+(* Benchmark with size and depth measurements *)
 let measure_tree_properties ~generator ~size ~trials =
   let results =
     List.init trials ~f:(fun _ ->
@@ -102,4 +102,3 @@ let () =
         fun n -> Staged.stage @@ fun () -> Quickcheck.random_value ~seed:`Nondeterministic ~size:n BaseTypeStaged.quickcheck_generator
       );
     ]
-*)
