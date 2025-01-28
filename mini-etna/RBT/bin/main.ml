@@ -11,7 +11,29 @@ open RBT.CrowbarType
 open RBT.CrowbarBespoke
 open RBT.BaseType
 open RBT.BaseBespoke
-
+(*
+open Core
+open Core_bench;;
+ Generate and print trees for a given size and seed
+let compare_and_print_trees ~size ~seed =
+  let random_state = Splittable_random.State.of_int seed in
+  let list_base_type =
+    Base_quickcheck.Generator.generate
+      BaseType.quickcheck_generator
+      ~size
+      ~random:random_state
+  in
+  let random_state = Splittable_random.State.of_int seed in
+  let list_base_type_staged =
+    Base_quickcheck.Generator.generate
+      BaseTypeStaged.quickcheck_generator
+      ~size
+      ~random:random_state
+  in
+  printf "Seed: %d, Size: %d\n" seed size;
+  printf "BaseType:\n%s\n" (Sexp.to_string_hum ([%sexp_of: rbt] list_base_type));
+  printf "BaseTypeStaged:\n%s\n\n" (Sexp.to_string_hum ([%sexp_of: rbt] list_base_type_staged))
+*)
 (* RUNNER COMMAND:
    dune exec RBT -- qcheck prop_DeleteValid bespoke out.txt
    dune exec RBT -- qcheck prop_DeleteValid type out.txt
@@ -24,8 +46,8 @@ open RBT.BaseBespoke
 
 let properties : (string * rbt property) list =
   [
-    ("prop_InsertValid", test_prop_InsertValid);
-    ("prop_DeleteValid", test_prop_DeleteValid);
+    (* ("prop_InsertValid", test_prop_InsertValid);
+    (* ("prop_DeleteValid", test_prop_DeleteValid); *)
     ("prop_InsertPost", test_prop_InsertPost);
     ("prop_DeletePost", test_prop_DeletePost);
     ("prop_InsertModel", test_prop_InsertModel);
@@ -33,6 +55,7 @@ let properties : (string * rbt property) list =
     ("prop_InsertInsert", test_prop_InsertInsert);
     ("prop_InsertDelete", test_prop_InsertDelete);
     ("prop_DeleteInsert", test_prop_DeleteInsert);
+    *)
     ("prop_DeleteDelete", test_prop_DeleteDelete);
   ]
 

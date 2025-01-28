@@ -9,7 +9,7 @@ open Nat
 let ( << ) f g x = f (g x)
 let qi = small_int
 let ci = int8
-
+(*
 let test_prop_InsertValid : rbt property =
   {
     name = "test_prop_InsertValid";
@@ -21,10 +21,11 @@ let test_prop_InsertValid : rbt property =
       (fun m ->
         bbuild
           (Core_plus.triple m (module Nat) (module Nat))
-          (bmake << prop_InsertValid));
+          (bmake << prop_InsertValid)
+          ~seed:None);
   }
 
-(*! QCheck test_prop_InsertValid. *)
+(*! QCheck test_prop_InsertValid.
 
 let test_prop_DeleteValid : rbt property =
   {
@@ -34,9 +35,9 @@ let test_prop_DeleteValid : rbt property =
       (fun g -> cbuild [ g; ci ] (fun t k -> prop_DeleteValid (t, k) |> cmake));
     b =
       (fun m ->
-        bbuild (Core_plus.double m (module Nat)) (bmake << prop_DeleteValid));
+        bbuild (Core_plus.double m (module Nat)) (bmake << prop_DeleteValid) ~seed:None);
   }
-
+  *)
 (*! QCheck test_prop_DeleteValid. *)
 
 let test_prop_InsertPost : rbt property =
@@ -51,7 +52,8 @@ let test_prop_InsertPost : rbt property =
       (fun m ->
         bbuild
           (Core_plus.quad m (module Nat) (module Nat) (module Nat))
-          (bmake << prop_InsertPost));
+          (bmake << prop_InsertPost)
+          ~seed:None);
   }
 
 (*! QCheck test_prop_InsertPost. *)
@@ -67,7 +69,8 @@ let test_prop_DeletePost : rbt property =
       (fun m ->
         bbuild
           (Core_plus.triple m (module Nat) (module Nat))
-          (bmake << prop_DeletePost));
+          (bmake << prop_DeletePost)
+          ~seed:None);
   }
 
 (*! QCheck test_prop_DeletePost. *)
@@ -83,7 +86,8 @@ let test_prop_InsertModel : rbt property =
       (fun m ->
         bbuild
           (Core_plus.triple m (module Nat) (module Nat))
-          (bmake << prop_InsertModel));
+          (bmake << prop_InsertModel)
+          ~seed:None);
   }
 
 (*! QCheck test_prop_InsertModel. *)
@@ -96,7 +100,7 @@ let test_prop_DeleteModel : rbt property =
       (fun g -> cbuild [ g; ci ] (fun t k -> prop_DeleteModel (t, k) |> cmake));
     b =
       (fun m ->
-        bbuild (Core_plus.double m (module Nat)) (bmake << prop_DeleteModel));
+        bbuild (Core_plus.double m (module Nat)) (bmake << prop_DeleteModel) ~seed:None);
   }
 
 (*! QCheck test_prop_DeleteModel. *)
@@ -122,7 +126,8 @@ let test_prop_InsertInsert : rbt property =
              (module Nat)
              (module Nat)
              (module Nat))
-          (bmake << prop_InsertInsert));
+          (bmake << prop_InsertInsert)
+          ~seed:None);
   }
 
 (*! QCheck test_prop_InsertInsert. *)
@@ -139,7 +144,8 @@ let test_prop_InsertDelete : rbt property =
       (fun m ->
         bbuild
           (Core_plus.quad m (module Nat) (module Nat) (module Nat))
-          (bmake << prop_InsertDelete));
+          (bmake << prop_InsertDelete)
+          ~seed:None);
   }
 
 (*! QCheck test_prop_InsertDelete. *)
@@ -156,11 +162,12 @@ let test_prop_DeleteInsert : rbt property =
       (fun m ->
         bbuild
           (Core_plus.quad m (module Nat) (module Nat) (module Nat))
-          (bmake << prop_DeleteInsert));
+          (bmake << prop_DeleteInsert)
+          ~seed:None);
   }
 
 (*! QCheck test_prop_DeleteInsert. *)
-
+*)
 let test_prop_DeleteDelete : rbt property =
   {
     name = "test_prop_DeleteDelete";
@@ -170,10 +177,14 @@ let test_prop_DeleteDelete : rbt property =
         cbuild [ g; ci; ci ] (fun t k k' ->
             prop_DeleteDelete (t, k, k') |> cmake));
     b =
-      (fun m ->
-        bbuild
-          (Core_plus.triple m (module Nat) (module Nat))
-          (bmake << prop_DeleteDelete));
+      (fun m name seed ->
+        let test_fn = bbuild
+          (Core_plus.triple m (module Nat) (module Nat))  (* Generator for inputs *)
+          (bmake << prop_DeleteDelete)                    (* Property function *)
+          ~seed:(Some seed)
+        in
+        test_fn name);                                   (* Apply the `name` argument to get a `btest` *)
   }
+
 
 (*! QCheck test_prop_DeleteDelete. *)

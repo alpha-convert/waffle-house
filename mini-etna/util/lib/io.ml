@@ -15,7 +15,7 @@ let qrun (p : 'a property) (g : 'a QCheck.arbitrary) (oc : out_channel) : unit =
   in ()
 
 let crun (p : 'a property) (g : 'a Crowbar.gen) : unit = p.c g p.name ()
-let brun (p : 'a property) (g : 'a basegen) : unit = p.b g p.name ()
+let brun (p : 'a property) (g : 'a basegen) (s : string) : unit = p.b g p.name s ()
 
 (* starting the execution for the various frameworks *)
 let qmain oc t ts s ss =
@@ -57,7 +57,7 @@ let bmain oc t ts s ss =
   | Some t', Some s' ->
       Printf.fprintf oc "[%f start]\n" (Unix.gettimeofday ());
       flush oc;
-      brun t' s'
+      brun t' s' "string"
 
 (* piping helper functions *)
 

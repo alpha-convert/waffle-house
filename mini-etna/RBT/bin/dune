@@ -1,4 +1,5 @@
 (executable
  (public_name RBT)
  (name main)
- (libraries RBT))
+ (preprocess (pps ppx_jane ppx_bench))
+ (libraries RBT base_quickcheck core_bench core))

@@ -19,7 +19,7 @@ type 'a property = {
   name : string;
   q : 'a QCheck.arbitrary -> string -> qtest;
   c : 'a Crowbar.gen -> string -> ctest;
-  b : 'a basegen -> string -> btest;
+  b : 'a basegen -> string -> string -> btest;
 }
 
 (* Functions for realizing preconditions *)
@@ -65,15 +65,21 @@ let _verbose res =
   if Core.is_ok res then print_endline "tests passed?"
   else print_endline "bug found!"
 
-let bbuild (g : 'b basegen) (f : 'b -> unit Base.Or_error.t) : string -> btest =
- fun _ () ->
-  Base_quickcheck.Test.run ~f g
-    ~config:
-      {
-        seed = Base_quickcheck.Test.Config.Seed.Nondeterministic;
-        test_count = Core.Int.max_value;
-        shrink_count = 0;
-        (* todo: we might need to alter the size ranges here *)
-        sizes = Base_quickcheck.Test.default_config.sizes;
-      }
-  |> _verbose
+let bbuild (g : 'b basegen) (f : 'b -> unit Base.Or_error.t) ?(seed : string option = None) : string -> btest =
+  fun _ () ->
+    let seed_config =
+      match seed with
+      | Some s when not (String.equal s "") -> Base_quickcheck.Test.Config.Seed.Deterministic s
+      | _ -> Base_quickcheck.Test.Config.Seed.Nondeterministic
+    in
+    Base_quickcheck.Test.run ~f g
+      ~config:
+        {
+          seed = seed_config;
+          test_count = Core.Int.max_value;
+          shrink_count = 0;
+          (* todo: we might need to alter the size ranges here *)
+          sizes = Base_quickcheck.Test.default_config.sizes;
+        }
+    |> _verbose
+  
