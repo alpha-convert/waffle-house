@@ -15,6 +15,17 @@ type rbt = tree [@@deriving sexp, quickcheck]
 
 let t c l k v r = T (c, l, k, v, r)
 
+let rec equal_rbt (t1 : rbt) (t2 : rbt) : bool =
+  match (t1, t2) with
+  | E, E -> true
+  | T (c1, l1, k1, v1, r1), T (c2, l2, k2, v2, r2) ->
+      k1 = k2
+      && v1 = v2
+      && equal_rbt l1 l2
+      && equal_rbt r1 r2
+      && c1 = c2
+  | _ -> false
+
 let blacken (t : rbt) : rbt =
   match t with E -> E | T (_, l, k, v, r) -> T (B, l, k, v, r)
 

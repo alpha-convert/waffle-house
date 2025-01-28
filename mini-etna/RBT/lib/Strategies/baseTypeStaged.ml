@@ -12,14 +12,15 @@ module BaseTypeStaged : Base_quickcheck.Test.S with type t = rbt = struct
          in
          Base_quickcheck.Generator.create (fun ~size ~random ->
            if size = 0 then
-             E
+            (if Float.(Splittable_random.float random ~lo:0. ~hi:0.1 >= 0.) then E else E)
            else
-             if Float.(>=) (Splittable_random.float random ~lo:0. ~hi:0.2) 0.1 then
+             let adjusted_size = Base.Int.pred size in
+             if Float.(Splittable_random.float random ~lo:0. ~hi:0.2 >= 0.1) then
                T (
-                 (if Float.(>=) (Splittable_random.float random ~lo:0. ~hi:0.2) 0.1 then Impl.B else Impl.R),
+                 (if Float.(Splittable_random.float random ~lo:0. ~hi:0.2 >= 0.1) then Impl.B else Impl.R),
                  (Base_quickcheck.Generator.generate
                     quickcheck_generator_tree
-                    ~size:(size - 1)
+                    ~size:adjusted_size
                     ~random),
                  ((Splittable_random.int random
                      ~lo:Int.min_value ~hi:Int.max_value) mod 128),
@@ -27,7 +28,7 @@ module BaseTypeStaged : Base_quickcheck.Test.S with type t = rbt = struct
                      ~lo:Int.min_value ~hi:Int.max_value) mod 128),
                  (Base_quickcheck.Generator.generate
                     quickcheck_generator_tree
-                    ~size:(size - 1)
+                    ~size:adjusted_size
                     ~random)
                )
              else
