@@ -16,7 +16,7 @@ module BaseTypeStaged : Base_quickcheck.Test.S with type t = rbt = struct
            else
              if Float.(>=) (Splittable_random.float random ~lo:0. ~hi:0.2) 0.1 then
                T (
-                 (if Splittable_random.bool random then Impl.R else Impl.B),
+                 (if Float.(>=) (Splittable_random.float random ~lo:0. ~hi:0.2) 0.1 then Impl.B else Impl.R),
                  (Base_quickcheck.Generator.generate
                     quickcheck_generator_tree
                     ~size:(size - 1)

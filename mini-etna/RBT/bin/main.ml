@@ -1,20 +1,23 @@
+(*
 open QCheck
 open Crowbar
 open Util.Runner
-open Util.Io
-open RBT.Impl
 open RBT.Test
 open RBT.QcheckType
-open RBT.BaseTypeStaged
 open RBT.QcheckBespoke
 open RBT.CrowbarType
 open RBT.CrowbarBespoke
-open RBT.BaseType
 open RBT.BaseBespoke
-(*
+open Util.Io
+*)
+
+open RBT.BaseType
+open RBT.BaseTypeStaged
+open RBT.Impl
+
+
 open Core
-open Core_bench;;
- Generate and print trees for a given size and seed
+
 let compare_and_print_trees ~size ~seed =
   let random_state = Splittable_random.State.of_int seed in
   let list_base_type =
@@ -33,7 +36,16 @@ let compare_and_print_trees ~size ~seed =
   printf "Seed: %d, Size: %d\n" seed size;
   printf "BaseType:\n%s\n" (Sexp.to_string_hum ([%sexp_of: rbt] list_base_type));
   printf "BaseTypeStaged:\n%s\n\n" (Sexp.to_string_hum ([%sexp_of: rbt] list_base_type_staged))
-*)
+
+(* Main function *)
+let () =
+  let sizes = [10] in (* Test sizes *)
+  let seeds = [42; 123; 67; 144; 7; 13; 234248; 1410421; 023923; 34740; 33; 78; 99; 00; 432; 1; 2; 3; 4; 5; 6; -148237557032047; 834234102] in (* Deterministic seeds *)
+
+  List.iter sizes ~f:(fun size ->
+      List.iter seeds ~f:(fun seed ->
+          compare_and_print_trees ~size ~seed))
+
 (* RUNNER COMMAND:
    dune exec RBT -- qcheck prop_DeleteValid bespoke out.txt
    dune exec RBT -- qcheck prop_DeleteValid type out.txt
@@ -42,7 +54,6 @@ let compare_and_print_trees ~size ~seed =
    dune exec RBT -- afl prop_DeleteValid bespoke out.txt
    dune exec RBT -- afl prop_DeleteValid type out.txt
    dune exec RBT -- base prop_DeleteValid type out
-*)
 
 let properties : (string * rbt property) list =
   [
@@ -70,3 +81,4 @@ let bstrategies : (string * rbt basegen) list =
 
 let () =
   main properties qstrategies cstrategies bstrategies
+*)

@@ -48,16 +48,16 @@ let fmain t ts s ss =
   | _, None -> Printf.printf "Strategy %s not found\n" s
   | Some t', Some s' -> crun t' s'
 
-  let bmain seed oc t ts s ss =
-    let t' = lookup ts t in
-    let s' = lookup ss s in
-    match (t', s') with
-    | None, _ -> Printf.printf "Test %s not found\n" t
-    | _, None -> Printf.printf "Strategy %s not found\n" s
-    | Some t', Some s' ->
-        Printf.fprintf oc "[%f start %s]\n" (Unix.gettimeofday ()) seed;
-        flush oc;
-        brun t' s' seed
+let bmain seed oc t ts s ss =
+  let t' = lookup ts t in
+  let s' = lookup ss s in
+  match (t', s') with
+  | None, _ -> Printf.printf "Test %s not found\n" t
+  | _, None -> Printf.printf "Strategy %s not found\n" s
+  | Some t', Some s' ->
+      Printf.fprintf oc "[%f start %s]\n" (Unix.gettimeofday ()) seed;
+      flush oc;
+      brun t' s' seed
   
 (* piping helper functions *)
 

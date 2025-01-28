@@ -168,6 +168,8 @@ let test_prop_DeleteInsert : rbt property =
 
 (*! QCheck test_prop_DeleteInsert. *)
 *)
+open Core 
+
 let test_prop_DeleteDelete : rbt property =
   {
     name = "test_prop_DeleteDelete";
@@ -178,13 +180,22 @@ let test_prop_DeleteDelete : rbt property =
             prop_DeleteDelete (t, k, k') |> cmake));
     b =
       (fun m name seed ->
-        let test_fn = bbuild
-          (Core_plus.triple m (module Nat) (module Nat))
-          (bmake << prop_DeleteDelete)                 
-          ~seed:(Some seed)
+        let test_fn =
+          bbuild
+            (Core_plus.triple m (module Nat) (module Nat))
+            (fun input ->
+              (* Print the generated input to the console *)
+              print_endline (Sexp.to_string_hum ([%sexp_of: rbt] (fst3 input)));
+              print_endline ("...");
+              (*
+              print_endline ("..." ^ string_of_int (snd3 input));
+              print_endline ("Key 2: " ^ string_of_int (trd3 input));
+              *)
+              (* Apply the test function *)
+              bmake (prop_DeleteDelete input))
+            ~seed:(Some seed)
         in
-        test_fn name);                                  
+        test_fn name);
   }
-
 
 (*! QCheck test_prop_DeleteDelete. *)

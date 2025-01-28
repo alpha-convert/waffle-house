@@ -76,10 +76,9 @@ let bbuild (g : 'b basegen) (f : 'b -> unit Base.Or_error.t) ?(seed : string opt
       ~config:
         {
           seed = seed_config;
-          test_count = Core.Int.max_value;
+          test_count = 10; (* Core.Int.max_value; *)
           shrink_count = 0;
-          (* todo: we might need to alter the size ranges here *)
-          sizes = Base_quickcheck.Test.default_config.sizes;
+          sizes = Base.Sequence.init 10 ~f:(fun _ -> 1000) (* Base_quickcheck.Test.default_config.sizes; *)
         }
     |> _verbose
   
