@@ -40,17 +40,17 @@ let rec cmake (t : test) : unit =
 let rec bmake (t : test) : unit Base.Or_error.t =
   match t with
   | Pre (true, post) ->
-      Printf.printf "Processing Pre-condition: true\n";
+      (* Printf.printf "Processing Pre-condition: true\n"; *)
       bmake post
   | Pre (false, _) ->
-      Printf.printf "Skipping test due to false pre-condition\n";
+      (* Printf.printf "Skipping test due to false pre-condition\n"; *)
       (* false precondition, we can skip test *)
       Ok ()
   | Post true ->
-      Printf.printf "Post-condition passed: true\n";
+      (* Printf.printf "Post-condition passed: true\n"; *)
       Ok ()
   | Post false ->
-      Printf.printf "Post-condition failed: false\n";
+      (* Printf.printf "Post-condition failed: false\n"; *)
       Error (Base.Error.of_string "fail")
 
 (* Helpers to build `'a property` types. Note that `'b` is the input to the property, INCLUDING the other parameters. *)

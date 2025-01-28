@@ -179,11 +179,11 @@ let test_prop_DeleteDelete : rbt property =
     b =
       (fun m name seed ->
         let test_fn = bbuild
-          (Core_plus.triple m (module Nat) (module Nat))  (* Generator for inputs *)
-          (bmake << prop_DeleteDelete)                    (* Property function *)
+          (Core_plus.triple m (module Nat) (module Nat))
+          (bmake << prop_DeleteDelete)                 
           ~seed:(Some seed)
         in
-        test_fn name);                                   (* Apply the `name` argument to get a `btest` *)
+        test_fn name);                                  
   }
 
 

@@ -48,17 +48,19 @@ let fmain t ts s ss =
   | _, None -> Printf.printf "Strategy %s not found\n" s
   | Some t', Some s' -> crun t' s'
 
-let bmain oc t ts s ss =
-  let t' = lookup ts t in
-  let s' = lookup ss s in
-  match (t', s') with
-  | None, _ -> Printf.printf "Test %s not found\n" t
-  | _, None -> Printf.printf "Strategy %s not found\n" s
-  | Some t', Some s' ->
-      Printf.fprintf oc "[%f start]\n" (Unix.gettimeofday ());
-      flush oc;
-      brun t' s' "string"
-
+  let bmain seed oc t ts s ss =
+    let t' = lookup ts t in
+    let s' = lookup ss s in
+    match (t', s') with
+    | None, _ -> Printf.printf "Test %s not found\n" t
+    | _, None -> Printf.printf "Strategy %s not found\n" s
+    | Some t', Some s' ->
+        Printf.fprintf oc "[%f start]\n" (Unix.gettimeofday ());
+        flush oc;
+        Printf.printf "Using seed: %s\n" seed;
+        Printf.fprintf oc "Using seed: %s\n" seed;
+        brun t' s' seed
+  
 (* piping helper functions *)
 
 let load_env () =
@@ -180,7 +182,8 @@ let afl_fork framework test strat filename : unit =
             | _ -> Printf.fprintf oc "[%f exit unexpected]\n" endtime))
   
 let qcheck_fork t ts s ss = _simple_fork (fun oc -> qmain oc t ts s ss)
-let base_fork t ts s ss = _simple_fork (fun oc -> bmain oc t ts s ss)
+let base_fork seed t ts s ss = _simple_fork (fun oc ->
+  bmain seed oc t ts s ss)
 
 (* Call format:
    dune exec <workload> -- <framework> <testname> <strategy> <filename>
@@ -189,7 +192,7 @@ let base_fork t ts s ss = _simple_fork (fun oc -> bmain oc t ts s ss)
    or
    dune exec BST -- crowbar prop_InsertPost crowbarType out2.txt
 *)
-let main (props : (string * 'a property) list)
+let main (seed : string) (props : (string * 'a property) list)
     (qstrats : (string * 'a arbitrary) list) (cstrats : (string * 'a gen) list)
     (bstrats : (string * 'a basegen) list) : unit =
   if Array.length Sys.argv < 5 then
@@ -221,7 +224,7 @@ let main (props : (string * 'a property) list)
         afl_fork framework testname strategy filename
     | "base" ->
         print_endline "Valid framework Base_quickcheck\n";
-        base_fork testname props strategy bstrats filename
+        base_fork seed testname props strategy bstrats filename
     | _ -> print_endline ("Framework " ^ framework ^ " was not found\n")
 
 let etna = main
