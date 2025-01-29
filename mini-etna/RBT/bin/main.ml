@@ -1,4 +1,4 @@
-(*
+
 open QCheck
 open Crowbar
 open Util.Runner
@@ -9,11 +9,12 @@ open RBT.CrowbarType
 open RBT.CrowbarBespoke
 open RBT.BaseBespoke
 open Util.Io
-*)
+
 
 open RBT.BaseType
 open RBT.BaseTypeStaged
 open RBT.Impl
+(*
 open Core
 
 (* Define a function to compare two rbts *)
@@ -55,7 +56,7 @@ let () =
   List.iter sizes ~f:(fun size ->
       List.iter seeds ~f:(fun seed ->
           compare_and_print_trees ~size ~seed))
-
+*)
 (* RUNNER COMMAND:
    dune exec RBT -- qcheck prop_DeleteValid bespoke out.txt
    dune exec RBT -- qcheck prop_DeleteValid type out.txt
@@ -64,7 +65,7 @@ let () =
    dune exec RBT -- afl prop_DeleteValid bespoke out.txt
    dune exec RBT -- afl prop_DeleteValid type out.txt
    dune exec RBT -- base prop_DeleteValid type out
-
+*)
 let properties : (string * rbt property) list =
   [
     (* ("prop_InsertValid", test_prop_InsertValid);
@@ -91,4 +92,3 @@ let bstrategies : (string * rbt basegen) list =
 
 let () =
   main properties qstrategies cstrategies bstrategies
-*)

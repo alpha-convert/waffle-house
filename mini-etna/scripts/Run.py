@@ -113,5 +113,5 @@ def run_tests(num_repeats):
     print(f"Results written to {results_file}")
 
 if __name__ == "__main__":
-    num_repeats = 30
+    num_repeats = 100
     run_tests(num_repeats)

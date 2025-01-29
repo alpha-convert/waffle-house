@@ -4,7 +4,7 @@ open Crowbar
 open Parse
 
 (* global timeout in seconds for test threads *)
-let timeout = ref 60
+let timeout = ref 1000
 
 (* super simple running of the tests *)
 let qrun (p : 'a property) (g : 'a QCheck.arbitrary) (oc : out_channel) : unit =
