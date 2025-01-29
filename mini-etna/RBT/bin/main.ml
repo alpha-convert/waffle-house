@@ -14,7 +14,6 @@ open Util.Io
 open RBT.BaseType
 open RBT.BaseTypeStaged
 open RBT.Impl
-(*
 open Core
 
 (* Define a function to compare two rbts *)
@@ -24,14 +23,14 @@ let compare_trees rbt1 rbt2 =
 
 (* Compare and print trees with a comparison result *)
 let compare_and_print_trees ~size ~seed =
-  let random_state = Splittable_random.State.of_int seed in
+  let random_state = Splittable_random.of_int seed in
   let list_base_type =
     Base_quickcheck.Generator.generate
       BaseType.quickcheck_generator
       ~size
       ~random:random_state
   in
-  let random_state = Splittable_random.State.of_int seed in
+  let random_state = Splittable_random.of_int seed in
   let list_base_type_staged =
     Base_quickcheck.Generator.generate
       BaseTypeStaged.quickcheck_generator
@@ -56,7 +55,7 @@ let () =
   List.iter sizes ~f:(fun size ->
       List.iter seeds ~f:(fun seed ->
           compare_and_print_trees ~size ~seed))
-*)
+
 (* RUNNER COMMAND:
    dune exec RBT -- qcheck prop_DeleteValid bespoke out.txt
    dune exec RBT -- qcheck prop_DeleteValid type out.txt
@@ -66,6 +65,7 @@ let () =
    dune exec RBT -- afl prop_DeleteValid type out.txt
    dune exec RBT -- base prop_DeleteValid type out
 *)
+(*
 let properties : (string * rbt property) list =
   [
     (* ("prop_InsertValid", test_prop_InsertValid);
@@ -92,3 +92,4 @@ let bstrategies : (string * rbt basegen) list =
 
 let () =
   main properties qstrategies cstrategies bstrategies
+  *)
