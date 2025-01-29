@@ -15,7 +15,7 @@ let qrun (p : 'a property) (g : 'a QCheck.arbitrary) (oc : out_channel) : unit =
   in ()
 
 let crun (p : 'a property) (g : 'a Crowbar.gen) : unit = p.c g p.name ()
-let brun (p : 'a property) (g : 'a basegen) : unit = p.b g p.name ()
+let brun (p : 'a property) (g : 'a basegen) (s : string) : unit = p.b g p.name s ()
 
 (* starting the execution for the various frameworks *)
 let qmain oc t ts s ss =
@@ -48,17 +48,17 @@ let fmain t ts s ss =
   | _, None -> Printf.printf "Strategy %s not found\n" s
   | Some t', Some s' -> crun t' s'
 
-let bmain oc t ts s ss =
+let bmain seed oc t ts s ss =
   let t' = lookup ts t in
   let s' = lookup ss s in
   match (t', s') with
   | None, _ -> Printf.printf "Test %s not found\n" t
   | _, None -> Printf.printf "Strategy %s not found\n" s
   | Some t', Some s' ->
-      Printf.fprintf oc "[%f start]\n" (Unix.gettimeofday ());
+      Printf.fprintf oc "[%f start %s]\n" (Unix.gettimeofday ()) seed;
       flush oc;
-      brun t' s'
-
+      brun t' s' seed
+  
 (* piping helper functions *)
 
 let load_env () =
@@ -174,13 +174,15 @@ let afl_fork framework test strat filename : unit =
             Unix.kill pid' Sys.sigterm;
             let endtime = Unix.gettimeofday () in
             match status with
-            | Unix.WEXITED c -> Printf.fprintf oc "[%f exit %i]\n" endtime c
+            | Unix.WEXITED c -> 
+              Printf.fprintf oc "[%f exit %i]\n" endtime c
             | Unix.WSIGNALED c when c = Sys.sigalrm ->
                 Printf.fprintf oc "[%f exit timeout]\n" endtime
             | _ -> Printf.fprintf oc "[%f exit unexpected]\n" endtime))
   
 let qcheck_fork t ts s ss = _simple_fork (fun oc -> qmain oc t ts s ss)
-let base_fork t ts s ss = _simple_fork (fun oc -> bmain oc t ts s ss)
+let base_fork seed t ts s ss = _simple_fork (fun oc ->
+  bmain seed oc t ts s ss)
 
 (* Call format:
    dune exec <workload> -- <framework> <testname> <strategy> <filename>
@@ -205,6 +207,7 @@ let main (props : (string * 'a property) list)
     let testname = Sys.argv.(2) in
     let strategy = Sys.argv.(3) in
     let filename = Sys.argv.(4) in
+    let seed = Sys.argv.(5) in
     Printf.printf
       "Executing test %s into file %s using strategy %s on framework %s\n"
       testname filename strategy framework;
@@ -221,7 +224,7 @@ let main (props : (string * 'a property) list)
         afl_fork framework testname strategy filename
     | "base" ->
         print_endline "Valid framework Base_quickcheck\n";
-        base_fork testname props strategy bstrats filename
+        base_fork seed testname props strategy bstrats filename
     | _ -> print_endline ("Framework " ^ framework ^ " was not found\n")
 
 let etna = main

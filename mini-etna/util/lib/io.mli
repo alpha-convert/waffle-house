@@ -1,4 +1,5 @@
 val bmain :
+  string ->
   out_channel ->
   string ->
   (string * 'a Runner.property) list ->

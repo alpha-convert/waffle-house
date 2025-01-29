@@ -1,4 +1,6 @@
-type 'a t
+
+type 'a t = 
+  | RandGen of (size_c:(int Code.t) -> random_c:(Splittable_random.State.t Code.t) -> 'a Codegen.t)
 
 (* val return : 'a -> 'a t *)
 (* val bind : 'a t -> f:('a -> 'b t) -> 'b t *)
@@ -18,5 +20,6 @@ val recurse : 'a recgen -> 'a Code.t t
 val recursive : ('a recgen -> ('a Code.t t)) -> ('a Base_quickcheck.Generator.t) Code.t
 
 val gen_if : (bool Code.t) -> 'a t -> 'a t -> 'a t
-
+val random_int : lo:int Code.t -> hi:int Code.t -> int Code.t t
+val random_color : Impl.color Code.t t 
 include Core.Monad.S with type 'a t := 'a t

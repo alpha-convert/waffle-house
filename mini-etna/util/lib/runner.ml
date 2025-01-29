@@ -19,7 +19,7 @@ type 'a property = {
   name : string;
   q : 'a QCheck.arbitrary -> string -> qtest;
   c : 'a Crowbar.gen -> string -> ctest;
-  b : 'a basegen -> string -> btest;
+  b : 'a basegen -> string -> string -> btest;
 }
 
 (* Functions for realizing preconditions *)
@@ -40,17 +40,17 @@ let rec cmake (t : test) : unit =
 let rec bmake (t : test) : unit Base.Or_error.t =
   match t with
   | Pre (true, post) ->
-      Printf.printf "Processing Pre-condition: true\n";
+      (* Printf.printf "Processing Pre-condition: true\n"; *)
       bmake post
   | Pre (false, _) ->
-      Printf.printf "Skipping test due to false pre-condition\n";
+      (* Printf.printf "Skipping test due to false pre-condition\n"; *)
       (* false precondition, we can skip test *)
       Ok ()
   | Post true ->
-      Printf.printf "Post-condition passed: true\n";
+      (* Printf.printf "Post-condition passed: true\n"; *)
       Ok ()
   | Post false ->
-      Printf.printf "Post-condition failed: false\n";
+      (* Printf.printf "Post-condition failed: false\n"; *)
       Error (Base.Error.of_string "fail")
 
 (* Helpers to build `'a property` types. Note that `'b` is the input to the property, INCLUDING the other parameters. *)
@@ -65,15 +65,20 @@ let _verbose res =
   if Core.is_ok res then print_endline "tests passed?"
   else print_endline "bug found!"
 
-let bbuild (g : 'b basegen) (f : 'b -> unit Base.Or_error.t) : string -> btest =
- fun _ () ->
-  Base_quickcheck.Test.run ~f g
-    ~config:
-      {
-        seed = Base_quickcheck.Test.Config.Seed.Nondeterministic;
-        test_count = Core.Int.max_value;
-        shrink_count = 0;
-        (* todo: we might need to alter the size ranges here *)
-        sizes = Base_quickcheck.Test.default_config.sizes;
-      }
-  |> _verbose
+let bbuild (g : 'b basegen) (f : 'b -> unit Base.Or_error.t) ?(seed : string option = None) : string -> btest =
+  fun _ () ->
+    let seed_config =
+      match seed with
+      | Some s when not (String.equal s "") -> Base_quickcheck.Test.Config.Seed.Deterministic s
+      | _ -> Base_quickcheck.Test.Config.Seed.Nondeterministic
+    in
+    Base_quickcheck.Test.run ~f g
+      ~config:
+        {
+          seed = seed_config;
+          test_count = 10; (* Core.Int.max_value; *)
+          shrink_count = 0;
+          sizes = Base.Sequence.init 10 ~f:(fun _ -> 1000) (* Base_quickcheck.Test.default_config.sizes; *)
+        }
+    |> _verbose
+  

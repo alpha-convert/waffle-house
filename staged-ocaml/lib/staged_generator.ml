@@ -15,8 +15,6 @@ let bind (RandGen r) ~f = RandGen (fun ~size_c ~random_c ->
   r' ~size_c ~random_c
 )
 
-
-
 (* exception Unimplemented *)
 
 (* doing nary choice is going to be funny... they build an array and binary search it to find the element.
@@ -71,7 +69,6 @@ let to_qc (sg : ('a Code.t) t) : ('a Base_quickcheck.Generator.t) Code.t =
     )
   ]
 
-
 module For_monad = Monad.Make (struct
     type nonrec 'a t = 'a t
 
@@ -87,6 +84,19 @@ let map = For_monad.map
 
 let all_unit = For_monad.all_unit
 let all = For_monad.all
+
+let random_color : Impl.color Code.t t =
+  RandGen (fun ~size_c:_ ~random_c ->
+    let%bind rand = Codegen.gen_let [%code Splittable_random.int [%e random_c] ~lo:0 ~hi:2] in
+    Codegen.gen_if [%code [%e rand] = 0]
+      ~tt:(Codegen.return [%code Impl.R])
+      ~ff:(Codegen.return [%code Impl.B])
+  )
+
+let random_int ~lo ~hi : int Code.t t =
+  RandGen (fun ~size_c:_ ~random_c ->
+    Codegen.gen_let [%code (Splittable_random.int [%e random_c] ~lo:[%e lo] ~hi:[%e hi]) mod 128]
+  )
 
 
 module Monad_infix = For_monad.Monad_infix
