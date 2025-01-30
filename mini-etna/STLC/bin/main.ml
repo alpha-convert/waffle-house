@@ -1,14 +1,20 @@
+(*
 open STLC.QcheckType
 open STLC.QcheckBespoke
 open STLC.CrowbarType
 open STLC.CrowbarBespoke
-open STLC.BaseType
-open STLC.BaseBespoke
 open STLC.Impl
 open STLC.Test
 open Util.Io
 open Util.Runner
 open QCheck
+*)
+
+open STLC.BaseType
+open STLC.BaseBespoke
+open STLC.BaseBespokeStaged
+open Core
+open Core_bench;;
 
 (* RUNNER COMMAND:
    dune exec STLC -- qcheck prop_SinglePreserve bespoke out
@@ -19,7 +25,6 @@ open QCheck
    dune exec STLC -- afl prop_SinglePreserve type out
    dune exec STLC -- base prop_SinglePreserve bespoke out
    dune exec STLC -- base prop_SinglePreserve type out
-*)
 
 let properties : (string * expr property) list =
   [
@@ -37,3 +42,20 @@ let bstrategies : (string * expr basegen) list =
   [ ("type", (module BaseType)); ("bespoke", (module BaseBespoke)) ]
 
 let () = main properties qstrategies cstrategies bstrategies
+*)
+
+let () =
+  let sizes = [10; 50; 100; 1000; 10000] in
+  Bench.bench
+    ~run_config:(Bench.Run_config.create ~quota:(Bench.Quota.Num_calls 1000) ())
+    [
+      Bench.Test.create_indexed ~name:"gen_type" ~args:sizes (
+        fun n -> Staged.stage @@ fun () -> Quickcheck.random_value ~seed:`Nondeterministic ~size:n BaseType.quickcheck_generator
+      );
+      Bench.Test.create_indexed ~name:"gen_bespoke" ~args:sizes (
+        fun n -> Staged.stage @@ fun () -> Quickcheck.random_value ~seed:`Nondeterministic ~size:n BaseBespoke.quickcheck_generator
+      );
+      Bench.Test.create_indexed ~name:"gen_type_staged" ~args:sizes (
+        fun n -> Staged.stage @@ fun () -> Quickcheck.random_value ~seed:`Nondeterministic ~size:n BaseBespokeStaged.quickcheck_generator
+      );
+    ]

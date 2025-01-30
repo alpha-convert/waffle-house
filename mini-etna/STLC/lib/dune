@@ -12,6 +12,7 @@
   crowbarType
   baseType
   baseBespoke
+  baseBespokeStaged
   display)
  (libraries qcheck crowbar util core)
  (preprocess

@@ -1,4 +1,4 @@
 (executable
  (public_name STLC)
  (name main)
- (libraries STLC))
+ (libraries STLC base_quickcheck core_bench core))
