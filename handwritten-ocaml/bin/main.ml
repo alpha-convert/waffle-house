@@ -40,7 +40,7 @@ module BQ = struct
     if n <= 0 then []
     else 
       let x = Unboxed_splitmix.DropIn.bool random in
-      let xs = gen_list_bool_faster ~size:(size - 1) ~random in
+      let xs = gen_list_bool_faster_dropin ~size:(size - 1) ~random in
       x::xs
 
   let[@tail_mod_cons] rec gen_list_bool_trmc ~(size @ local) ~random  = 
