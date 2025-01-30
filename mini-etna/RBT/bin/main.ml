@@ -13,9 +13,11 @@ open Util.Io
 
 open RBT.BaseType
 open RBT.BaseTypeStaged
+open RBT.BaseTypeStagedFastInt
 open RBT.Impl
 open Core
 
+(*
 (* Define a function to compare two rbts *)
 let compare_trees rbt1 rbt2 =
   (* Replace this with a proper equality function for rbt *)
@@ -31,18 +33,23 @@ let compare_and_print_trees ~size ~seed =
       ~random:random_state
   in
   let random_state = Splittable_random.of_int seed in
-  let list_base_type_staged =
+  let _ =
     Base_quickcheck.Generator.generate
       BaseTypeStaged.quickcheck_generator
       ~size
       ~random:random_state
   in
-  printf "Seed: %d, Size: %d\n" seed size;
-  printf "BaseType:\n%s\n" (Sexp.to_string_hum ([%sexp_of: rbt] list_base_type));
-  printf "BaseTypeStaged:\n%s\n" (Sexp.to_string_hum ([%sexp_of: rbt] list_base_type_staged));
+  let random_state = Splittable_random.of_int seed in
+  let list_base_type_staged_fast_int =
+      Base_quickcheck.Generator.generate BaseTypeStagedFastInt.quickcheck_generator ~size ~random:random_state
+  in
+  (* printf "Seed: %d, Size: %d\n" seed size; *)
+  (* printf "BaseType:\n%s\n" (Sexp.to_string_hum ([%sexp_of: rbt] list_base_type)); *)
+  (* printf "BaseTypeStaged:\n%s\n" (Sexp.to_string_hum ([%sexp_of: rbt] list_base_type_staged)); *)
+  (* printf "BaseTypeStagedFastInt:\n%s\n" (Sexp.to_string_hum ([%sexp_of: rbt] list_base_type_staged_fast_int)); *)
 
   (* Compare the trees and print the result *)
-  if compare_trees list_base_type list_base_type_staged then
+  if compare_trees list_base_type list_base_type_staged_fast_int then
     printf "The two trees are equal.\n\n"
   else
     printf "The two trees are NOT equal.\n\n"
@@ -56,6 +63,9 @@ let () =
       List.iter seeds ~f:(fun seed ->
           compare_and_print_trees ~size ~seed))
 
+          *)
+
+
 (* RUNNER COMMAND:
    dune exec RBT -- qcheck prop_DeleteValid bespoke out.txt
    dune exec RBT -- qcheck prop_DeleteValid type out.txt
@@ -65,7 +75,7 @@ let () =
    dune exec RBT -- afl prop_DeleteValid type out.txt
    dune exec RBT -- base prop_DeleteValid type out
 *)
-(*
+
 let properties : (string * rbt property) list =
   [
     (* ("prop_InsertValid", test_prop_InsertValid);
@@ -88,8 +98,10 @@ let cstrategies : (string * rbt gen) list =
   [ ("type", crowbar_type); ("bespoke", crowbar_bespoke) ]
 
 let bstrategies : (string * rbt basegen) list =
-  [ ("type", (module BaseType)); ("bespoke", (module BaseBespoke)); ("type_staged", (module BaseTypeStaged))]
+  [ ("type", (module BaseType)); ("bespoke", (module BaseBespoke)); ("type_staged", (module BaseTypeStaged)); ("type_staged_fast_int", (module BaseTypeStagedFastInt))]
+
+(* let fbstrategies : (string * (size:int -> random:Unboxed_splitmix.t -> rbt)) list = *)
+  (* [ ("type_staged_fast", BaseTypeStagedFastInt.gen)] *)
 
 let () =
   main properties qstrategies cstrategies bstrategies
-  *)

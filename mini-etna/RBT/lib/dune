@@ -13,8 +13,9 @@
   baseType
   baseBespoke
   baseTypeStaged
+  baseTypeStagedFastInt
   nat
   display)
- (libraries qcheck crowbar util core)
+ (libraries qcheck crowbar util core unboxed_splitmix)
  (preprocess
   (pps ppx_jane)))
