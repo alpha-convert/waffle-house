@@ -55,7 +55,7 @@ let () =
       Bench.Test.create_indexed ~name:"gen_bespoke" ~args:sizes (
         fun n -> Staged.stage @@ fun () -> Quickcheck.random_value ~seed:`Nondeterministic ~size:n BaseBespoke.quickcheck_generator
       );
-      Bench.Test.create_indexed ~name:"gen_type_staged" ~args:sizes (
+      Bench.Test.create_indexed ~name:"gen_bespoke_staged" ~args:sizes (
         fun n -> Staged.stage @@ fun () -> Quickcheck.random_value ~seed:`Nondeterministic ~size:n BaseBespokeStaged.quickcheck_generator
       );
     ]
