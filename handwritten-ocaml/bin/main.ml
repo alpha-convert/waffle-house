@@ -25,14 +25,21 @@ module BQ = struct
                 let xs = generate (with_size gl (n-1)) ~size ~random in
                 let x = generate bool ~size ~random in
                 x::xs
-          )
-  )
+          ))
 
   let rec gen_list_bool_faster  ~size ~random  = 
     let n = size in
     if n <= 0 then []
     else 
       let x = Splittable_random.bool random in
+      let xs = gen_list_bool_faster ~size:(size - 1) ~random in
+      x::xs
+
+  let rec gen_list_bool_faster_dropin  ~size ~random  = 
+    let n = size in
+    if n <= 0 then []
+    else 
+      let x = Unboxed_splitmix.DropIn.bool random in
       let xs = gen_list_bool_faster ~size:(size - 1) ~random in
       x::xs
 
@@ -54,7 +61,7 @@ module BQ = struct
 end
 
 module JoeSplitmix = struct
-  let[@tail_mod_cons] rec gen_list_bool_faster ~(size @ local) ~(random @ local)  = 
+  let rec gen_list_bool_faster ~(size @ local) ~(random)  = 
     if size <= 0 then []
     else 
       let x = Unboxed_splitmix.bool random in
@@ -98,6 +105,90 @@ module CB = struct
     in go n
 end
 
+module RBTStaged = struct
+  type color = R | B [@@deriving sexp, quickcheck]
+
+  type tree = E | T of color *  tree * int * int * tree
+  let rec gt ~size ~random =
+    if size = 0 then
+     (if (Float.(>=)) (Splittable_random.float random ~lo:0. ~hi:0.1) 0. then E else E)
+    else
+      let adjusted_size = Base.Int.pred size in
+      if Float.(Splittable_random.float random ~lo:0. ~hi:0.2 >= 0.1) then
+        T (
+          (if Float.(Splittable_random.float random ~lo:0. ~hi:0.2 >= 0.1) then B else R),
+          (
+             gt
+             ~size:adjusted_size
+             ~random),
+          ((Splittable_random.int random
+              ~lo:Int.min_value ~hi:Int.max_value) mod 128),
+          ((Splittable_random.int random
+              ~lo:Int.min_value ~hi:Int.max_value) mod 128),
+          (gt
+             ~size:adjusted_size
+             ~random)
+        )
+      else
+        E
+end
+
+module RBTStagedFastInt = struct
+  type color = R | B [@@deriving sexp, quickcheck]
+
+  type tree = E | T of color *  tree * int * int * tree
+  let rec gt ~size ~random =
+    if size = 0 then
+     (if (Float.(>=)) (Unboxed_splitmix.DropIn.float random ~lo:0. ~hi:0.1) 0. then E else E)
+    else
+      let adjusted_size = Base.Int.pred size in
+      if Float.(Unboxed_splitmix.DropIn.float random ~lo:0. ~hi:0.2 >= 0.1) then
+        T (
+          (if Float.(Unboxed_splitmix.DropIn.float random ~lo:0. ~hi:0.2 >= 0.1) then B else R),
+          (
+             gt
+             ~size:adjusted_size
+             ~random),
+          ((Unboxed_splitmix.DropIn.int random
+              ~lo:Int.min_value ~hi:Int.max_value) mod 128),
+          ((Unboxed_splitmix.DropIn.int random
+              ~lo:Int.min_value ~hi:Int.max_value) mod 128),
+          (gt
+             ~size:adjusted_size
+             ~random)
+        )
+      else
+        E
+end
+
+module RBTStagedFastIntDirect = struct
+  type color = R | B [@@deriving sexp, quickcheck]
+
+  type tree = E | T of color *  tree * int * int * tree
+  let rec gt ~size ~random =
+    if size = 0 then
+     (if (Float.(>=)) (Unboxed_splitmix.float random ~lo:0. ~hi:0.1) 0. then E else E)
+    else
+      let adjusted_size = Base.Int.pred size in
+      if Float.(Unboxed_splitmix.float random ~lo:0. ~hi:0.2 >= 0.1) then
+        T (
+          (if Float.(Unboxed_splitmix.float random ~lo:0. ~hi:0.2 >= 0.1) then B else R),
+          (
+             gt
+             ~size:adjusted_size
+             ~random),
+          ((Unboxed_splitmix.int random
+              ~lo:Int.min_value ~hi:Int.max_value) mod 128),
+          ((Unboxed_splitmix.int random
+              ~lo:Int.min_value ~hi:Int.max_value) mod 128),
+          (gt
+             ~size:adjusted_size
+             ~random)
+        )
+      else
+        E
+end
+
 let sizes = [10;50;100;1000;10000]
 
 let () = List.iter sizes ~f:(fun n ->
@@ -106,14 +197,31 @@ let () = List.iter sizes ~f:(fun n ->
     print_endline @@ "Size: " ^ Int.to_string n ^ ", Words: " ^ Int.to_string (Obj.reachable_words (Obj.repr t))
   )
 
-let () = Bench.bench 
+let () = Bench.bench
   ~run_config:(Bench.Run_config.create ~quota:(Bench.Quota.Num_calls 5000) ())
   [
-  Bench.Test.create_indexed ~name:"bq-gen-list-basic" ~args:sizes (
+    Bench.Test.create ~name:"system-random" (
+      Random.init 55;
+      fun () -> ignore (Random.int64 100L)
+    );
+    Bench.Test.create ~name:"splittable-random" (
+      let st = Splittable_random.of_int 55 in
+      fun () -> ignore (Splittable_random.int64 st ~lo:0L ~hi:100L)
+    );
+    Bench.Test.create ~name:"unboxed-splitmix" (
+      let st = Unboxed_splitmix.of_int 55 in
+      fun () -> ignore (Unboxed_splitmix.int64u st ~lo:#0L ~hi:#100L)
+    )
+  ]
+
+let () = Bench.bench 
+  ~run_config:(Bench.Run_config.create ~quota:(Bench.Quota.Num_calls 5) ())
+  [
+  (* Bench.Test.create_indexed ~name:"bq-gen-list-basic" ~args:sizes (
     fun n -> Staged.stage @@ 
     let random = Splittable_random.create (Random.State.make_self_init ()) in
     fun () -> Quickcheck.Generator.generate BQ.gen_list_bool ~random ~size:n
-  );
+  ); *)
   (* Bench.Test.create_indexed ~name:"bq-gen-list-fast" ~args:sizes (
     fun n -> Staged.stage @@ 
     let random = Splittable_random.create (Random.State.make_self_init ()) in
@@ -129,12 +237,12 @@ let () = Bench.bench
     let random = Splittable_random.create (Random.State.make_self_init ()) in
     fun () -> BQ.gen_list_bool_faster_det ~size:n ~random
   ); *)
-  Bench.Test.create_indexed ~name:"bq-gen-list-trmc" ~args:sizes (
+  (* Bench.Test.create_indexed ~name:"bq-gen-list-trmc" ~args:sizes (
     fun n -> Staged.stage @@
     let random = Splittable_random.create (Random.State.make_self_init ()) in
     fun () -> BQ.gen_list_bool_trmc ~size:n ~random
-  );
-  Bench.Test.create_indexed ~name:"bq-gen-list-imp" ~args:sizes (
+  ); *)
+  (* Bench.Test.create_indexed ~name:"bq-gen-list-imp" ~args:sizes (
     fun n -> Staged.stage @@
     let random = Splittable_random.create (Random.State.make_self_init ()) in
     fun () -> BQ.gen_list_bool_imp ~size:n ~random
@@ -143,17 +251,49 @@ let () = Bench.bench
     fun n -> Staged.stage @@ 
     let g = QC.gen_list_bool n in
     fun () -> (QCheck2.Gen.generate1 g)
-  );
+  ); *)
   Bench.Test.create_indexed ~name:"sm-gen-list-faster" ~args:sizes (
     fun n -> Staged.stage @@ 
     let u = Random.State.make_self_init () in
     let s = Unboxed_splitmix.of_int (Random.State.int u Int.max_value) in
     fun () -> (JoeSplitmix.gen_list_bool_faster ~size:n ~random:s)
   );
-  Bench.Test.create_indexed ~name:"sm-gen-list-imp" ~args:sizes (
+
+
+  Bench.Test.create_indexed ~name:"bq-gen-list-faster-dropin" ~args:sizes (
+    fun n -> Staged.stage @@
+    let random = Splittable_random.create (Random.State.make_self_init ()) in
+    fun () -> BQ.gen_list_bool_faster_dropin ~size:n ~random
+  );
+
+
+
+  (* Bench.Test.create_indexed ~name:"sm-gen-list-imp" ~args:sizes (
     fun n -> Staged.stage @@ 
     let u = Random.State.make_self_init () in
     let s = Unboxed_splitmix.of_int (Random.State.int u Int.max_value) in
     fun () -> (JoeSplitmix.gen_list_bool_imp ~size:n ~random:s)
-  );
+  ); *)
 ]
+
+(* let () = Bench.bench 
+  ~run_config:(Bench.Run_config.create ~quota:(Bench.Quota.Num_calls 30) ())
+  [
+  Bench.Test.create_indexed ~name:"rbt-staged" ~args:sizes (
+    fun n -> Staged.stage @@ 
+    let random = Splittable_random.create (Random.State.make_self_init ()) in
+    fun () -> (RBTStaged.gt ~size:n ~random:random)
+  );
+  Bench.Test.create_indexed ~name:"rbt-staged-fast-int" ~args:sizes (
+    fun n -> Staged.stage @@ 
+    let random = Splittable_random.create (Random.State.make_self_init ()) in
+    fun () -> (RBTStagedFastInt.gt ~size:n ~random:random)
+  );
+
+  Bench.Test.create_indexed ~name:"rbt-staged-fast-int-direct" ~args:sizes (
+    fun n -> Staged.stage @@ 
+    let u = Random.State.make_self_init () in
+    let random = Unboxed_splitmix.of_int (Random.State.int u Int.max_value) in
+    fun () -> (RBTStagedFastIntDirect.gt ~size:n ~random:random)
+  );
+  ] *)
