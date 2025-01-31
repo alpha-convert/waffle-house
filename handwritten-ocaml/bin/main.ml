@@ -133,7 +133,7 @@ module RBTStaged = struct
         E
 end
 
-module RBTStagedFastInt = struct
+module RBTStagedFastIntDropIn = struct
   type color = R | B [@@deriving sexp, quickcheck]
 
   type tree = E | T of color *  tree * int * int * tree
@@ -161,7 +161,7 @@ module RBTStagedFastInt = struct
         E
 end
 
-module RBTStagedFastIntDirect = struct
+module RBTStagedFastInt = struct
   type color = R | B [@@deriving sexp, quickcheck]
 
   type tree = E | T of color *  tree * int * int * tree
@@ -197,24 +197,7 @@ let () = List.iter sizes ~f:(fun n ->
     print_endline @@ "Size: " ^ Int.to_string n ^ ", Words: " ^ Int.to_string (Obj.reachable_words (Obj.repr t))
   )
 
-let () = Bench.bench
-  ~run_config:(Bench.Run_config.create ~quota:(Bench.Quota.Num_calls 5000) ())
-  [
-    Bench.Test.create ~name:"system-random" (
-      Random.init 55;
-      fun () -> ignore (Random.int64 100L)
-    );
-    Bench.Test.create ~name:"splittable-random" (
-      let st = Splittable_random.of_int 55 in
-      fun () -> ignore (Splittable_random.int64 st ~lo:0L ~hi:100L)
-    );
-    Bench.Test.create ~name:"unboxed-splitmix" (
-      let st = Unboxed_splitmix.of_int 55 in
-      fun () -> ignore (Unboxed_splitmix.int64u st ~lo:#0L ~hi:#100L)
-    )
-  ]
-
-let () = Bench.bench 
+(* let () = Bench.bench 
   ~run_config:(Bench.Run_config.create ~quota:(Bench.Quota.Num_calls 5) ())
   [
   (* Bench.Test.create_indexed ~name:"bq-gen-list-basic" ~args:sizes (
@@ -267,7 +250,6 @@ let () = Bench.bench
   );
 
 
-
   (* Bench.Test.create_indexed ~name:"sm-gen-list-imp" ~args:sizes (
     fun n -> Staged.stage @@ 
     let u = Random.State.make_self_init () in
@@ -276,7 +258,9 @@ let () = Bench.bench
   ); *)
 ]
 
-(* let () = Bench.bench 
+*)
+
+let () = Bench.bench 
   ~run_config:(Bench.Run_config.create ~quota:(Bench.Quota.Num_calls 30) ())
   [
   Bench.Test.create_indexed ~name:"rbt-staged" ~args:sizes (
@@ -284,16 +268,16 @@ let () = Bench.bench
     let random = Splittable_random.create (Random.State.make_self_init ()) in
     fun () -> (RBTStaged.gt ~size:n ~random:random)
   );
-  Bench.Test.create_indexed ~name:"rbt-staged-fast-int" ~args:sizes (
+  Bench.Test.create_indexed ~name:"rbt-staged-fast-int-dropipn" ~args:sizes (
     fun n -> Staged.stage @@ 
     let random = Splittable_random.create (Random.State.make_self_init ()) in
-    fun () -> (RBTStagedFastInt.gt ~size:n ~random:random)
+    fun () -> (RBTStagedFastIntDropIn.gt ~size:n ~random:random)
   );
 
-  Bench.Test.create_indexed ~name:"rbt-staged-fast-int-direct" ~args:sizes (
+  Bench.Test.create_indexed ~name:"rbt-staged-fast-int" ~args:sizes (
     fun n -> Staged.stage @@ 
     let u = Random.State.make_self_init () in
     let random = Unboxed_splitmix.of_int (Random.State.int u Int.max_value) in
-    fun () -> (RBTStagedFastIntDirect.gt ~size:n ~random:random)
+    fun () -> (RBTStagedFastInt.gt ~size:n ~random:random)
   );
-  ] *)
+  ]
