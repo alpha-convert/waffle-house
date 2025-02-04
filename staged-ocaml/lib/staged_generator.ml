@@ -1,28 +1,28 @@
 open Core;;
 open Codelib;;
+open Codegen;;
 open Codegen.Let_syntax;;
 
-let v2c (vc : 'a val_code) = (vc : 'a val_code :> 'a code)
-
-type 'a t = { rand_gen : size_c:(int code) -> random_c:(Splittable_random.State.t code) -> 'a Codegen.t }
+type 'a t = { rand_gen : size_c:(int code) -> random_c:(Splittable_random.State.t code) -> 'a code Codegen.t }
 
 (* type 'a recgen = (unit -> 'a Core.Quickcheck.Generator.t) code *)
 
 let return x = { rand_gen = fun ~size_c:_ ~random_c:_ -> Codegen.return x }
 
-let bind (r : 'a t) ~f = { rand_gen = fun ~size_c ~random_c ->
+let bind (r : 'a t) ~(f : 'a code -> 'b t) = { rand_gen = fun ~size_c ~random_c ->
   (* need to figure out how to letinsert here! *)
   let%bind a = r.rand_gen ~size_c ~random_c in
-  (f a).rand_gen ~size_c ~random_c
+  let%bind a = Codegen.let_insert a in
+  (f (v2c a)).rand_gen ~size_c ~random_c
 }
 
-let bool : bool code t = {
+let bool : bool t = {
   rand_gen =
     fun ~size_c:_ ~random_c ->
       Codegen.return .< Splittable_random.bool .~random_c >.
 }
 
-let int ~(lo : int code) ~(hi : int code) : int code t = {
+let int ~(lo : int code) ~(hi : int code) : int t = {
   rand_gen =
     fun ~size_c:_ ~random_c ->
       Codegen.return .< Splittable_random.int ~lo:.~lo ~hi:.~hi .~random_c >.
@@ -35,28 +35,28 @@ let rec genpick (n : int val_code) (ws : (int val_code * 'a t) list) : 'a t =
         { rand_gen = 
           fun ~size_c ~random_c ->
           let%bind leq = Codegen.split_bool .< .~(v2c n) < .~(v2c k) >. in
-          let n' = Codelib.genletv .< .~(v2c n) - .~(v2c k) >. in
+          let%bind n' = Codegen.let_insert .< .~(v2c n) - .~(v2c k) >. in
           if leq then g.rand_gen ~size_c ~random_c else (genpick n' ws').rand_gen ~size_c ~random_c
   }
 
   
-let histsum (ws : (int val_code * 'a t) list) : (int val_code * 'a t) list * int val_code =
-    let rec go (ws : (int val_code * 'a t) list) (acc : int val_code) : (int val_code * 'a t) list * int val_code  =
+let histsum (ws : (int val_code * 'a t) list) : ((int val_code * 'a t) list * int val_code) Codegen.t =
+    let rec go (ws : (int val_code * 'a t) list) (acc : int val_code) : ((int val_code * 'a t) list * int val_code) Codegen.t =
       match ws with
-      | [] -> ([],acc)
+      | [] -> Codegen.return ([],acc)
       | (cn,g) :: ws' ->
-          let acc' = Codelib.genletv .< .~(v2c acc) + .~(v2c cn) >. in
-          let (hist,sum) = go ws' acc' in
-          ((acc',g) :: hist, sum)
+          let%bind acc' = Codegen.let_insert .< .~(v2c acc) + .~(v2c cn) >. in
+          let%bind (hist,sum) = go ws' acc' in
+          Codegen.return ((acc',g) :: hist, sum)
       in
     go ws (Codelib.genletv .<0>.)
 
 let choose (ws : (int code * 'a t) list) : 'a t =
-  let ws' = List.map ~f:(fun (cn,g) -> (Codelib.genletv cn,g)) ws in
-  let (hist,sum) = histsum ws' in
   { rand_gen = fun ~size_c ~random_c ->
+      let%bind ws' = Codegen.all @@ List.map ~f:(fun (cn,g) -> let%bind cvn = Codegen.let_insert cn in Codegen.return (cvn,g)) ws in
+      let%bind (hist,sum) = histsum ws' in
       let%bind n = (int ~lo:.<0>. ~hi:(v2c sum)).rand_gen ~size_c ~random_c in
-      let n = Codelib.genletv n in
+      let%bind n = Codegen.let_insert n in
       (genpick n hist).rand_gen ~size_c ~random_c
   }
 

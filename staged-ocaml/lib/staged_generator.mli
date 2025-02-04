@@ -2,13 +2,13 @@ open Codelib
 
 type 'a t
 
-val return : 'a -> 'a t
-val bind : 'a t -> f:('a -> 'b t) -> 'b t
+val return : 'a code -> 'a t
+val bind : 'a t -> f:('a code -> 'b t) -> 'b t
 
 val choose : (int code * 'a t) list -> 'a t
 
-val int : lo:(int code) -> hi:(int code) -> int code t
-val bool : bool code t
+val int : lo:(int code) -> hi:(int code) -> int t
+val bool : bool t
 
 (*
 (*
