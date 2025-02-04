@@ -10,6 +10,9 @@ val choose : (int code * 'a t) list -> 'a t
 val int : lo:(int code) -> hi:(int code) -> int t
 val bool : bool t
 
+val size : int t
+val with_size : 'a t -> size_c:(int code) -> 'a t
+
 (*
 (*
 we could change these to not expose the "code" by changin the return type of RandGen to a ('a Code.t) CodeGen.t, but then we'd lose

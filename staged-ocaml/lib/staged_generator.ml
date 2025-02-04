@@ -64,6 +64,11 @@ let choose (ws : (int code * 'a t) list) : 'a t =
       (genpick n hist).rand_gen ~size_c ~random_c
   }
 
+let with_size f ~size_c =
+  { rand_gen = fun ~size_c:_ ~random_c -> f.rand_gen ~size_c:size_c ~random_c }
+
+let size = { rand_gen = fun ~size_c ~random_c:_ -> Codecps.return size_c }
+
 (*
 
 (* exception Unimplemented *)
@@ -77,10 +82,7 @@ let choose ((w1,(RandGen g1)) : int Code.t * 'a t) ((w2,(RandGen g2)) : int Code
     Codecps.gen_if [%code [%e rand] < [%e w1]] ~tt:(g1 ~size_c ~random_c) ~ff:(g2 ~size_c ~random_c)
 )
 
-let with_size (RandGen f) ~size_c =
-  RandGen (fun ~size_c:_ ~random_c -> f ~size_c:size_c ~random_c)
 
-let size = RandGen (fun ~size_c ~random_c:_ -> Codecps.return size_c)
 
 let gen_if b (RandGen f) (RandGen g) = RandGen (
   fun ~size_c  ~random_c ->
