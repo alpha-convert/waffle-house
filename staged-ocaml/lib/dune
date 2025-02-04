@@ -1,4 +1,4 @@
 (library
 (preprocess (pps ppx_jane))
- (libraries base_quickcheck splittable_random core)
+ (libraries base_quickcheck splittable_random core dynlink metaocaml)
  (name fast_gen))

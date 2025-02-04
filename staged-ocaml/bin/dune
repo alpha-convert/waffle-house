@@ -1,5 +1,5 @@
 (executable
  (public_name fast_gen)
+ (link_flags dynlink.cmxa)
  (name main)
-  (preprocess (pps ppx_jane ppx_bench))
- (libraries fast_gen base_quickcheck core_bench core))
+ (libraries fast_gen base_quickcheck base dynlink metaocaml))

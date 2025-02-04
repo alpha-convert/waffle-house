@@ -13,6 +13,8 @@ val bool : bool t
 val size : int t
 val with_size : 'a t -> size_c:(int code) -> 'a t
 
+val to_qc : 'a t -> ('a Base_quickcheck.Generator.t) code
+
 (*
 (*
 we could change these to not expose the "code" by changin the return type of RandGen to a ('a Code.t) CodeGen.t, but then we'd lose
@@ -22,7 +24,6 @@ val choose : (int Code.t * 'a t) -> (int Code.t * 'a t) -> 'a t
 val with_size : 'a t -> size_c:(int Code.t) -> 'a t
 val size : (int Code.t) t
 
-val to_qc : ('a Code.t) t -> ('a Base_quickcheck.Generator.t) Code.t
 
 type 'a recgen
 val recurse : 'a recgen -> 'a Code.t t

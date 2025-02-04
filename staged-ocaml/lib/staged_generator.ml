@@ -69,6 +69,14 @@ let with_size f ~size_c =
 
 let size = { rand_gen = fun ~size_c ~random_c:_ -> Codecps.return size_c }
 
+let to_qc sg =
+  let f = sg.rand_gen in
+  .<
+    Base_quickcheck.Generator.create (fun ~size ~random ->
+      .~(Codecps.code_generate (f ~size_c:.< size >. ~random_c:.< random >.))
+    )
+  >.
+
 (*
 
 (* exception Unimplemented *)
@@ -112,14 +120,6 @@ let recursive (f : 'a recgen -> ('a Code.t) t) : ('a Base_quickcheck.Generator.t
     )
     in
     lazy_t ()
-  ]
-
-let to_qc (sg : ('a Code.t) t) : ('a Base_quickcheck.Generator.t) Code.t =
-  let (RandGen f) = sg in
-  [%code
-    Base_quickcheck.Generator.create (fun ~size ~random ->
-      [%e Codecps.code_generate (f ~size_c:[%code size] ~random_c:[%code random]) ]
-    )
   ]
 
 
