@@ -30,14 +30,17 @@ let int ~(lo : int code) ~(hi : int code) : int t = {
 
 let rec genpick (n : int val_code) (ws : (int val_code * 'a t) list) : 'a t =
   match ws with
-  | [] -> return (failwith "sdf")
+  | [] -> return .< failwith "Fell of the end of pick list" >.
   | (k,g) :: ws' ->
         { rand_gen = 
           fun ~size_c ~random_c ->
           let%bind leq = Codegen.split_bool .< .~(v2c n) < .~(v2c k) >. in
-          let%bind n' = Codegen.let_insert .< .~(v2c n) - .~(v2c k) >. in
-          if leq then g.rand_gen ~size_c ~random_c else (genpick n' ws').rand_gen ~size_c ~random_c
-  }
+          if leq then
+            g.rand_gen ~size_c ~random_c
+          else
+            let%bind n' = Codegen.let_insert .< .~(v2c n) - .~(v2c k) >. in
+            (genpick n' ws').rand_gen ~size_c ~random_c
+        }
 
   
 let histsum (ws : (int val_code * 'a t) list) : ((int val_code * 'a t) list * int val_code) Codegen.t =
@@ -49,7 +52,8 @@ let histsum (ws : (int val_code * 'a t) list) : ((int val_code * 'a t) list * in
           let%bind (hist,sum) = go ws' acc' in
           Codegen.return ((acc',g) :: hist, sum)
       in
-    go ws (Codelib.genletv .<0>.)
+    let%bind zero = let_insert .<0>. in
+    go ws zero
 
 let choose (ws : (int code * 'a t) list) : 'a t =
   { rand_gen = fun ~size_c ~random_c ->
