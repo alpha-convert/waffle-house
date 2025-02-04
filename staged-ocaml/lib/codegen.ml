@@ -1,11 +1,12 @@
 open Core;;
+open Codelib;;
 
 (* This is stolen from andras kovacs *)
-type 'a t = {code_gen : 'z. (('a -> 'z Code.t) -> 'z Code.t)}
+type 'a t = {code_gen : 'z. (('a -> 'z code) -> 'z code)}
 
 let run_code_gen {code_gen=f} k = f k
 
-let code_generate : ('a Code.t) t -> 'a Code.t =
+let code_generate : ('a code) t -> 'a code =
   fun g -> g.code_gen (fun x -> x)
 
 let return x = { code_gen = fun k -> k x}
@@ -23,17 +24,25 @@ module Monad_infix = For_monad.Monad_infix
 include Monad_infix
 module Let_syntax = For_monad.Let_syntax
 
-let gen_let (cx : 'a Code.t) : 'a Code.t t =
-  {code_gen = fun k ->
-    [%code 
-      let x = [%e cx] in [%e k [%code x]]
-    ]
-  }
+(* let genletv (cx : 'a code) : 'a val_code t = { *)
+  (* code_gen = fun k -> k (genletv cx) *)
+(* } *)
 
-let gen_if (cb : bool Code.t) ~(tt : 'a t) ~(ff : 'a t) : 'a t = 
-  {
-    code_gen = fun k -> [%code
-      let b = [%e cb] in
-      if b then [%e run_code_gen tt k] else [%e run_code_gen ff k ]
-    ]
-  }
+(* let genlet (cx : 'a code) : 'a code t = { *)
+  (* code_gen = fun k -> k (genlet cx) *)
+(* } *)
+
+let split_bool (cb : bool code) : bool t = {
+  code_gen = fun k ->
+    let bv = Codelib.genlet cb in
+    .<
+      if .~bv then .~(k true) else .~(k false)
+    >.
+}
+
+let split_pair (cp : ('a * 'b) code) : ('a code *'b code) t = {
+  code_gen = fun k ->
+    .<
+      let (a,b) = .~(Codelib.genlet cp) in .~(k (.<a>.,.<b>.))
+    >.
+}
