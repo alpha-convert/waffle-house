@@ -15,6 +15,8 @@ val with_size : 'a t -> size_c:(int code) -> 'a t
 
 val to_qc : 'a t -> ('a Base_quickcheck.Generator.t) code
 
+val jit : 'a t -> 'a Base_quickcheck.Generator.t
+
 (*
 (*
 we could change these to not expose the "code" by changin the return type of RandGen to a ('a Code.t) CodeGen.t, but then we'd lose

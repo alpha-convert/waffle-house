@@ -1,5 +1,4 @@
 (executable
  (public_name fast_gen)
- (link_flags dynlink.cmxa)
  (name main)
  (libraries fast_gen base_quickcheck base dynlink metaocaml))
