@@ -1,6 +1,9 @@
 type 'a t = 'a Base_quickcheck.Generator.t
 type 'a c = 'a
 
+let lift x = x
+let pair x y = (x,y)
+
 let return = Base_quickcheck.Generator.return
 let bind = Base_quickcheck.Generator.bind
 let choose = Base_quickcheck.Generator.weighted_union

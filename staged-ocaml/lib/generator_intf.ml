@@ -2,7 +2,10 @@ module type GENERATOR = sig
   type 'a t
   type 'a c
 
-  val return : 'a -> 'a t
+  val lift : 'a -> 'a c
+  val pair : 'a c -> 'b c -> ('a * 'b) c
+
+  val return : 'a c -> 'a t
   val bind : 'a t -> f:('a c -> 'b t) -> 'b t
 
   val choose : (float c * 'a t) list -> 'a t

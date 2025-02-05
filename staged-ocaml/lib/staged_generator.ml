@@ -6,9 +6,13 @@ open Codecps.Let_syntax;;
 type 'a t = { rand_gen : size_c:(int code) -> random_c:(Splittable_random.State.t code) -> 'a code Codecps.t }
 type 'a c = 'a code
 
+let lift x = .< x >.
+
+let pair x y = .< (.~x,.~y) >.
+
 (* type 'a recgen = (unit -> 'a Core.Quickcheck.Generator.t) code *)
 
-let return x = { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return .< x >. }
+let return x = { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return x }
 
 let bind (r : 'a t) ~(f : 'a code -> 'b t) = { rand_gen = fun ~size_c ~random_c ->
   (* need to figure out how to letinsert here! *)
