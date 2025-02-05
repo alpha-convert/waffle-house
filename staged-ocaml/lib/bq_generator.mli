@@ -1,1 +1,1 @@
-include Generator_intf.GENERATOR with type 'a c = 'a
+include Generator_intf.GENERATOR with type 'a c = 'a with type 'a t = 'a Base_quickcheck.Generator.t
