@@ -1,6 +1,10 @@
 open Codelib
 
-type 'a t
+include Generator_intf.GENERATOR with type 'a c = 'a code
+
+val print : 'a t -> unit
+val jit : 'a t -> 'a Base_quickcheck.Generator.t
+(* type 'a t
 
 val return : 'a -> 'a t
 val bind : 'a t -> f:('a code -> 'b t) -> 'b t
@@ -14,27 +18,13 @@ val size : int t
 val with_size : 'a t -> size_c:(int code) -> 'a t
 
 val to_qc : 'a t -> ('a Base_quickcheck.Generator.t) code
-
+val to_fun : 'a t -> (size:int -> random:Splittable_random.State.t -> 'a) code
 val jit : 'a t -> 'a Base_quickcheck.Generator.t
+
+val print : 'a t -> unit
 
 type ('a,'r) recgen
 val recurse : ('a,'r) recgen -> 'r code -> 'a t
 val recursive : 'r code -> (('a,'r) recgen -> 'r code -> 'a t) -> 'a t
 
-(*
-(*
-we could change these to not expose the "code" by changin the return type of RandGen to a ('a Code.t) CodeGen.t, but then we'd lose
-the monad instance above, and hence the ability to use let syntax.
-*)
-val choose : (int Code.t * 'a t) -> (int Code.t * 'a t) -> 'a t
-val with_size : 'a t -> size_c:(int Code.t) -> 'a t
-val size : (int Code.t) t
-
-
-
-
-val gen_if : (bool Code.t) -> 'a t -> 'a t -> 'a t
-
-include Core.Monad.S with type 'a t := 'a t
-
-*)
+end *)

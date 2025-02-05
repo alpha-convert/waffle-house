@@ -4,6 +4,7 @@ open Codecps;;
 open Codecps.Let_syntax;;
 
 type 'a t = { rand_gen : size_c:(int code) -> random_c:(Splittable_random.State.t code) -> 'a code Codecps.t }
+type 'a c = 'a code
 
 (* type 'a recgen = (unit -> 'a Core.Quickcheck.Generator.t) code *)
 
@@ -69,81 +70,19 @@ let with_size f ~size_c =
 
 let size = { rand_gen = fun ~size_c ~random_c:_ -> Codecps.return size_c }
 
-let to_qc sg =
+let to_fun sg = 
   let f = sg.rand_gen in
-  .<
-    Base_quickcheck.Generator.create (fun ~size ~random ->
+  .< fun ~size ~random ->
       .~(Codecps.code_generate (f ~size_c:.< size >. ~random_c:.< random >.))
-    )
   >.
 
-(*
-
-(* exception Unimplemented *)
-
-(* doing nary choice is going to be funny... they build an array and binary search it to find the element.
-We're proably gonna have to do it with some kind of static sorter, hardware style!
-*)
-let choose ((w1,(RandGen g1)) : int Code.t * 'a t) ((w2,(RandGen g2)) : int Code.t * 'a t) : 'a t = RandGen (
-  fun ~size_c ~random_c ->
-    let%bind rand = Codecps.gen_let [%code Splittable_random.int [%e random_c] ~lo:0 ~hi:([%e w1] + [%e w2]) ] in
-    Codecps.gen_if [%code [%e rand] < [%e w1]] ~tt:(g1 ~size_c ~random_c) ~ff:(g2 ~size_c ~random_c)
-)
+let to_qc sg =
+  .<
+    Base_quickcheck.Generator.create .~(to_fun sg)
+  >.
 
 
-
-let gen_if b (RandGen f) (RandGen g) = RandGen (
-  fun ~size_c  ~random_c ->
-    Codecps.gen_if b ~tt:(f ~size_c ~random_c) ~ff:(g ~size_c ~random_c)
-)
-
-(* module Let_syntax = For_monad.Let_syntax *)
-
-let recurse (gc : 'a recgen) : 'a Code.t t = RandGen (fun ~size_c ~random_c -> Codecps.return [%code 
-  Core.Quickcheck.Generator.generate ~size:[%e size_c] ~random:[%e random_c] ([%e gc] ())
-])
-
-(*
-let of_lazy lazy_t = create (fun ~size ~random -> generate (force lazy_t) ~size ~random)
-*)
-(* let fixed_point of_generator = *)
-  (* let rec lazy_t = lazy (of_generator (of_lazy lazy_t)) in *)
-  (* force lazy_t *)
-(* ;; *)
-
-let recursive (f : 'a recgen -> ('a Code.t) t) : ('a Base_quickcheck.Generator.t) Code.t =
-  [%code
-    let rec lazy_t () = Base_quickcheck.Generator.create (fun ~size ~random ->
-      [%e let (RandGen r) = (f [%code lazy_t]) in
-        Codecps.code_generate (r ~size_c:[%code size] ~random_c:[%code random])
-      ]
-    )
-    in
-    lazy_t ()
-  ]
-
-
-module For_monad = Monad.Make (struct
-    type nonrec 'a t = 'a t
-
-    let return = return
-    let bind = bind
-    let map = `Define_using_bind
-  end)
-
-let join = For_monad.join
-let ignore_m = For_monad.ignore_m
-
-let map = For_monad.map
-
-let all_unit = For_monad.all_unit
-let all = For_monad.all
-
-
-module Monad_infix = For_monad.Monad_infix
-include Monad_infix
-module Let_syntax = For_monad.Let_syntax
-*)
+let print sg = Codelib.print_code Format.std_formatter (to_fun sg)
 
 let () =
   let ic = Core_unix.open_process_in "ocamlfind query base_quickcheck" in
