@@ -1,0 +1,1 @@
+include Generator_intf.GENERATOR with type 'a c = 'a
