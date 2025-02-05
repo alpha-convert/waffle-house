@@ -1,2 +1,4 @@
 (test
+(preprocess (pps ppx_jane))
+ (libraries fast_gen)
  (name test_fast_gen))

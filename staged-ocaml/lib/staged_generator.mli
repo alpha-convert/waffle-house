@@ -2,7 +2,7 @@ open Codelib
 
 type 'a t
 
-val return : 'a code -> 'a t
+val return : 'a -> 'a t
 val bind : 'a t -> f:('a code -> 'b t) -> 'b t
 
 val choose : (int code * 'a t) list -> 'a t
@@ -17,6 +17,10 @@ val to_qc : 'a t -> ('a Base_quickcheck.Generator.t) code
 
 val jit : 'a t -> 'a Base_quickcheck.Generator.t
 
+type ('a,'r) recgen
+val recurse : ('a,'r) recgen -> 'r code -> 'a t
+val recursive : 'r code -> (('a,'r) recgen -> 'r code -> 'a t) -> 'a t
+
 (*
 (*
 we could change these to not expose the "code" by changin the return type of RandGen to a ('a Code.t) CodeGen.t, but then we'd lose
@@ -27,9 +31,7 @@ val with_size : 'a t -> size_c:(int Code.t) -> 'a t
 val size : (int Code.t) t
 
 
-type 'a recgen
-val recurse : 'a recgen -> 'a Code.t t
-val recursive : ('a recgen -> ('a Code.t t)) -> ('a Base_quickcheck.Generator.t) Code.t
+
 
 val gen_if : (bool Code.t) -> 'a t -> 'a t -> 'a t
 

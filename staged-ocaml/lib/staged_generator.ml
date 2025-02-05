@@ -7,7 +7,7 @@ type 'a t = { rand_gen : size_c:(int code) -> random_c:(Splittable_random.State.
 
 (* type 'a recgen = (unit -> 'a Core.Quickcheck.Generator.t) code *)
 
-let return x = { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return x }
+let return x = { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return .< x >. }
 
 let bind (r : 'a t) ~(f : 'a code -> 'b t) = { rand_gen = fun ~size_c ~random_c ->
   (* need to figure out how to letinsert here! *)
@@ -30,7 +30,7 @@ let int ~(lo : int code) ~(hi : int code) : int t = {
 
 let rec genpick (n : int val_code) (ws : (int val_code * 'a t) list) : 'a t =
   match ws with
-  | [] -> return .< failwith "Fell of the end of pick list" >.
+  | [] -> { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return .< failwith "Fell of the end of pick list" >. }
   | (k,g) :: ws' ->
         { rand_gen = 
           fun ~size_c ~random_c ->
@@ -153,3 +153,14 @@ let () =
 
 (* LMFAO I CANNOT BELIEVE THIS WORKS *)
 let jit cde = Runnative.run_native (Codelib.close_code (to_qc cde))
+
+type ('a,'r) recgen = 'r code -> 'a t
+let recurse f x = f x
+
+let recursive (type a) (type r) (x0 : r code) (step : (a,r) recgen -> r code -> a t) =
+  let rec go x =
+    step go x 
+  in
+  {
+    rand_gen = fun ~size_c ~random_c -> (go x0).rand_gen ~size_c ~random_c
+  }
