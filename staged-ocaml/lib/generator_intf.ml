@@ -1,9 +1,15 @@
+module type C_INTF = sig
+  type 'a t
+  val lift : 'a -> 'a t
+  val i2f : Int.t t -> Float.t t
+  val pair : 'a t -> 'b t -> ('a * 'b) t
+
+end
 module type GENERATOR = sig
   type 'a t
-  type 'a c
+  module C : C_INTF
+  type 'a c = 'a C.t
 
-  val lift : 'a -> 'a c
-  val pair : 'a c -> 'b c -> ('a * 'b) c
 
   val return : 'a c -> 'a t
   val bind : 'a t -> f:('a c -> 'b t) -> 'b t
