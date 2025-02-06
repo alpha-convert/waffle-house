@@ -1,4 +1,4 @@
 (test
-(preprocess (pps ppx_jane))
- (libraries fast_gen)
+(preprocess (pps ppx_jane ppx_deriving.eq))
+ (libraries fast_gen alcotest)
  (name test_fast_gen))
