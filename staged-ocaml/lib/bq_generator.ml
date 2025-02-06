@@ -2,6 +2,7 @@ type 'a t = 'a Base_quickcheck.Generator.t
 type 'a c = 'a
 
 let lift x = x
+let c_i2f = Float.of_int
 let pair x y = (x,y)
 
 let return = Base_quickcheck.Generator.return

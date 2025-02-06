@@ -6,9 +6,12 @@ open Codecps.Let_syntax;;
 type 'a t = { rand_gen : size_c:(int code) -> random_c:(Splittable_random.State.t code) -> 'a code Codecps.t }
 type 'a c = 'a code
 
+
 let lift x = .< x >.
 
 let pair x y = .< (.~x,.~y) >.
+
+let c_i2f x = .< Float.of_int .~x >.
 
 (* type 'a recgen = (unit -> 'a Core.Quickcheck.Generator.t) code *)
 
