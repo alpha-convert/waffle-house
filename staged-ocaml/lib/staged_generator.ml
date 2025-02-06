@@ -45,7 +45,7 @@ let rec genpick n ws =
   | (k,g) :: ws' ->
         { rand_gen = 
           fun ~size_c ~random_c ->
-          let%bind leq = Codecps.split_bool .< Float.compare .~(v2c n) .~(v2c k) < 0 >. in
+          let%bind leq = Codecps.split_bool .< Float.compare .~(v2c n) .~(v2c k) <= 0 >. in
           if leq then
             g.rand_gen ~size_c ~random_c
           else
@@ -54,14 +54,13 @@ let rec genpick n ws =
         }
 
   
-let histsum (ws : (float val_code * 'a t) list) : ((float val_code * 'a t) list * float val_code) Codecps.t =
-    let rec go (ws : (float val_code * 'a t) list) (acc : float val_code) : ((float val_code * 'a t) list * float val_code) Codecps.t =
+let sum (ws : (float val_code * 'a t) list) : (float val_code) Codecps.t =
+    let rec go (ws : (float val_code * 'a t) list) (acc : float val_code) : (float val_code) Codecps.t =
       match ws with
-      | [] -> Codecps.return ([],acc)
+      | [] -> Codecps.return acc
       | (cn,g) :: ws' ->
           let%bind acc' = Codecps.let_insert .< .~(v2c acc) +. .~(v2c cn) >. in
-          let%bind (hist,sum) = go ws' acc' in
-          Codecps.return ((acc',g) :: hist, sum)
+          go ws' acc'
       in
     let%bind zero = let_insert .<0.>. in
     go ws zero
@@ -69,10 +68,10 @@ let histsum (ws : (float val_code * 'a t) list) : ((float val_code * 'a t) list 
 let choose (ws : (float code * 'a t) list) : 'a t =
   { rand_gen = fun ~size_c ~random_c ->
       let%bind ws' = Codecps.all @@ List.map ~f:(fun (cn,g) -> let%bind cvn = Codecps.let_insert cn in Codecps.return (cvn,g)) ws in
-      let%bind (hist,sum) = histsum ws' in
+      let%bind sum = sum ws' in
       let%bind n = (float ~lo:.<0.>. ~hi:(v2c sum)).rand_gen ~size_c ~random_c in
       let%bind n = Codecps.let_insert n in
-      (genpick n hist).rand_gen ~size_c ~random_c
+      (genpick n ws').rand_gen ~size_c ~random_c
   }
 
 let with_size f ~size_c =
