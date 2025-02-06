@@ -29,6 +29,8 @@ module MakeDiffTest(T : TestCase) = struct
 
   exception Fail of T.t * T.t
 
+  (* confusing thing that got me... Alcotest redirects std to file, so "noise"
+  you print here won't show up in stdout. See _build/default/test/_build for the ouptut of your tests.*)
   let run ?config () =
     Base_quickcheck.Test.run_exn
      ?config:config
