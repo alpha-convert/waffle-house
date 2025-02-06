@@ -5,6 +5,8 @@ module C = struct
   let lift x = x
   let i2f = Float.of_int
   let pair x y = (x,y)
+  let pred n = n - 1
+  let cons x xs = x :: xs
 end
 
 type 'a c = 'a C.t

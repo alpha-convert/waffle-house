@@ -10,6 +10,8 @@ module C = struct
   let lift x = .< x >.
   let pair x y = .< (.~x,.~y) >.
   let i2f x = .< Float.of_int .~x >.
+  let pred n = .< .~n - 1 >.
+  let cons x xs = .< .~x :: .~xs >.
 end
 
 type 'a c = 'a C.t
@@ -61,7 +63,7 @@ let sum (ws : (float val_code * 'a t) list) : (float val_code) Codecps.t =
     let rec go (ws : (float val_code * 'a t) list) (acc : float val_code) : (float val_code) Codecps.t =
       match ws with
       | [] -> Codecps.return acc
-      | (cn,g) :: ws' ->
+      | (cn,_) :: ws' ->
           let%bind acc' = Codecps.let_insert .< .~(v2c acc) +. .~(v2c cn) >. in
           go ws' acc'
       in
@@ -127,9 +129,17 @@ type ('a,'r) recgen = 'r code -> 'a t
 let recurse f x = f x
 
 let recursive (type a) (type r) (x0 : r code) (step : (a,r) recgen -> r code -> a t) =
-  let rec go x =
-    step go x 
-  in
   {
-    rand_gen = fun ~size_c ~random_c -> (go x0).rand_gen ~size_c ~random_c
+    rand_gen = fun ~size_c ~random_c -> 
+      let%bind x0 = Codecps.let_insert x0 in
+      Codecps.return @@ (.< let rec go x ~size ~random = .~(
+          Codecps.code_generate @@
+            (step
+                (fun xc' -> { rand_gen = fun ~size_c ~random_c -> Codecps.return .< go .~xc' ~size:.~size_c ~random:.~random_c >. })
+                .<x>.
+            ).rand_gen ~size_c:.<size>. ~random_c:.<random>.
+        )
+        in
+          go .~(v2c x0) ~size:.~size_c ~random:.~random_c
+      >.)
   }

@@ -3,7 +3,8 @@ module type C_INTF = sig
   val lift : 'a -> 'a t
   val i2f : Int.t t -> Float.t t
   val pair : 'a t -> 'b t -> ('a * 'b) t
-
+  val pred : Int.t t -> Int.t t
+  val cons : 'a t -> 'a list t -> 'a list t
 end
 module type GENERATOR = sig
   type 'a t

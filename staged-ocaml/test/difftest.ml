@@ -2,7 +2,7 @@ open Fast_gen;;
 open Core;;
 
 module type TestCase = sig
-  type t [@@deriving eq]
+  type t [@@deriving eq, show]
   module F : functor (G : Generator_intf.GENERATOR) -> sig
     val gen : t G.t
   end
@@ -26,6 +26,7 @@ module MakeDiffTest(T : TestCase) = struct
 
   let bq_gen = BQ_G.gen
   let st_gen = Staged_generator.jit ST_G.gen
+  let () = Staged_generator.print ST_G.gen
 
   exception Fail of T.t * T.t
 
@@ -38,7 +39,7 @@ module MakeDiffTest(T : TestCase) = struct
       fun (size,seed) ->
         let v1 = Base_quickcheck.Generator.generate bq_gen ~size ~random:(Splittable_random.State.of_int seed) in
         let v2 = Base_quickcheck.Generator.generate st_gen ~size ~random:(Splittable_random.State.of_int seed) in
-        if T.equal v1 v2 then () else raise (Fail (v1,v2))
+        if T.equal v1 v2 then print_endline ("Success: " ^ T.show v1) else raise (Fail (v1,v2))
      )
      (module SizeRand)
 

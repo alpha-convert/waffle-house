@@ -4,7 +4,7 @@ open Fast_gen;;
 open Difftest
 
 module BindTC : TestCase = struct
-  type t = int * int [@@deriving eq]
+  type t = int * int [@@deriving eq, show]
   module F (G : Generator_intf.GENERATOR) = struct
     let i = G.int ~lo:(G.C.lift 0) ~hi:(G.C.lift 100)
     let gen =
@@ -17,7 +17,7 @@ module BindTC : TestCase = struct
 end
 
 module ChooseTC : TestCase = struct
-  type t = int [@@deriving eq]
+  type t = int [@@deriving eq, show]
   module F (G : Generator_intf.GENERATOR) = struct
     open G
     open C
@@ -31,7 +31,7 @@ module ChooseTC : TestCase = struct
 end
 
 module ChooseBind1 : TestCase = struct
-  type t = int [@@deriving eq]
+  type t = int [@@deriving eq, show]
   module F (G : Generator_intf.GENERATOR) = struct
     open G
     open C
@@ -46,9 +46,54 @@ module ChooseBind1 : TestCase = struct
   end
 end
 
+module ChooseBind2 : TestCase = struct
+  type t = int * int [@@deriving eq, show]
+  module F (G : Generator_intf.GENERATOR) = struct
+    open G
+    open C
+    let int0 = int ~lo:(lift 0) ~hi:(lift 100)
+    let gen = 
+    bind int0 ~f:(fun i ->
+      choose [
+        (lift 55., bind int0 ~f:(fun j -> return (pair j i)));
+        (lift 1., return (pair (lift 1) (lift 2)));
+      ]
+    )
+  end
+end
+
+module IntList : TestCase = struct
+  type t = int list [@@deriving eq, show]
+  module F (G : Generator_intf.GENERATOR) = struct
+    open G
+    open C
+    let gen = 
+      recursive (lift ()) (
+        fun r _ ->
+          bind size ~f:(fun cs ->
+          choose [
+            (lift 1., return (lift []));
+            (i2f cs ,
+              bind (int ~lo:(lift 0) ~hi:cs) ~f:(fun x ->
+                bind (with_size ~size_c:(pred cs) @@ recurse r (lift ())) ~f:(fun xs ->
+                  return (cons x xs)
+                )
+              )
+            );
+          ]
+        )
+      )
+    
+  end
+end
+
+
+
 let qc_cfg = { Base_quickcheck.Test.default_config with
   seed = Base_quickcheck.Test.Config.Seed.Nondeterministic
 }
+
+(* module M = MakeDiffTest(IntList) *)
 
 let () =
   let open Alcotest in
@@ -57,5 +102,7 @@ let () =
       (let open MakeDiffTest(BindTC) in alco ~config:qc_cfg "Bind Ordering");
       (let open MakeDiffTest(ChooseTC) in alco ~config:qc_cfg "Choose Correctness");
       (let open MakeDiffTest(ChooseBind1) in alco ~config:qc_cfg "Choose with size weights");
+      (let open MakeDiffTest(ChooseBind2) in alco ~config:qc_cfg "Choose with bind ordering");
+      (let open MakeDiffTest(IntList) in alco ~config:qc_cfg "Int List Generator");
     ]
   ]
