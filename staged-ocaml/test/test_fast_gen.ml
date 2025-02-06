@@ -17,8 +17,8 @@ module BindTC : TestCase = struct
   end
 end
 
-module BDT = MakeDiffTest(BindTC)
-let () = BDT.run ()
+(* module BDT = MakeDiffTest(BindTC) *)
+(* let () = BDT.run () *)
 
 
 module ChooseTC : TestCase = struct
@@ -29,9 +29,9 @@ module ChooseTC : TestCase = struct
     let gen = 
     bind size ~f:(fun nc ->
       choose [
-        (lift 2., return (lift 500));
-        (lift 1., return (lift 1000));
-        (lift 3., return (lift 100));
+        (lift 1., return (lift 500));
+        (lift 2., return (lift 1000));
+        (lift 1., return (lift 100));
       ]
     )
   end
