@@ -108,17 +108,17 @@ let to_fun sg =
 
 let print sg = Codelib.print_code Format.std_formatter (to_fun sg)
 
-let () =
+(* let () =
   let ic = Core_unix.open_process_in "ocamlfind query base_quickcheck" in
   match In_channel.input_line ic with
   | Some path -> let _ = Core_unix.close_process_in ic in Runnative.add_search_path path
-  | None -> let _ = Core_unix.close_process_in ic in failwith "Could not find base_quickcheck. "
+  | None -> let _ = Core_unix.close_process_in ic in failwith "Could not find base_quickcheck. " *)
 
-let () =
+(* let () =
   let ic = Core_unix.open_process_in "ocamlfind query core" in
   match In_channel.input_line ic with
   | Some path -> let _ = Core_unix.close_process_in ic in Runnative.add_search_path path
-  | None -> let _ = Core_unix.close_process_in ic in failwith "Could not find core. "
+  | None -> let _ = Core_unix.close_process_in ic in failwith "Could not find core. " *)
 
 let () =
   let ic = Core_unix.open_process_in "ocamlfind query splittable_random" in
@@ -126,11 +126,11 @@ let () =
   | Some path -> let _ = Core_unix.close_process_in ic in Runnative.add_search_path path
   | None -> let _ = Core_unix.close_process_in ic in failwith "Could not find splittable_random. "
 
-let () =
+(* let () =
   let ic = Core_unix.open_process_in "ocamlfind query base" in
   match In_channel.input_line ic with
   | Some path -> let _ = Core_unix.close_process_in ic in Runnative.add_search_path path
-  | None -> let _ = Core_unix.close_process_in ic in failwith "Could not find base. "
+  | None -> let _ = Core_unix.close_process_in ic in failwith "Could not find base. " *)
 
 (* LMFAO I CANNOT BELIEVE THIS WORKS *)
 let jit cde = Runnative.run_native (Codelib.close_code (to_fun cde))
