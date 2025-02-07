@@ -1,0 +1,1 @@
+include Fast_gen.Generator_intf.GENERATOR with type 'a t = 'a Base_quickcheck.Generator.t

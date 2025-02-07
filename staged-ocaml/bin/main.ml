@@ -1,5 +1,5 @@
-open Core;;
-open Core_bench;;
+(* open Core;; *)
+(* open Core_bench;; *)
 open Splittable_random;;
 (* 
 module F (G : Fast_gen.Generator_intf.GENERATOR) = struct

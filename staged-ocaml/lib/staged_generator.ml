@@ -1,7 +1,7 @@
-open Core;;
+(* open Core;; *)
 open Codelib;;
 open Codecps;;
-open Codecps.Let_syntax;;
+(* open Codecps.Let_syntax;; *)
 
 type 'a t = { rand_gen : size_c:(int code) -> random_c:(Splittable_random.State.t code) -> 'a code Codecps.t }
 
@@ -20,10 +20,13 @@ type 'a c = 'a C.t
 let return x = { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return x }
 
 let bind (r : 'a t) ~(f : 'a code -> 'b t) = { rand_gen = fun ~size_c ~random_c ->
-  (* need to figure out how to letinsert here! *)
-  let%bind a = r.rand_gen ~size_c ~random_c in
-  let%bind a = Codecps.let_insert a in
-  (f (v2c a)).rand_gen ~size_c ~random_c
+  Codecps.bind (r.rand_gen ~size_c ~random_c) (fun a ->
+    Codecps.bind (Codecps.let_insert a) (fun a ->
+      (f (v2c a)).rand_gen ~size_c ~random_c
+    )
+  )
+  (* let%bind a = in *)
+  (* let%bind a = Codecps.let_insert a in *)
 }
 
 let bool : bool t = {
@@ -50,12 +53,14 @@ let rec genpick n ws =
   | (k,g) :: ws' ->
         { rand_gen = 
           fun ~size_c ~random_c ->
-          let%bind leq = Codecps.split_bool .< Float.compare .~(v2c n) .~(v2c k) <= 0 >. in
-          if leq then
-            g.rand_gen ~size_c ~random_c
-          else
-            let%bind n' = Codecps.let_insert .< .~(v2c n) -. .~(v2c k) >. in
-            (genpick n' ws').rand_gen ~size_c ~random_c
+            Codecps.bind (Codecps.split_bool .< Float.compare .~(v2c n) .~(v2c k) <= 0 >.) (fun leq ->
+              if leq then
+                g.rand_gen ~size_c ~random_c
+              else
+                Codecps.bind (Codecps.let_insert .< .~(v2c n) -. .~(v2c k) >.) @@ fun n' ->
+                (* let%bind n' =  in *)
+                (genpick n' ws').rand_gen ~size_c ~random_c
+          )
         }
 
   
@@ -64,18 +69,23 @@ let sum (ws : (float val_code * 'a t) list) : (float val_code) Codecps.t =
       match ws with
       | [] -> Codecps.return acc
       | (cn,_) :: ws' ->
-          let%bind acc' = Codecps.let_insert .< .~(v2c acc) +. .~(v2c cn) >. in
+          Codecps.bind (Codecps.let_insert .< .~(v2c acc) +. .~(v2c cn) >.) @@ fun acc' ->
+          (* let%bind acc' =  in *)
           go ws' acc'
       in
-    let%bind zero = let_insert .<0.>. in
+    Codecps.bind (let_insert .< 0. >.) @@ fun zero ->
     go ws zero
 
 let choose (ws : (float code * 'a t) list) : 'a t =
   { rand_gen = fun ~size_c ~random_c ->
-      let%bind ws' = Codecps.all @@ List.map ~f:(fun (cn,g) -> let%bind cvn = Codecps.let_insert cn in Codecps.return (cvn,g)) ws in
-      let%bind sum = sum ws' in
-      let%bind n = (float ~lo:.<0.>. ~hi:(v2c sum)).rand_gen ~size_c ~random_c in
-      let%bind n = Codecps.let_insert n in
+      Codecps.bind (Codecps.all @@ List.map (fun (cn,g) -> Codecps.bind (Codecps.let_insert cn) @@ fun cvn -> Codecps.return (cvn,g)) ws) @@ fun ws' ->
+      (* let%bind ws' =  in *)
+      Codecps.bind (sum ws') @@ fun sum ->
+      (* let%bind sum = sum ws' in *)
+      Codecps.bind ((float ~lo:.<0.>. ~hi:(v2c sum)).rand_gen ~size_c ~random_c) @@ fun n ->
+      (* let%bind n =  in *)
+      Codecps.bind (Codecps.let_insert n) @@ fun n ->
+      (* let%bind n = Codecps.let_insert n in *)
       (genpick n ws').rand_gen ~size_c ~random_c
   }
 
@@ -131,7 +141,8 @@ let recurse f x = f x
 let recursive (type a) (type r) (x0 : r code) (step : (a,r) recgen -> r code -> a t) =
   {
     rand_gen = fun ~size_c ~random_c -> 
-      let%bind x0 = Codecps.let_insert x0 in
+      Codecps.bind (Codecps.let_insert x0) @@ fun x0 ->
+      (* let%bind x0 = Codecps.let_insert x0 in *)
       Codecps.return @@ (.< let rec go x ~size ~random = .~(
           Codecps.code_generate @@
             (step

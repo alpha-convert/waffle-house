@@ -1,4 +1,3 @@
-open Core;;
 open Codelib;;
 
 (* This is stolen from andras kovacs *)
@@ -12,21 +11,29 @@ let code_generate : ('a code) t -> 'a code =
   fun g -> g.code_gen (fun x -> x)
 
 let return x = { code_gen = fun k -> k x}
-let bind ({code_gen = inC } : 'a t) ~(f : 'a -> 'b t) : 'b t = { code_gen = fun k -> inC (fun a -> run_code_gen (f a) k) }
+let bind ({code_gen = inC } : 'a t) (f : 'a -> 'b t) : 'b t = { code_gen = fun k -> inC (fun a -> run_code_gen (f a) k) }
 
-module For_monad = Monad.Make (struct
+(* module For_monad = Monad.Make (struct
     type nonrec 'a t = 'a t
 
     let return = return
     let bind = bind
     let map = `Define_using_bind
-  end)
+  end) *)
 
-module Monad_infix = For_monad.Monad_infix
+(* module Monad_infix = For_monad.Monad_infix
 include Monad_infix
 module Let_syntax = For_monad.Let_syntax
 
-let all = For_monad.all
+let all = For_monad.all *)
+
+let rec all xs =
+  match xs with
+  | [] -> return []
+  | cx :: cxs ->
+      bind cx @@ fun x ->
+        bind (all cxs) @@ fun xs ->
+          return (x :: xs)
 
 let let_insert (cx : 'a code) : 'a val_code t = {
   code_gen = fun k -> letlv cx k
