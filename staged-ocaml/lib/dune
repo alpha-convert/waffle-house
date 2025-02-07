@@ -1,4 +1,4 @@
 (library
 ; (preprocess (pps ppx_jane))
- (libraries splittable_random dynlink metaocaml)
+ (libraries unix splittable_random dynlink metaocaml)
  (name fast_gen))
