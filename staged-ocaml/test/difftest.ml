@@ -25,7 +25,7 @@ module MakeDiffTest(T : TestCase) = struct
   module ST_G = T.F(Staged_generator)
 
   let bq_gen = BQ_G.gen
-  let st_gen = Staged_generator.jit ST_G.gen
+  let st_gen = Base_quickcheck.Generator.create (Staged_generator.jit ST_G.gen)
   let () = Staged_generator.print ST_G.gen
 
   exception Fail of T.t * T.t

@@ -1,4 +1,4 @@
 (executable
  (public_name fast_gen)
  (name main)
- (libraries fast_gen base_quickcheck base dynlink metaocaml))
+ (libraries fast_gen splittable_random base dynlink metaocaml core_bench))

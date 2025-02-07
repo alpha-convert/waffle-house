@@ -90,10 +90,10 @@ let to_fun sg =
       .~(Codecps.code_generate (f ~size_c:.< size >. ~random_c:.< random >.))
   >.
 
-let to_qc sg =
+(* let to_qc sg =
   .<
     Base_quickcheck.Generator.create .~(to_fun sg)
-  >.
+  >. *)
 
 
 let print sg = Codelib.print_code Format.std_formatter (to_fun sg)
@@ -123,7 +123,7 @@ let () =
   | None -> let _ = Core_unix.close_process_in ic in failwith "Could not find base. "
 
 (* LMFAO I CANNOT BELIEVE THIS WORKS *)
-let jit cde = Runnative.run_native (Codelib.close_code (to_qc cde))
+let jit cde = Runnative.run_native (Codelib.close_code (to_fun cde))
 
 type ('a,'r) recgen = 'r code -> 'a t
 let recurse f x = f x

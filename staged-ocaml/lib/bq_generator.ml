@@ -20,7 +20,6 @@ let bool = Base_quickcheck.Generator.bool
 let size = Base_quickcheck.Generator.size
 let with_size g ~size_c = Base_quickcheck.Generator.with_size ~size:size_c g
 
-let to_qc = fun x -> x
 let to_fun g = fun ~size ~random -> Base_quickcheck.Generator.generate g ~size ~random
 
 type ('a,'r) recgen = 'r -> 'a t

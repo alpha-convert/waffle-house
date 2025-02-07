@@ -24,7 +24,6 @@ module type GENERATOR = sig
   val size : int t
   val with_size : 'a t -> size_c:(int c) -> 'a t
 
-  val to_qc : 'a t -> ('a Base_quickcheck.Generator.t) c
   val to_fun : 'a t -> (size:int -> random:Splittable_random.State.t -> 'a) c
 
 
