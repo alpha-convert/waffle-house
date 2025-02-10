@@ -121,7 +121,7 @@ let run_ocamlfind_query package =
 
 let () =
   List.iter run_ocamlfind_query
-    [ "splittable_random" ]
+    [ "splittable_random"; "base" ]
 
 (* LMFAO I CANNOT BELIEVE THIS WORKS *)
 let jit cde = Runnative.run_native (Codelib.close_code (to_fun cde))
