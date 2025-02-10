@@ -20,6 +20,26 @@ module SizeRand : Base_quickcheck.Test.S with type t = Int.t * Int.t = struct
     )
 end
 
+
+
+let difftest ?config ~name:s exn eq g1 g2 = 
+  let completes f () =
+    try
+      f (); ()
+    with e -> Alcotest.fail (Exn.to_string e)
+  in let dt () =
+    Base_quickcheck.Test.run_exn
+     ?config:config
+     ~f:(
+      fun (size,seed) ->
+        let v1 = Base_quickcheck.Generator.generate g1 ~size ~random:(Splittable_random.State.of_int seed) in
+        let v2 = Base_quickcheck.Generator.generate g2 ~size ~random:(Splittable_random.State.of_int seed) in
+        if eq v1 v2 then () else exn v1 v2
+     )
+     (module SizeRand)
+  in
+    Alcotest.test_case s `Quick (completes dt)
+
 module MakeDiffTest(T : TestCase) = struct
   module BQ_G = T.F(Bq_generator)
   module ST_G = T.F(Staged_generator)
@@ -30,7 +50,7 @@ module MakeDiffTest(T : TestCase) = struct
 
   exception Fail of T.t * T.t
 
-  (* confusing thing that got me... Alcotest redirects std to file, so "noise"
+  (* (* confusing thing that got me... Alcotest redirects std to file, so "noise"
   you print here won't show up in stdout. See _build/default/test/_build for the ouptut of your tests.*)
   let run ?config () =
     Base_quickcheck.Test.run_exn
@@ -41,13 +61,8 @@ module MakeDiffTest(T : TestCase) = struct
         let v2 = Base_quickcheck.Generator.generate st_gen ~size ~random:(Splittable_random.State.of_int seed) in
         if T.equal v1 v2 then print_endline ("Success: " ^ T.show v1) else raise (Fail (v1,v2))
      )
-     (module SizeRand)
+     (module SizeRand) *)
 
-  let completes f () =
-    try
-      f (); ()
-    with e -> Alcotest.fail (Exn.to_string e)
-
-  (* here, quick means "always run this test "*)
-  let alco ?config s = Alcotest.test_case s `Quick (completes (run ?config))
+  
+  let alco ?config name = difftest ?config ~name (fun v1 v2 -> raise (Fail (v1,v2))) T.equal bq_gen st_gen
 end
