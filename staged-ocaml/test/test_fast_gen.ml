@@ -105,20 +105,38 @@ module BoolChoose : TestCase = struct
   end
 end
 
-module FloatRange : TestCase = struct
-  type t = float * float [@@deriving eq, show]
+
+module SimpleInt : TestCase = struct
+  type t = int [@@deriving eq, show]
+  module F (G : Generator_intf.GENERATOR) = struct
+    open G
+    open C
+    let gen = int ~lo:(lift 0) ~hi:(lift 100)
+  end
+ end
+ 
+ module SimpleBool : TestCase = struct
+  type t = bool [@@deriving eq, show] 
+  module F (G : Generator_intf.GENERATOR) = struct
+    open G
+    open C
+    let gen = bool
+  end
+ end
+
+ module IntRange : TestCase = struct
+  type t = int * int [@@deriving eq, show]
   module F (G : Generator_intf.GENERATOR) = struct
     open G
     open C
     let gen =
-      bind (float ~lo:(lift (-10.0)) ~hi:(lift 10.0)) ~f:(fun cx ->
-        bind (float ~lo:cx ~hi:(i2f (lift 20))) ~f:(fun cy ->
-          return (pair cx cy)
+      bind (int ~lo:(lift (-10)) ~hi:(lift 10)) ~f:(fun x ->
+        bind (int ~lo:x ~hi:(lift 20)) ~f:(fun y ->
+          return (pair x y)
         )
       )
   end
 end
-
 
 let qc_cfg = { Base_quickcheck.Test.default_config with
   seed = Base_quickcheck.Test.Config.Seed.Nondeterministic
@@ -130,12 +148,14 @@ let () =
   let open Alcotest in
   run "Fusion Equivalence" [
     "DiffTest", [
-      (* (let open MakeDiffTest(BindTC) in alco ~config:qc_cfg "Bind Ordering"); *)
-      (* (let open MakeDiffTest(ChooseTC) in alco ~config:qc_cfg "Choose Correctness"); *)
-      (* (let open MakeDiffTest(ChooseBind1) in alco ~config:qc_cfg "Choose with size weights"); *)
-      (* (let open MakeDiffTest(ChooseBind2) in alco ~config:qc_cfg "Choose with bind ordering"); *)
-      (* (let open MakeDiffTest(BoolChoose) in alco ~config:qc_cfg "More choose testing with bools"); *)
-      (let open MakeDiffTest(FloatRange) in alco ~config:qc_cfg "Range-dependent float sampling");
-      (* (let open MakeDiffTest(IntList) in alco ~config:qc_cfg "Int List Generator"); *)
+      (let open MakeDiffTest(BindTC) in alco ~config:qc_cfg "Bind Ordering");
+      (let open MakeDiffTest(ChooseTC) in alco ~config:qc_cfg "Choose Correctness");
+      (let open MakeDiffTest(ChooseBind1) in alco ~config:qc_cfg "Choose with size weights");
+      (let open MakeDiffTest(ChooseBind2) in alco ~config:qc_cfg "Choose with bind ordering");
+      (let open MakeDiffTest(BoolChoose) in alco ~config:qc_cfg "More choose testing with bools");
+      (let open MakeDiffTest(SimpleInt) in alco ~config:qc_cfg "Int Sampling");
+      (let open MakeDiffTest(SimpleBool) in alco ~config:qc_cfg "Bool Sampling");
+      (let open MakeDiffTest(IntRange) in alco ~config:qc_cfg "Range of ints");
+      (let open MakeDiffTest(IntList) in alco ~config:qc_cfg "Int List Generator");
     ]
   ]

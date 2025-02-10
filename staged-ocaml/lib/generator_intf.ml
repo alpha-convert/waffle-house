@@ -18,7 +18,7 @@ module type GENERATOR = sig
   val choose : (float c * 'a t) list -> 'a t
 
   val int : lo:(int c) -> hi:(int c) -> int t
-  val float : lo:(float c) -> hi:(float c) -> float t
+  (* val float : lo:(float c) -> hi:(float c) -> float t *)
   val bool : bool t
 
   val size : int t
