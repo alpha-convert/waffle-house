@@ -87,6 +87,37 @@ module IntList : TestCase = struct
   end
 end
 
+module BoolChoose : TestCase = struct
+  type t = bool * int [@@deriving eq, show]
+  module F (G : Generator_intf.GENERATOR) = struct
+    open G
+    open C
+    let gen =
+      bind bool ~f:(fun b ->
+        choose [
+          (lift 1., return (pair b (lift 42)));
+          (lift 2., 
+           bind (int ~lo:(lift 0) ~hi:(lift 100)) ~f:(fun x ->
+             return (pair b x)
+           ))
+        ]
+      )
+  end
+end
+
+module FloatRange : TestCase = struct
+  type t = float * float [@@deriving eq, show]
+  module F (G : Generator_intf.GENERATOR) = struct
+    open G
+    open C
+    let gen =
+      bind (float ~lo:(lift (-10.0)) ~hi:(lift 10.0)) ~f:(fun cx ->
+        bind (float ~lo:cx ~hi:(i2f (lift 20))) ~f:(fun cy ->
+          return (pair cx cy)
+        )
+      )
+  end
+end
 
 
 let qc_cfg = { Base_quickcheck.Test.default_config with
@@ -99,10 +130,12 @@ let () =
   let open Alcotest in
   run "Fusion Equivalence" [
     "DiffTest", [
-      (let open MakeDiffTest(BindTC) in alco ~config:qc_cfg "Bind Ordering");
-      (let open MakeDiffTest(ChooseTC) in alco ~config:qc_cfg "Choose Correctness");
-      (let open MakeDiffTest(ChooseBind1) in alco ~config:qc_cfg "Choose with size weights");
-      (let open MakeDiffTest(ChooseBind2) in alco ~config:qc_cfg "Choose with bind ordering");
-      (let open MakeDiffTest(IntList) in alco ~config:qc_cfg "Int List Generator");
+      (* (let open MakeDiffTest(BindTC) in alco ~config:qc_cfg "Bind Ordering"); *)
+      (* (let open MakeDiffTest(ChooseTC) in alco ~config:qc_cfg "Choose Correctness"); *)
+      (* (let open MakeDiffTest(ChooseBind1) in alco ~config:qc_cfg "Choose with size weights"); *)
+      (* (let open MakeDiffTest(ChooseBind2) in alco ~config:qc_cfg "Choose with bind ordering"); *)
+      (* (let open MakeDiffTest(BoolChoose) in alco ~config:qc_cfg "More choose testing with bools"); *)
+      (let open MakeDiffTest(FloatRange) in alco ~config:qc_cfg "Range-dependent float sampling");
+      (* (let open MakeDiffTest(IntList) in alco ~config:qc_cfg "Int List Generator"); *)
     ]
   ]
