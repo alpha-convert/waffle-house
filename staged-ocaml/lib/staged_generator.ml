@@ -21,12 +21,10 @@ let return x = { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return x }
 
 let bind (r : 'a t) ~(f : 'a code -> 'b t) = { rand_gen = fun ~size_c ~random_c ->
   Codecps.bind (r.rand_gen ~size_c ~random_c) (fun a ->
-    Codecps.bind (Codecps.let_insert a) (fun a ->
-      (f (v2c a)).rand_gen ~size_c ~random_c
-    )
+    (* Codecps.bind (Codecps.let_insert a) (fun a -> *)
+      (f a).rand_gen ~size_c ~random_c
+    (* ) *)
   )
-  (* let%bind a = in *)
-  (* let%bind a = Codecps.let_insert a in *)
 }
 
 let map ~f x = bind x ~f:(fun cx -> return (f cx))
@@ -39,13 +37,13 @@ let ( >>| ) (x : 'a t) (f : 'a c -> 'b c) = map ~f x
 let bool : bool t = {
   rand_gen =
     fun ~size_c:_ ~random_c ->
-      Codecps.return .< Splittable_random.bool .~random_c >.
+      Codecps.let_insert .< Splittable_random.bool .~random_c >.
 }
 
 let int ~(lo : int code) ~(hi : int code) : int t = {
   rand_gen =
     fun ~size_c:_ ~random_c ->
-      Codecps.return .< Splittable_random.int ~lo:.~lo ~hi:.~hi .~random_c >.
+      Codecps.let_insert .< Splittable_random.int ~lo:.~lo ~hi:.~hi .~random_c >.
 }
 
 let float ~(lo : float code) ~(hi : float code) : float t = {
@@ -64,7 +62,7 @@ let rec genpick n ws =
               if leq then
                 g.rand_gen ~size_c ~random_c
               else
-                Codecps.bind (Codecps.let_insert .< .~(v2c n) -. .~(v2c k) >.) @@ fun n' ->
+                Codecps.bind (Codecps.let_insertv .< .~(v2c n) -. .~(v2c k) >.) @@ fun n' ->
                 (* let%bind n' =  in *)
                 (genpick n' ws').rand_gen ~size_c ~random_c
           )
@@ -76,22 +74,22 @@ let sum (ws : (float val_code * 'a t) list) : (float val_code) Codecps.t =
       match ws with
       | [] -> Codecps.return acc
       | (cn,_) :: ws' ->
-          Codecps.bind (Codecps.let_insert .< .~(v2c acc) +. .~(v2c cn) >.) @@ fun acc' ->
+          Codecps.bind (Codecps.let_insertv .< .~(v2c acc) +. .~(v2c cn) >.) @@ fun acc' ->
           (* let%bind acc' =  in *)
           go ws' acc'
       in
-    Codecps.bind (let_insert .< 0. >.) @@ fun zero ->
+    Codecps.bind (let_insertv .< 0. >.) @@ fun zero ->
     go ws zero
 
 let weighted_union (ws : (float code * 'a t) list) : 'a t =
   { rand_gen = fun ~size_c ~random_c ->
-      Codecps.bind (Codecps.all @@ List.map (fun (cn,g) -> Codecps.bind (Codecps.let_insert cn) @@ fun cvn -> Codecps.return (cvn,g)) ws) @@ fun ws' ->
+      Codecps.bind (Codecps.all @@ List.map (fun (cn,g) -> Codecps.bind (Codecps.let_insertv cn) @@ fun cvn -> Codecps.return (cvn,g)) ws) @@ fun ws' ->
       (* let%bind ws' =  in *)
       Codecps.bind (sum ws') @@ fun sum ->
       (* let%bind sum = sum ws' in *)
       Codecps.bind ((float ~lo:.<0.>. ~hi:(v2c sum)).rand_gen ~size_c ~random_c) @@ fun n ->
       (* let%bind n =  in *)
-      Codecps.bind (Codecps.let_insert n) @@ fun n ->
+      Codecps.bind (Codecps.let_insertv n) @@ fun n ->
       (* let%bind n = Codecps.let_insert n in *)
       (genpick n ws').rand_gen ~size_c ~random_c
   }
@@ -154,7 +152,7 @@ let recurse f x = f x
 let recursive (type a) (type r) (x0 : r code) (step : (a,r) recgen -> r code -> a t) =
   {
     rand_gen = fun ~size_c ~random_c -> 
-      Codecps.bind (Codecps.let_insert x0) @@ fun x0 ->
+      Codecps.bind (Codecps.let_insertv x0) @@ fun x0 ->
       (* let%bind x0 = Codecps.let_insert x0 in *)
       Codecps.return @@ (.< let rec go x ~size ~random = .~(
           Codecps.code_generate @@

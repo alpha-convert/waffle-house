@@ -35,7 +35,11 @@ let rec all xs =
         bind (all cxs) @@ fun xs ->
           return (x :: xs)
 
-let let_insert (cx : 'a code) : 'a val_code t = {
+let let_insert (cx : 'a code) : 'a code t = {
+  code_gen = fun k -> letl cx k
+}
+
+let let_insertv (cx : 'a code) : 'a val_code t = {
   code_gen = fun k -> letlv cx k
 }
 
