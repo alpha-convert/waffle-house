@@ -20,19 +20,18 @@ module type GENERATOR = sig
   val ( >>= ) : 'a t -> ('a c -> 'b t) -> 'b t
   val ( >>| ) : 'a t -> ('a c -> 'b c) -> 'b t
 
+
+  val int : lo:(int c) -> hi:(int c) -> int t
+  val bool : bool t
+
   val weighted_union : (float c * 'a t) list -> 'a t
   val union : 'a t list -> 'a t
   val of_list : 'a c list -> 'a t
-
-  val int : lo:(int c) -> hi:(int c) -> int t
-  (* val float : lo:(float c) -> hi:(float c) -> float t *)
-  val bool : bool t
 
   val size : int t
   val with_size : 'a t -> size_c:(int c) -> 'a t
 
   val to_fun : 'a t -> (size:int -> random:Splittable_random.State.t -> 'a) c
-
 
   type ('a,'r) recgen
   val recurse : ('a,'r) recgen -> 'r c -> 'a t

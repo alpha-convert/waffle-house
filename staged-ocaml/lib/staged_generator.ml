@@ -100,6 +100,16 @@ let weighted_union (ws : (float code * 'a t) list) : 'a t =
 let union xs = weighted_union (List.map (fun g -> (.<1.>.,g)) xs)
 let of_list xs = weighted_union (List.map (fun x -> (.<1.>.,return x)) xs)
 
+(* g is a 'a list gen *)
+(* let dynamic_union g =
+  bind g ~f:(fun cxs -> {
+      rand_gen = fun ~size_c ~random_c ->
+        Codecps.bind (Codecps.let_insert .< List.length .~cxs >.) @@ fun len ->
+        Codecps.bind ((int ~lo:.<0>. ~hi:len).rand_gen ~size_c ~random_c) @@ fun n ->
+        _
+    }
+  )
+   *)
 
 let with_size f ~size_c =
   { rand_gen = fun ~size_c:_ ~random_c -> f.rand_gen ~size_c:size_c ~random_c }
@@ -157,3 +167,8 @@ let recursive (type a) (type r) (x0 : r code) (step : (a,r) recgen -> r code -> 
           go .~(v2c x0) ~size:.~size_c ~random:.~random_c
       >.)
   }
+
+
+(*
+Codegen stuff...
+*)
