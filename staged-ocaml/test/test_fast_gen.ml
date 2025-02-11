@@ -138,6 +138,21 @@ module SimpleInt : TestCase = struct
   end
 end
 
+ module AA : TestCase = struct
+  type t = int * int [@@deriving eq, show]
+  module F (G : Generator_intf.GENERATOR) = struct
+    open G
+    open C
+    let gen =
+      bind (weighted_union [lift 1.0, return (lift 9); lift 1.0, return (lift 100)]) ~f:(fun x ->
+       weighted_union [
+        (lift 1.0, return @@ pair x (lift 1));
+        (lift 1.0, (return @@ pair (lift 2) x));
+       ] 
+      )
+  end
+end
+
 let qc_cfg = { Base_quickcheck.Test.default_config with
   seed = Base_quickcheck.Test.Config.Seed.Nondeterministic
 }
@@ -157,5 +172,6 @@ let () =
       (let open MakeDiffTest(SimpleBool) in alco ~config:qc_cfg "Bool Sampling");
       (let open MakeDiffTest(IntRange) in alco ~config:qc_cfg "Range of ints");
       (let open MakeDiffTest(IntList) in alco ~config:qc_cfg "Int List Generator");
+      (let open MakeDiffTest(AA) in alco ~config:qc_cfg "Swing generator");
     ]
   ]
