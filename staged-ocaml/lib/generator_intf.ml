@@ -12,28 +12,28 @@ module type GENERATOR = sig
   type 'a c = 'a C.t
 
 
-  val return : 'a c -> 'a t
-  val bind : 'a t -> f:('a c -> 'b t) -> 'b t
-  val map : f:('a c -> 'b c) -> 'a t -> 'b t
-  val map2 : f:('a c -> 'b c -> 'c c) -> 'a t -> 'b t -> 'c t
+  val return : 'a -> 'a t
+  val bind : 'a t -> f:('a -> 'b t) -> 'b t
+  val map : f:('a -> 'b) -> 'a t -> 'b t
+  val map2 : f:('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
 
-  val ( >>= ) : 'a t -> ('a c -> 'b t) -> 'b t
-  val ( >>| ) : 'a t -> ('a c -> 'b c) -> 'b t
+  val ( >>= ) : 'a t -> ('a -> 'b t) -> 'b t
+  val ( >>| ) : 'a t -> ('a -> 'b) -> 'b t
 
 
-  val int : lo:(int c) -> hi:(int c) -> int t
-  val bool : bool t
+  val int : lo:(int c) -> hi:(int c) -> int c t
+  val bool : bool c t
 
-  val weighted_union : (float c * 'a t) list -> 'a t
-  val union : 'a t list -> 'a t
-  val of_list : 'a c list -> 'a t
+  val weighted_union : (float c * 'a c t) list -> 'a c t
+  val union : 'a c t list -> 'a c t
+  val of_list : 'a c list -> 'a c t
 
-  val size : int t
+  val size : int c t
   val with_size : 'a t -> size_c:(int c) -> 'a t
 
-  val to_fun : 'a t -> (size:int -> random:Splittable_random.State.t -> 'a) c
+  val to_fun : 'a c t -> (size:int -> random:Splittable_random.State.t -> 'a) c
 
   type ('a,'r) recgen
-  val recurse : ('a,'r) recgen -> 'r c -> 'a t
-  val recursive : 'r c -> (('a,'r) recgen -> 'r c -> 'a t) -> 'a t
+  val recurse : ('a,'r) recgen -> 'r c -> 'a c t
+  val recursive : 'r c -> (('a,'r) recgen -> 'r c -> 'a c t) -> 'a c t
 end

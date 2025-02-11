@@ -3,7 +3,7 @@ open Codelib;;
 open Codecps;;
 (* open Codecps.Let_syntax;; *)
 
-type 'a t = { rand_gen : size_c:(int code) -> random_c:(Splittable_random.State.t code) -> 'a code Codecps.t }
+type 'a t = { rand_gen : size_c:(int code) -> random_c:(Splittable_random.State.t code) -> 'a Codecps.t }
 
 module C = struct
   type 'a t = 'a code
@@ -19,11 +19,9 @@ type 'a c = 'a C.t
 
 let return x = { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return x }
 
-let bind (r : 'a t) ~(f : 'a code -> 'b t) = { rand_gen = fun ~size_c ~random_c ->
+let bind (r : 'a t) ~(f : 'a -> 'b t) = { rand_gen = fun ~size_c ~random_c ->
   Codecps.bind (r.rand_gen ~size_c ~random_c) (fun a ->
-    (* Codecps.bind (Codecps.let_insert a) (fun a -> *)
       (f a).rand_gen ~size_c ~random_c
-    (* ) *)
   )
 }
 
@@ -32,21 +30,22 @@ let map ~f x = bind x ~f:(fun cx -> return (f cx))
 let map2 ~f x y = bind x ~f:(fun x -> bind y ~f:(fun y -> return (f x y)))
 
 let ( >>= ) x f = bind x ~f
-let ( >>| ) (x : 'a t) (f : 'a c -> 'b c) = map ~f x
+let ( >>| ) (x : 'a t) (f : 'a -> 'b) = map ~f x
 
-let bool : bool t = {
+let bool : bool code t = {
   rand_gen =
     fun ~size_c:_ ~random_c ->
+      (* adding these let-inserts here ensures that the effects happen in order of the binds. *)
       Codecps.let_insert .< Splittable_random.bool .~random_c >.
 }
 
-let int ~(lo : int code) ~(hi : int code) : int t = {
+let int ~(lo : int code) ~(hi : int code) : int code t = {
   rand_gen =
     fun ~size_c:_ ~random_c ->
       Codecps.let_insert .< Splittable_random.int ~lo:.~lo ~hi:.~hi .~random_c >.
 }
 
-let float ~(lo : float code) ~(hi : float code) : float t = {
+let float ~(lo : float code) ~(hi : float code) : float code t = {
   rand_gen =
     fun ~size_c:_ ~random_c ->
       Codecps.return .< Splittable_random.float ~lo:.~lo ~hi:.~hi .~random_c >.
@@ -81,7 +80,7 @@ let sum (ws : (float val_code * 'a t) list) : (float val_code) Codecps.t =
     Codecps.bind (let_insertv .< 0. >.) @@ fun zero ->
     go ws zero
 
-let weighted_union (ws : (float code * 'a t) list) : 'a t =
+let weighted_union ws : 'a t =
   { rand_gen = fun ~size_c ~random_c ->
       Codecps.bind (Codecps.all @@ List.map (fun (cn,g) -> Codecps.bind (Codecps.let_insertv cn) @@ fun cvn -> Codecps.return (cvn,g)) ws) @@ fun ws' ->
       (* let%bind ws' =  in *)
@@ -146,10 +145,10 @@ let () =
 (* LMFAO I CANNOT BELIEVE THIS WORKS *)
 let jit cde = Runnative.run_native (Codelib.close_code (to_fun cde))
 
-type ('a,'r) recgen = 'r code -> 'a t
+type ('a,'r) recgen = 'r code -> 'a code t
 let recurse f x = f x
 
-let recursive (type a) (type r) (x0 : r code) (step : (a,r) recgen -> r code -> a t) =
+let recursive (type a) (type r) (x0 : r code) (step : (a,r) recgen -> r code -> a code t) =
   {
     rand_gen = fun ~size_c ~random_c -> 
       Codecps.bind (Codecps.let_insertv x0) @@ fun x0 ->

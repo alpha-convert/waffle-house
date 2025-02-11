@@ -22,7 +22,7 @@ module ChooseTC : TestCase = struct
     open G
     open C
     let gen = 
-      choose [
+      weighted_union [
         (lift 1., return (lift 500));
         (lift 2., return (lift 1000));
         (lift 1., return (lift 100));
@@ -37,7 +37,7 @@ module ChooseBind1 : TestCase = struct
     open C
     let gen = 
     bind size ~f:(fun nc ->
-      choose [
+      weighted_union [
         (lift 1., return (lift 22));
         (i2f nc, return (lift 1000));
         (lift 1., return (lift 100));
@@ -54,7 +54,7 @@ module ChooseBind2 : TestCase = struct
     let int0 = int ~lo:(lift 0) ~hi:(lift 100)
     let gen = 
     bind int0 ~f:(fun i ->
-      choose [
+      weighted_union [
         (lift 55., bind int0 ~f:(fun j -> return (pair j i)));
         (lift 1., return (pair (lift 1) (lift 2)));
       ]
@@ -71,7 +71,7 @@ module IntList : TestCase = struct
       recursive (lift ()) (
         fun r _ ->
           bind size ~f:(fun cs ->
-          choose [
+          weighted_union [
             (lift 1., return (lift []));
             (i2f cs ,
               bind (int ~lo:(lift 0) ~hi:cs) ~f:(fun x ->
@@ -94,7 +94,7 @@ module BoolChoose : TestCase = struct
     open C
     let gen =
       bind bool ~f:(fun b ->
-        choose [
+        weighted_union [
           (lift 1., return (pair b (lift 42)));
           (lift 2., 
            bind (int ~lo:(lift 0) ~hi:(lift 100)) ~f:(fun x ->

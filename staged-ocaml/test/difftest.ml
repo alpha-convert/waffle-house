@@ -4,7 +4,7 @@ open Core;;
 module type TestCase = sig
   type t [@@deriving eq, show]
   module F : functor (G : Generator_intf.GENERATOR) -> sig
-    val gen : t G.t
+    val gen : t G.c G.t
   end
 end
 
