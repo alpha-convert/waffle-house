@@ -14,8 +14,15 @@ module type GENERATOR = sig
 
   val return : 'a c -> 'a t
   val bind : 'a t -> f:('a c -> 'b t) -> 'b t
+  val map : f:('a c -> 'b c) -> 'a t -> 'b t
+  val map2 : f:('a c -> 'b c -> 'c c) -> 'a t -> 'b t -> 'c t
 
-  val choose : (float c * 'a t) list -> 'a t
+  val ( >>= ) : 'a t -> ('a c -> 'b t) -> 'b t
+  val ( >>| ) : 'a t -> ('a c -> 'b c) -> 'b t
+
+  val weighted_union : (float c * 'a t) list -> 'a t
+  val union : 'a t list -> 'a t
+  val of_list : 'a c list -> 'a t
 
   val int : lo:(int c) -> hi:(int c) -> int t
   (* val float : lo:(float c) -> hi:(float c) -> float t *)

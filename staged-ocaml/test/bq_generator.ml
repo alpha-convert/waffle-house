@@ -13,12 +13,22 @@ type 'a c = 'a C.t
 
 let return = Base_quickcheck.Generator.return
 let bind = Base_quickcheck.Generator.bind
-let choose = Base_quickcheck.Generator.weighted_union
+let weighted_union = Base_quickcheck.Generator.weighted_union
+let union = Base_quickcheck.Generator.union
+let of_list = Base_quickcheck.Generator.of_list
+let of_list_dyn = Base_quickcheck.Generator.of_list
 let int ~lo ~hi = Base_quickcheck.Generator.int_uniform_inclusive lo hi
 (* let float ~lo ~hi = Base_quickcheck.Generator.float_uniform_exclusive lo hi *)
 let bool = Base_quickcheck.Generator.bool
 let size = Base_quickcheck.Generator.size
 let with_size g ~size_c = Base_quickcheck.Generator.with_size ~size:size_c g
+
+let map ~f x = Base_quickcheck.Generator.map ~f x
+let (>>|) x f = map x ~f
+
+let (>>=) x f = bind x ~f
+
+let map2 ~f x y = Base_quickcheck.Generator.map2 ~f x y
 
 let to_fun g = fun ~size ~random -> Base_quickcheck.Generator.generate g ~size ~random
 

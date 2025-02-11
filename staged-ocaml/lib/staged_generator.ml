@@ -29,6 +29,13 @@ let bind (r : 'a t) ~(f : 'a code -> 'b t) = { rand_gen = fun ~size_c ~random_c 
   (* let%bind a = Codecps.let_insert a in *)
 }
 
+let map ~f x = bind x ~f:(fun cx -> return (f cx))
+
+let map2 ~f x y = bind x ~f:(fun x -> bind y ~f:(fun y -> return (f x y)))
+
+let ( >>= ) x f = bind x ~f
+let ( >>| ) (x : 'a t) (f : 'a c -> 'b c) = map ~f x
+
 let bool : bool t = {
   rand_gen =
     fun ~size_c:_ ~random_c ->
@@ -76,7 +83,7 @@ let sum (ws : (float val_code * 'a t) list) : (float val_code) Codecps.t =
     Codecps.bind (let_insert .< 0. >.) @@ fun zero ->
     go ws zero
 
-let choose (ws : (float code * 'a t) list) : 'a t =
+let weighted_union (ws : (float code * 'a t) list) : 'a t =
   { rand_gen = fun ~size_c ~random_c ->
       Codecps.bind (Codecps.all @@ List.map (fun (cn,g) -> Codecps.bind (Codecps.let_insert cn) @@ fun cvn -> Codecps.return (cvn,g)) ws) @@ fun ws' ->
       (* let%bind ws' =  in *)
@@ -88,6 +95,11 @@ let choose (ws : (float code * 'a t) list) : 'a t =
       (* let%bind n = Codecps.let_insert n in *)
       (genpick n ws').rand_gen ~size_c ~random_c
   }
+
+
+let union xs = weighted_union (List.map (fun g -> (.<1.>.,g)) xs)
+let of_list xs = weighted_union (List.map (fun x -> (.<1.>.,return x)) xs)
+
 
 let with_size f ~size_c =
   { rand_gen = fun ~size_c:_ ~random_c -> f.rand_gen ~size_c:size_c ~random_c }
