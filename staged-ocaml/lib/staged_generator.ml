@@ -5,6 +5,9 @@ open Codecps;;
 
 type 'a t = { rand_gen : size_c:(int code) -> random_c:(Splittable_random.State.t code) -> 'a Codecps.t }
 
+
+
+
 module C = struct
   type 'a t = 'a code
   let lift x = .< x >.
@@ -24,6 +27,8 @@ let bind (r : 'a t) ~(f : 'a -> 'b t) = { rand_gen = fun ~size_c ~random_c ->
       (f a).rand_gen ~size_c ~random_c
   )
 }
+
+let join (x : 'a t t) : 'a t = bind x ~f:(fun z -> z)
 
 let map ~f x = bind x ~f:(fun cx -> return (f cx))
 
@@ -48,7 +53,7 @@ let int ~(lo : int code) ~(hi : int code) : int code t = {
 let float ~(lo : float code) ~(hi : float code) : float code t = {
   rand_gen =
     fun ~size_c:_ ~random_c ->
-      Codecps.return .< Splittable_random.float ~lo:.~lo ~hi:.~hi .~random_c >.
+      Codecps.let_insert .< Splittable_random.float ~lo:.~lo ~hi:.~hi .~random_c >.
 }
 
 let rec genpick n ws =
@@ -94,8 +99,24 @@ let weighted_union ws : 'a t =
   }
 
 
-let union xs = weighted_union (List.map (fun g -> (.<1.>.,g)) xs)
-let of_list xs = weighted_union (List.map (fun x -> (.<1.>.,return x)) xs)
+let of_list (xs : 'a list) : 'a t =
+  let n = List.length xs - 1 in
+  let rec go (i : int code) (xs : 'a list) : 'a t =
+    match xs with
+    | [] -> failwith "empty list!"
+    | [x] -> return x
+    | x::xs -> { rand_gen = fun ~size_c ~random_c ->
+        Codecps.bind (Codecps.split_bool .< .~i == 0 >.) @@ fun b ->
+        if b then Codecps.return x else
+          Codecps.bind (Codecps.let_insert .< .~i - 1 >.) @@ fun i_pred ->
+            (go i_pred xs).rand_gen ~size_c ~random_c
+      }
+  in
+  bind (int ~lo:.<0>. ~hi:.<n>.) ~f:(fun i ->
+    go i xs
+  )
+
+let union xs = join (of_list xs)
 
 (* g is a 'a list gen *)
 (* let dynamic_union g =
@@ -153,7 +174,7 @@ let recursive (type a) (type r) (x0 : r code) (step : (a,r) recgen -> r code -> 
     rand_gen = fun ~size_c ~random_c -> 
       Codecps.bind (Codecps.let_insertv x0) @@ fun x0 ->
       (* let%bind x0 = Codecps.let_insert x0 in *)
-      Codecps.return @@ (.< let rec go x ~size ~random = .~(
+      Codecps.return @@ .< let rec go x ~size ~random = .~(
           Codecps.code_generate @@
             (step
                 (fun xc' -> { rand_gen = fun ~size_c ~random_c -> Codecps.return .< go .~xc' ~size:.~size_c ~random:.~random_c >. })
@@ -162,10 +183,13 @@ let recursive (type a) (type r) (x0 : r code) (step : (a,r) recgen -> r code -> 
         )
         in
           go .~(v2c x0) ~size:.~size_c ~random:.~random_c
-      >.)
+      >.
   }
-
 
 (*
 Codegen stuff...
 *)
+
+let split_bool cb = {
+  rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_bool cb
+}

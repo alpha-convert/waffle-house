@@ -13,6 +13,7 @@ type 'a c = 'a C.t
 
 let return = Base_quickcheck.Generator.return
 let bind = Base_quickcheck.Generator.bind
+let join = Base_quickcheck.Generator.join
 let weighted_union = Base_quickcheck.Generator.weighted_union
 let union = Base_quickcheck.Generator.union
 let of_list = Base_quickcheck.Generator.of_list

@@ -16,17 +16,17 @@ module type GENERATOR = sig
   val bind : 'a t -> f:('a -> 'b t) -> 'b t
   val map : f:('a -> 'b) -> 'a t -> 'b t
   val map2 : f:('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
+  val join : 'a t t -> 'a t
 
   val ( >>= ) : 'a t -> ('a -> 'b t) -> 'b t
   val ( >>| ) : 'a t -> ('a -> 'b) -> 'b t
-
 
   val int : lo:(int c) -> hi:(int c) -> int c t
   val bool : bool c t
 
   val weighted_union : (float c * 'a c t) list -> 'a c t
   val union : 'a c t list -> 'a c t
-  val of_list : 'a c list -> 'a c t
+  val of_list : 'a list -> 'a t
 
   val size : int c t
   val with_size : 'a t -> size_c:(int c) -> 'a t
@@ -36,4 +36,5 @@ module type GENERATOR = sig
   type ('a,'r) recgen
   val recurse : ('a,'r) recgen -> 'r c -> 'a c t
   val recursive : 'r c -> (('a,'r) recgen -> 'r c -> 'a c t) -> 'a c t
+
 end
