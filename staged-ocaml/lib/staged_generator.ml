@@ -208,7 +208,11 @@ let jit ?deps cde =
   Runnative.run_native (Codelib.close_code (to_fun cde))
 
 type ('a,'r) recgen = 'r code -> 'a code t
-let recurse f x = f x
+let recurse f x = {
+  rand_gen = fun ~size_c ~random_c ->
+    Codecps.bind ((f x).rand_gen ~size_c ~random_c) @@ fun c ->
+    Codecps.let_insert c
+}
 
 let recursive (type a) (type r) (x0 : r code) (step : (a,r) recgen -> r code -> a code t) =
   {
