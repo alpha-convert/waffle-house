@@ -186,7 +186,6 @@ let gen_const_test =
   (* need to pass the path to the CMI files for stlc_impl *)
   let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/" in
   let g1 = Stlc_gen_bq.genConst t0 in
-  (* let () = Staged_generator.print (Stlc_gen_st.genConst .<t0>.) in *)
   let g2 = Base_quickcheck.Generator.create (Staged_generator.jit ~deps:[path] (Stlc_gen_st.genConst .<t0>.)) in
   Difftest.difftest ~config:qc_cfg ~name:"Gen Const Test" (fun v1 v2 -> failwith @@ "BQ: " ^ Expr.show v1 ^ "\nST: " ^ Expr.show v2 ^"\n") Expr.equal g1 g2
 
@@ -195,12 +194,10 @@ let stlc_test =
   (* need to pass the path to the CMI files for stlc_impl *)
   let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/" in
   let g1 = Stlc_gen_bq.genExpr in
-  let () = Staged_generator.print Stlc_gen_st.genExpr in
   let g2 = Base_quickcheck.Generator.create (Staged_generator.jit ~deps:[path] Stlc_gen_st.genExpr) in
   Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ Expr.show v1 ^ "\nST: " ^ Expr.show v2 ^"\n") Expr.equal g1 g2
 
 (* module M = MakeDiffTest(IntList) *)
-
 let () =
   let open Alcotest in
   run "Fusion Equivalence" [
@@ -223,3 +220,27 @@ let () =
     ]
   ]
 
+let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/"
+let bq_gen = Stlc_gen_bq.genExpr
+let () = Staged_generator.print Stlc_gen_st.genExpr 
+let st_gen = Base_quickcheck.Generator.create (Staged_generator.jit ~deps:[path] Stlc_gen_st.genExpr) 
+
+let sizes = [10;50;100;500]
+
+open Core_bench
+open Core
+
+let () = Bench.bench 
+  ~run_config:(Bench.Run_config.create ~quota:(Bench.Quota.Num_calls 1000) ())
+  [
+  Bench.Test.create_indexed ~name:"BQ" ~args:sizes (
+    fun n -> Staged.stage @@ 
+    let random = Splittable_random.State.create (Random.State.make_self_init ()) in
+    fun () -> Base_quickcheck.Generator.generate bq_gen ~random ~size:n
+  );
+  Bench.Test.create_indexed ~name:"ST" ~args:sizes (
+    fun n -> Staged.stage @@ 
+    let random = Splittable_random.State.create (Random.State.make_self_init ()) in
+    fun () -> Base_quickcheck.Generator.generate st_gen ~random ~size:n
+  );
+]

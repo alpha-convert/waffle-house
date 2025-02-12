@@ -39,6 +39,10 @@ let let_insert (cx : 'a code) : 'a code t = {
   code_gen = fun k -> letl cx k
 }
 
+let let_insert_smart (cx : 'a code) : 'a code t = {
+  code_gen = fun k -> k (genlet cx)
+}
+
 let let_insertv (cx : 'a code) : 'a val_code t = {
   code_gen = fun k -> letlv cx k
 }

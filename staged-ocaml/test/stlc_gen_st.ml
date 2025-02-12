@@ -48,11 +48,13 @@ let genTyp : Typ.t code Gen.t =
     let%bind b = split_bool .< .~n <= 1 >. in
     if b then return .<TBool>.
     else
-      union [
-        return .<TBool>.;
-        map2 (with_size ~size_c:.<.~n / 2>. (recurse go u)) (with_size ~size_c:.<.~n / 2>. (recurse go u)) ~f:(fun t1 t2 -> .<TFun(.~t1,.~t2)>.)
+      weighted_union [
+        .<1.0>., return .<TBool>.;
+        .<Int.to_float .~n>.,
+          let%bind t1 = (with_size ~size_c:.<.~n / 2>. (recurse go u)) in
+          let%bind t2 = (with_size ~size_c:.<.~n / 2>. (recurse go u)) in
+          return .<TFun(.~t1,.~t2)>.
       ]
-
 
 let genConst t : Expr.t code Gen.t =
     recursive t @@ fun go t ->
@@ -74,15 +76,16 @@ let genExactExpr n g t = recursive .<(.~n,.~g,.~t)>. @@ fun go ngt ->
   match me with
   | `Some e -> return e
   | `None ->
-      let%bind b = split_bool .<.~ n = 0>. in
+      let%bind b = split_bool .<.~ n <= 1>. in
       if b then genConst t else
       let%bind ts = split_typ t in
       match ts with
       | `TFun (t1,t2) -> map ~f:(fun e -> .<Abs(.~t1,.~e)>.) (recurse go .<(.~n - 1,.~t1 :: .~g,.~t2)>.)
-      | _ -> genTyp >>= fun t' ->
-                   let r1 = recurse go .<(.~n/2,.~g,TFun(.~t',.~t))>. in
-                   let r2 = recurse go .<(.~n/2,.~g,.~t')>. in
-                   map2 r1 r2 ~f:(fun e1 e2 -> .<App(.~e1,.~e2)>.)
+      | _ ->
+          let%bind t' = genTyp in
+          let%bind e1 = recurse go .<(.~n/2,.~g,TFun(.~t',.~t))>. in
+          let%bind e2 = recurse go .<(.~n/2,.~g,.~t')>. in
+          return .<App(.~e1,.~e2)>.
 
 let genExpr =
   let%bind n = size in

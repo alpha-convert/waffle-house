@@ -11,11 +11,12 @@ let genTyp : Typ.t G.t =
   recursive () @@ fun go _ ->
     let%bind n = size in
     if n <= 1 then return TBool
-    else union [
-      return TBool;
-      let%bind t1 = with_size ~size_c:(n/2) (recurse go ()) in
-      let%bind t2 = with_size ~size_c:(n/2) (recurse go ()) in
-      return (TFun (t1,t2))
+    else weighted_union [
+      1.0, return TBool;
+      Int.to_float n,
+        let%bind t1 = with_size ~size_c:(n/2) (recurse go ()) in
+        let%bind t2 = with_size ~size_c:(n/2) (recurse go ()) in
+        return (TFun (t1,t2))
     ]
 
 let genVar g t : Expr.t option G.t =
@@ -34,14 +35,14 @@ let genExactExpr n g t = recursive (n,g,t) @@ fun go (n,g,t) ->
   let%bind me = genVar g t in
   match me with
   | Some e -> return e
-  | None -> if Int.equal n 0 then genConst t else
+  | None -> if n <= 1 then genConst t else
             match t with
             | TFun (t1,t2) -> map ~f:(fun e -> Abs(t1,e)) (recurse go (n - 1,t1 :: g,t2))
-            | _ -> genTyp >>= fun t' ->
-                   let r1 = recurse go (n/2,g,TFun(t',t)) in
-                   let r2 = recurse go (n/2,g,t') in
-                   map2 r1 r2 ~f:(fun e1 e2 -> App(e1,e2))
-                   
+            | _ -> let%bind t' = genTyp in
+                   let%bind e1 = recurse go (n/2,g,TFun(t',t)) in
+                   let%bind e2 = recurse go (n/2,g,t') in
+                   return (App (e1,e2))
+
 let genExpr =
   let%bind n = size in
   let%bind t = genTyp in
