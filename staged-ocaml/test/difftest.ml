@@ -50,19 +50,5 @@ module MakeDiffTest(T : TestCase) = struct
 
   exception Fail of T.t * T.t
 
-  (* (* confusing thing that got me... Alcotest redirects std to file, so "noise"
-  you print here won't show up in stdout. See _build/default/test/_build for the ouptut of your tests.*)
-  let run ?config () =
-    Base_quickcheck.Test.run_exn
-     ?config:config
-     ~f:(
-      fun (size,seed) ->
-        let v1 = Base_quickcheck.Generator.generate bq_gen ~size ~random:(Splittable_random.State.of_int seed) in
-        let v2 = Base_quickcheck.Generator.generate st_gen ~size ~random:(Splittable_random.State.of_int seed) in
-        if T.equal v1 v2 then print_endline ("Success: " ^ T.show v1) else raise (Fail (v1,v2))
-     )
-     (module SizeRand) *)
-
-  
   let alco ?config name = difftest ?config ~name (fun v1 v2 -> raise (Fail (v1,v2))) T.equal bq_gen st_gen
 end

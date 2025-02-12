@@ -164,9 +164,21 @@ module BB : TestCase = struct
   end
 end
 
+open Stlc_impl
+open Stlc_gen_bq
+open Stlc_gen_st
+
 let qc_cfg = { Base_quickcheck.Test.default_config with
   seed = Base_quickcheck.Test.Config.Seed.Nondeterministic
 }
+
+
+let stlc_test =
+  (* need to pass the path to the CMI files for stlc_impl *)
+  let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/" in
+  let g1 = Stlc_gen_bq.genExpr in
+  let g2 = Base_quickcheck.Generator.create (Staged_generator.jit ~deps:[path] Stlc_gen_st.genExpr) in
+  Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith "asdfasdfa") Expr.equal g1 g2
 
 (* module M = MakeDiffTest(IntList) *)
 
@@ -185,9 +197,7 @@ let () =
       (let open MakeDiffTest(IntList) in alco ~config:qc_cfg "Int List Generator");
       (let open MakeDiffTest(AA) in alco ~config:qc_cfg "Swing generator");
       (let open MakeDiffTest(BB) in alco ~config:qc_cfg "BB");
+      stlc_test
     ]
   ]
 
-  open Stlc_impl
-  open Stlc_gen_bq
-  open Stlc_gen_st

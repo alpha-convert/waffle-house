@@ -1,7 +1,13 @@
 open Base
 
 module Typ = struct
-  type t = TBool | TFun of t * t [@@deriving eq, sexp]
+  type t = TBool | TFun of t * t [@@deriving sexp]
+
+  let rec equal x y =
+    match x, y with
+    | TBool, TBool -> true
+    | TFun(x1,x2), TFun(y1,y2) -> equal x1 y1 && equal x2 y2
+    | _ -> false
 end
 
 module Expr = struct

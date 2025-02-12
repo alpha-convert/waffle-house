@@ -53,9 +53,38 @@ let split_bool (cb : bool code) : bool t = {
     )
 }
 
+let split_option (cb : ('a option) code) : [`None | `Some of 'a code] t = {
+  code_gen = fun k ->
+    Codelib.letl cb (fun bvc ->
+    .<
+      match .~bvc with
+      | None -> .~(k `None)
+      | Some x -> .~(k (`Some (.<x>.)))
+    >.
+    )
+}
+
 let split_pair (cp : ('a * 'b) code) : ('a code *'b code) t = {
   code_gen = fun k ->
     .<
       let (a,b) = .~(Codelib.genlet cp) in .~(k (.<a>.,.<b>.))
+    >.
+}
+
+let split_triple (ct : ('a * 'b * 'c) code) : ('a code *'b code * 'c code) t = {
+  code_gen = fun k ->
+    .<
+      let (a,b,c) = .~(Codelib.genlet ct) in .~(k (.<a>.,.<b>.,.<c>.))
+    >.
+}
+
+open Base
+
+let split_list (cxs : 'a list code)= {
+  code_gen = fun k ->
+    .<
+      match .~cxs with
+      | [] -> .~(k `Nil)
+      | x::xs -> .~(k (`Cons (.<x>.,.<xs>.)))
     >.
 }

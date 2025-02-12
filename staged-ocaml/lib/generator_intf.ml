@@ -18,8 +18,9 @@ module type GENERATOR = sig
   val bool : bool c t
 
   val weighted_union : (float c * 'a c t) list -> 'a c t
-  val union : 'a c t list -> 'a c t
+  val union : 'a t list -> 'a t
   val of_list : 'a list -> 'a t
+  val of_list_dyn : 'a list c -> 'a c t
 
   val size : int c t
   val with_size : 'a t -> size_c:(int c) -> 'a t

@@ -140,6 +140,21 @@ let of_list (xs : 'a list) : 'a t =
 
 let union xs = join (of_list xs)
 
+let of_list_dyn cxs = {
+  rand_gen = fun ~size_c ~random_c ->
+    Codecps.bind (Codecps.let_insert cxs) @@ fun cxs ->
+    Codecps.bind (Codecps.let_insert .<List.length .~cxs - 1>.) @@ fun n ->
+    Codecps.bind ((int ~lo:.<0>. ~hi:.<.~n>.).rand_gen ~size_c ~random_c) @@ fun i ->
+    Codecps.return .<
+      let rec go xs i =
+        match xs with
+        | [] -> failwith "Impossible"
+        | y::ys -> if i == 0 then y else go ys (i-1)
+      in
+      if .~n < 0 then failwith "of_list_dn passed empty list" else go .~cxs .~i
+    >.
+}
+
 (* g is a 'a list gen *)
 (* let dynamic_union g =
   bind g ~f:(fun cxs -> {
@@ -185,8 +200,12 @@ let () =
   List.iter run_ocamlfind_query
     [ "splittable_random"; "base" ]
 
-(* LMFAO I CANNOT BELIEVE THIS WORKS *)
-let jit cde = Runnative.run_native (Codelib.close_code (to_fun cde))
+let jit ?deps cde =
+  let () = match deps with
+           | None -> ()
+           | Some strs -> List.iter (fun path -> Runnative.add_search_path path) strs
+  in
+  Runnative.run_native (Codelib.close_code (to_fun cde))
 
 type ('a,'r) recgen = 'r code -> 'a code t
 let recurse f x = f x
@@ -214,6 +233,22 @@ Codegen stuff...
 
 let split_bool cb = {
   rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_bool cb
+}
+
+let split_pair cp = {
+  rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_pair cp
+}
+
+let split_triple ct = {
+  rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_triple ct
+}
+
+let split_list cxs = {
+  rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_list cxs
+}
+
+let split_option cxs = {
+  rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_option cxs
 }
 
 module MakeSplit(X : Splittable.S) = struct
