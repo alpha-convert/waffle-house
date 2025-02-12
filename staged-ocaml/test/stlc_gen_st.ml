@@ -43,17 +43,15 @@ let split_expr = GS.split
 let split_typ = GTS.split
 
 let genTyp : Typ.t code Gen.t =
-  let go n = recursive n @@ fun go n ->
-    let%bind b = split_bool .< .~n = 0 >. in
+  recursive .<()>. @@ fun go u ->
+    let%bind n = size in
+    let%bind b = split_bool .< .~n <= 1 >. in
     if b then return .<TBool>.
     else
       union [
         return .<TBool>.;
-        map2 ~f:(fun t1 t2 -> .<TFun(.~t1,.~t2)>.) (recurse go .<.~n / 2>.) (recurse go .<.~n / 2>.)
+        map2 (with_size ~size_c:.<.~n / 2>. (recurse go u)) (with_size ~size_c:.<.~n / 2>. (recurse go u)) ~f:(fun t1 t2 -> .<TFun(.~t1,.~t2)>.)
       ]
-  in
-  let%bind n = size in
-  go n
 
 
 let genConst t : Expr.t code Gen.t =

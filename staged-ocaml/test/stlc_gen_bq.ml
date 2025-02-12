@@ -8,16 +8,15 @@ open G
 open Let_syntax
 
 let genTyp : Typ.t G.t =
-  let go n = recursive n @@ fun go n ->
-    match n with
-    | 0 -> return TBool
-    | _ -> union [
+  recursive () @@ fun go _ ->
+    let%bind n = size in
+    if n <= 1 then return TBool
+    else union [
       return TBool;
-      map2 ~f:(fun t1 t2 -> TFun(t1,t2)) (recurse go (n / 2)) (recurse go (n / 2))
+      let%bind t1 = with_size ~size_c:(n/2) (recurse go ()) in
+      let%bind t2 = with_size ~size_c:(n/2) (recurse go ()) in
+      return (TFun (t1,t2))
     ]
-  in
-  let%bind n = size in
-  go n
 
 let genVar g t : Expr.t option G.t =
   let vars = List.filter_mapi ~f:(fun i t' -> if Typ.equal t t' then Some (Some (Expr.Var i)) else None) g in

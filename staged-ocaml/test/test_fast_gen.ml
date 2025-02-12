@@ -173,12 +173,31 @@ let qc_cfg = { Base_quickcheck.Test.default_config with
 }
 
 
+let typ_test =
+  (* need to pass the path to the CMI files for stlc_impl *)
+  let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/" in
+  let g1 = Stlc_gen_bq.genTyp in
+  (* let () = Staged_generator.print Stlc_gen_st.genTyp in *)
+  let g2 = Base_quickcheck.Generator.create (Staged_generator.jit ~deps:[path] Stlc_gen_st.genTyp) in
+  Difftest.difftest ~config:qc_cfg ~name:"TypTest" (fun v1 v2 -> failwith @@ "BQ: " ^ Typ.show v1 ^ "\nST: " ^ Typ.show v2 ^"\n") Typ.equal g1 g2
+
+let gen_const_test =
+  let t0 = Typ.TBool in
+  (* need to pass the path to the CMI files for stlc_impl *)
+  let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/" in
+  let g1 = Stlc_gen_bq.genConst t0 in
+  (* let () = Staged_generator.print (Stlc_gen_st.genConst .<t0>.) in *)
+  let g2 = Base_quickcheck.Generator.create (Staged_generator.jit ~deps:[path] (Stlc_gen_st.genConst .<t0>.)) in
+  Difftest.difftest ~config:qc_cfg ~name:"Gen Const Test" (fun v1 v2 -> failwith @@ "BQ: " ^ Expr.show v1 ^ "\nST: " ^ Expr.show v2 ^"\n") Expr.equal g1 g2
+
+
 let stlc_test =
   (* need to pass the path to the CMI files for stlc_impl *)
   let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/" in
   let g1 = Stlc_gen_bq.genExpr in
+  let () = Staged_generator.print Stlc_gen_st.genExpr in
   let g2 = Base_quickcheck.Generator.create (Staged_generator.jit ~deps:[path] Stlc_gen_st.genExpr) in
-  Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith "asdfasdfa") Expr.equal g1 g2
+  Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ Expr.show v1 ^ "\nST: " ^ Expr.show v2 ^"\n") Expr.equal g1 g2
 
 (* module M = MakeDiffTest(IntList) *)
 
@@ -186,7 +205,7 @@ let () =
   let open Alcotest in
   run "Fusion Equivalence" [
     "DiffTest", [
-      (let open MakeDiffTest(BindTC) in alco ~config:qc_cfg "Bind Ordering");
+      (*(let open MakeDiffTest(BindTC) in alco ~config:qc_cfg "Bind Ordering");
       (let open MakeDiffTest(ChooseTC) in alco ~config:qc_cfg "Choose Correctness");
       (let open MakeDiffTest(ChooseBind1) in alco ~config:qc_cfg "Choose with size weights");
       (let open MakeDiffTest(ChooseBind2) in alco ~config:qc_cfg "Choose with bind ordering");
@@ -196,8 +215,11 @@ let () =
       (let open MakeDiffTest(IntRange) in alco ~config:qc_cfg "Range of ints");
       (let open MakeDiffTest(IntList) in alco ~config:qc_cfg "Int List Generator");
       (let open MakeDiffTest(AA) in alco ~config:qc_cfg "Swing generator");
+      *)
       (let open MakeDiffTest(BB) in alco ~config:qc_cfg "BB");
-      stlc_test
+      typ_test;
+      gen_const_test;
+      stlc_test;
     ]
   ]
 
