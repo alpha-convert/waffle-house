@@ -3,7 +3,7 @@ open Core;;
 
 module type TestCase = sig
   type t [@@deriving eq, show]
-  module F : functor (G : Generator_intf.GENERATOR) -> sig
+  module F : functor (G : Generator_intf.S) -> sig
     val gen : t G.c G.t
   end
 end
@@ -19,8 +19,6 @@ module SizeRand : Base_quickcheck.Test.S with type t = Int.t * Int.t = struct
       )
     )
 end
-
-
 
 let difftest ?config ~name:s exn eq g1 g2 = 
   let completes f () =
@@ -42,11 +40,12 @@ let difftest ?config ~name:s exn eq g1 g2 =
 
 module MakeDiffTest(T : TestCase) = struct
   module BQ_G = T.F(Bq_generator)
-  module ST_G = T.F(Staged_generator)
+  module BQR_Staged = Staged_generator.MakeStaged(Fast_gen.Bq_random)
+  module ST_G = T.F(BQR_Staged)
 
   let bq_gen = BQ_G.gen
-  let st_gen = Base_quickcheck.Generator.create (Staged_generator.jit ST_G.gen)
-  let () = Staged_generator.print ST_G.gen
+  let st_gen = Base_quickcheck.Generator.create (BQR_Staged.jit ST_G.gen)
+  let () = BQR_Staged.print ST_G.gen
 
   exception Fail of T.t * T.t
 

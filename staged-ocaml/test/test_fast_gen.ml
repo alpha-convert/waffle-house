@@ -5,7 +5,7 @@ open Difftest
 
 module BindTC : TestCase = struct
   type t = int * int [@@deriving eq, show]
-  module F (G : Generator_intf.GENERATOR) = struct
+  module F (G : Generator_intf.S) = struct
     let i = G.int ~lo:(G.C.lift 0) ~hi:(G.C.lift 100)
     let gen =
       G.bind i ~f:(fun nc ->
@@ -18,7 +18,7 @@ end
 
 module ChooseTC : TestCase = struct
   type t = int [@@deriving eq, show]
-  module F (G : Generator_intf.GENERATOR) = struct
+  module F (G : Generator_intf.S) = struct
     open G
     open C
     let gen = 
@@ -32,7 +32,7 @@ end
 
 module ChooseBind1 : TestCase = struct
   type t = int [@@deriving eq, show]
-  module F (G : Generator_intf.GENERATOR) = struct
+  module F (G : Generator_intf.S) = struct
     open G
     open C
     let gen = 
@@ -48,7 +48,7 @@ end
 
 module ChooseBind2 : TestCase = struct
   type t = int * int [@@deriving eq, show]
-  module F (G : Generator_intf.GENERATOR) = struct
+  module F (G : Generator_intf.S) = struct
     open G
     open C
     let int0 = int ~lo:(lift 0) ~hi:(lift 100)
@@ -64,7 +64,7 @@ end
 
 module IntList : TestCase = struct
   type t = int list [@@deriving eq, show]
-  module F (G : Generator_intf.GENERATOR) = struct
+  module F (G : Generator_intf.S) = struct
     open G
     open G.Let_syntax
     open C
@@ -85,7 +85,7 @@ end
 
 module BoolChoose : TestCase = struct
   type t = bool * int [@@deriving eq, show]
-  module F (G : Generator_intf.GENERATOR) = struct
+  module F (G : Generator_intf.S) = struct
     open G
     open C
     let gen =
@@ -104,7 +104,7 @@ end
 
 module SimpleInt : TestCase = struct
   type t = int [@@deriving eq, show]
-  module F (G : Generator_intf.GENERATOR) = struct
+  module F (G : Generator_intf.S) = struct
     open G
     open C
     let gen = int ~lo:(lift 0) ~hi:(lift 100)
@@ -113,7 +113,7 @@ module SimpleInt : TestCase = struct
  
  module SimpleBool : TestCase = struct
   type t = bool [@@deriving eq, show] 
-  module F (G : Generator_intf.GENERATOR) = struct
+  module F (G : Generator_intf.S) = struct
     open G
     open C
     let gen = bool
@@ -122,7 +122,7 @@ module SimpleInt : TestCase = struct
 
  module IntRange : TestCase = struct
   type t = int * int [@@deriving eq, show]
-  module F (G : Generator_intf.GENERATOR) = struct
+  module F (G : Generator_intf.S) = struct
     open G
     open C
     let gen =
@@ -136,7 +136,7 @@ end
 
 module AA : TestCase = struct
   type t = int * int [@@deriving eq, show]
-  module F (G : Generator_intf.GENERATOR) = struct
+  module F (G : Generator_intf.S) = struct
     open G
     open C
     let gen =
@@ -151,7 +151,7 @@ end
 
 module BB : TestCase = struct
   type t = int [@@deriving eq, show]
-  module F (G : Generator_intf.GENERATOR) = struct
+  module F (G : Generator_intf.S) = struct
     open G
     open Let_syntax
     open C
@@ -172,13 +172,14 @@ let qc_cfg = { Base_quickcheck.Test.default_config with
   seed = Base_quickcheck.Test.Config.Seed.Nondeterministic
 }
 
+module G = Staged_generator.MakeStaged(Bq_random)
 
 let typ_test =
   (* need to pass the path to the CMI files for stlc_impl *)
   let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/" in
   let g1 = Stlc_gen_bq.genTyp in
   (* let () = Staged_generator.print Stlc_gen_st.genTyp in *)
-  let g2 = Base_quickcheck.Generator.create (Staged_generator.jit ~deps:[path] Stlc_gen_st.genTyp) in
+  let g2 = Base_quickcheck.Generator.create (G.jit ~deps:[path] Stlc_gen_st.genTyp) in
   Difftest.difftest ~config:qc_cfg ~name:"TypTest" (fun v1 v2 -> failwith @@ "BQ: " ^ Typ.show v1 ^ "\nST: " ^ Typ.show v2 ^"\n") Typ.equal g1 g2
 
 let gen_const_test =
@@ -186,7 +187,7 @@ let gen_const_test =
   (* need to pass the path to the CMI files for stlc_impl *)
   let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/" in
   let g1 = Stlc_gen_bq.genConst t0 in
-  let g2 = Base_quickcheck.Generator.create (Staged_generator.jit ~deps:[path] (Stlc_gen_st.genConst .<t0>.)) in
+  let g2 = Base_quickcheck.Generator.create (G.jit ~deps:[path] (Stlc_gen_st.genConst .<t0>.)) in
   Difftest.difftest ~config:qc_cfg ~name:"Gen Const Test" (fun v1 v2 -> failwith @@ "BQ: " ^ Expr.show v1 ^ "\nST: " ^ Expr.show v2 ^"\n") Expr.equal g1 g2
 
 
@@ -194,7 +195,7 @@ let stlc_test =
   (* need to pass the path to the CMI files for stlc_impl *)
   let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/" in
   let g1 = Stlc_gen_bq.genExpr in
-  let g2 = Base_quickcheck.Generator.create (Staged_generator.jit ~deps:[path] Stlc_gen_st.genExpr) in
+  let g2 = Base_quickcheck.Generator.create (G.jit ~deps:[path] Stlc_gen_st.genExpr) in
   Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ Expr.show v1 ^ "\nST: " ^ Expr.show v2 ^"\n") Expr.equal g1 g2
 
 (* module M = MakeDiffTest(IntList) *)
@@ -202,7 +203,7 @@ let () =
   let open Alcotest in
   run "Fusion Equivalence" [
     "DiffTest", [
-      (*(let open MakeDiffTest(BindTC) in alco ~config:qc_cfg "Bind Ordering");
+      (let open MakeDiffTest(BindTC) in alco ~config:qc_cfg "Bind Ordering");
       (let open MakeDiffTest(ChooseTC) in alco ~config:qc_cfg "Choose Correctness");
       (let open MakeDiffTest(ChooseBind1) in alco ~config:qc_cfg "Choose with size weights");
       (let open MakeDiffTest(ChooseBind2) in alco ~config:qc_cfg "Choose with bind ordering");
@@ -212,7 +213,6 @@ let () =
       (let open MakeDiffTest(IntRange) in alco ~config:qc_cfg "Range of ints");
       (let open MakeDiffTest(IntList) in alco ~config:qc_cfg "Int List Generator");
       (let open MakeDiffTest(AA) in alco ~config:qc_cfg "Swing generator");
-      *)
       (let open MakeDiffTest(BB) in alco ~config:qc_cfg "BB");
       typ_test;
       gen_const_test;
@@ -222,8 +222,8 @@ let () =
 
 let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/"
 let bq_gen = Stlc_gen_bq.genExpr
-let () = Staged_generator.print Stlc_gen_st.genExpr 
-let st_gen = Base_quickcheck.Generator.create (Staged_generator.jit ~deps:[path] Stlc_gen_st.genExpr) 
+let () = G.print Stlc_gen_st.genExpr 
+let st_gen = Base_quickcheck.Generator.create (G.jit ~deps:[path] Stlc_gen_st.genExpr) 
 
 let sizes = [10;50;100;500]
 

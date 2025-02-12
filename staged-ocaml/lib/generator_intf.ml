@@ -6,9 +6,11 @@ module type C_INTF = sig
   val pred : Int.t t -> Int.t t
   val cons : 'a t -> 'a list t -> 'a list t
 end
-module type GENERATOR = sig
+module type S = sig
   type 'a t
   module C : C_INTF
+  (* A generator module also includes its particular randomness source (splittable_random or unboxed)*)
+  module R : Random_intf.S
   type 'a c = 'a C.t
 
   include Base.Applicative.S with type 'a t := 'a t
@@ -25,7 +27,7 @@ module type GENERATOR = sig
   val size : int c t
   val with_size : 'a t -> size_c:(int c) -> 'a t
 
-  val to_fun : 'a c t -> (size:int -> random:Splittable_random.State.t -> 'a) c
+  val to_fun : 'a c t -> (size:int -> random:R.t -> 'a) c
 
   type ('a,'r) recgen
   val recurse : ('a,'r) recgen -> 'r c -> 'a c t

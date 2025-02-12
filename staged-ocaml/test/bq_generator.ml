@@ -11,6 +11,8 @@ end
 
 type 'a c = 'a C.t
 
+module R = Fast_gen.Bq_random
+
 module For_applicative = Base.Applicative.Make (struct
     type nonrec 'a t = 'a t
 

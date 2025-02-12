@@ -82,9 +82,7 @@ let split_triple (ct : ('a * 'b * 'c) code) : ('a code *'b code * 'c code) t = {
     >.
 }
 
-open Base
-
-let split_list (cxs : 'a list code)= {
+let split_list cxs = {
   code_gen = fun k ->
     .<
       match .~cxs with
