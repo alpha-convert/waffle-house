@@ -158,18 +158,24 @@ let of_list (xs : 'a list) : 'a t =
 
 let union xs = join (of_list xs)
 
-let of_list_dyn cxs = {
+
+
+let of_list_dyn cxs =
+  let of_list_dyn_loop = Codelib.genlet .<
+      let rec go xs i =
+        match xs with
+        | [] -> failwith "Impossible"
+        | y::ys -> if i == 0 then y else go ys (i-1)
+      in go
+      >.
+    in
+  {
   rand_gen = fun ~size_c ~random_c ->
     Codecps.bind (Codecps.let_insert cxs) @@ fun cxs ->
     Codecps.bind (Codecps.let_insert .<List.length .~cxs - 1>.) @@ fun n ->
     Codecps.bind ((int ~lo:.<0>. ~hi:.<.~n>.).rand_gen ~size_c ~random_c) @@ fun i ->
     Codecps.return .<
-      let rec go xs i =
-        match xs with
-        | [] -> failwith "Impossible"
-        | y::ys -> if i == 0 then y else go ys (i-1)
-      in
-      if .~n < 0 then failwith "of_list_dn passed empty list" else go .~cxs .~i
+      if .~n < 0 then failwith "of_list_dn passed empty list" else .~of_list_dyn_loop .~cxs .~i
     >.
 }
 
