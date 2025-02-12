@@ -6,7 +6,6 @@ open Base
 module G = Bq_generator
 let (>>=) = G.(>>=)
 
-
 let genTyp : Typ.t G.t =
   let go n = G.recursive n @@ fun go n ->
     match n with

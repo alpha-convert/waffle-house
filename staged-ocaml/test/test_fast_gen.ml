@@ -66,24 +66,20 @@ module IntList : TestCase = struct
   type t = int list [@@deriving eq, show]
   module F (G : Generator_intf.GENERATOR) = struct
     open G
+    open G.Let_syntax
     open C
     let gen = 
-      recursive (lift ()) (
-        fun r _ ->
-          bind size ~f:(fun cs ->
+      recursive (lift ()) (fun go _ ->
+        let%bind cs = size in
           weighted_union [
             (lift 1., return (lift []));
             (i2f cs ,
-              bind (int ~lo:(lift 0) ~hi:cs) ~f:(fun x ->
-                bind (with_size ~size_c:(pred cs) @@ recurse r (lift ())) ~f:(fun xs ->
-                  return (cons x xs)
-                )
-              )
+              let%bind x = int ~lo:(lift 0) ~hi:cs in
+              let%bind xs =  with_size ~size_c:(pred cs) @@ recurse go (lift ()) in
+              return (cons x xs)
             );
           ]
-        )
       )
-    
   end
 end
 
@@ -178,16 +174,20 @@ let () =
   let open Alcotest in
   run "Fusion Equivalence" [
     "DiffTest", [
-      (* (let open MakeDiffTest(BindTC) in alco ~config:qc_cfg "Bind Ordering"); *)
-      (* (let open MakeDiffTest(ChooseTC) in alco ~config:qc_cfg "Choose Correctness"); *)
-      (* (let open MakeDiffTest(ChooseBind1) in alco ~config:qc_cfg "Choose with size weights"); *)
-      (* (let open MakeDiffTest(ChooseBind2) in alco ~config:qc_cfg "Choose with bind ordering"); *)
-      (* (let open MakeDiffTest(BoolChoose) in alco ~config:qc_cfg "More choose testing with bools"); *)
-      (* (let open MakeDiffTest(SimpleInt) in alco ~config:qc_cfg "Int Sampling"); *)
-      (* (let open MakeDiffTest(SimpleBool) in alco ~config:qc_cfg "Bool Sampling"); *)
-      (* (let open MakeDiffTest(IntRange) in alco ~config:qc_cfg "Range of ints"); *)
-      (* (let open MakeDiffTest(IntList) in alco ~config:qc_cfg "Int List Generator"); *)
-      (* (let open MakeDiffTest(AA) in alco ~config:qc_cfg "Swing generator"); *)
+      (let open MakeDiffTest(BindTC) in alco ~config:qc_cfg "Bind Ordering");
+      (let open MakeDiffTest(ChooseTC) in alco ~config:qc_cfg "Choose Correctness");
+      (let open MakeDiffTest(ChooseBind1) in alco ~config:qc_cfg "Choose with size weights");
+      (let open MakeDiffTest(ChooseBind2) in alco ~config:qc_cfg "Choose with bind ordering");
+      (let open MakeDiffTest(BoolChoose) in alco ~config:qc_cfg "More choose testing with bools");
+      (let open MakeDiffTest(SimpleInt) in alco ~config:qc_cfg "Int Sampling");
+      (let open MakeDiffTest(SimpleBool) in alco ~config:qc_cfg "Bool Sampling");
+      (let open MakeDiffTest(IntRange) in alco ~config:qc_cfg "Range of ints");
+      (let open MakeDiffTest(IntList) in alco ~config:qc_cfg "Int List Generator");
+      (let open MakeDiffTest(AA) in alco ~config:qc_cfg "Swing generator");
       (let open MakeDiffTest(BB) in alco ~config:qc_cfg "BB");
     ]
   ]
+
+  open Stlc_impl
+  open Stlc_gen_bq
+  open Stlc_gen_st

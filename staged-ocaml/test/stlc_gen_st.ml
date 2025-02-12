@@ -1,11 +1,26 @@
-(* open Stlc_impl
+open Codelib
+open Fast_gen
+open Stlc_impl
 open Expr
-open Typ
 open Base
 
-module G = Fast_gen.Staged_generator
-let (>>=) = G.(>>=)
+module M : Fast_gen.Splittable.S = struct
+    type nonrec t = Expr.t
+    type nonrec f = VarF of Int.t code | BoolF of Bool.t code | AbsF of (Typ.t code) * (Expr.t code) | AppF of (Expr.t code) * (Expr.t code)
 
+    let split (e : t code) : f Codecps.t = {
+      code_gen = fun k -> .<
+        match .~e with
+        | Var x -> .~(k (VarF .<x>.))
+        | Bool b -> .~(k (BoolF .<b>.))
+        | Abs (t,e') -> .~(k (AbsF (.<t>.,.<e'>.)))
+        | App (e,e') -> .~(k (AppF (.<e>.,.<e'>.)))
+      >.
+    }
+  end
+
+ (*
+module G = Fast_gen.Staged_generator
 
 let genTyp : Typ.t G.t =
   let go n = G.recursive n @@ fun go n ->

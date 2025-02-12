@@ -215,3 +215,9 @@ Codegen stuff...
 let split_bool cb = {
   rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_bool cb
 }
+
+module MakeSplit(X : Splittable.S) = struct
+  let split cx = {
+    rand_gen = fun ~size_c:_ ~random_c:_ -> X.split cx
+  }
+end
