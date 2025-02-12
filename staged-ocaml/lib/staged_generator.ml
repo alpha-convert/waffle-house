@@ -5,9 +5,6 @@ open Codecps;;
 
 type 'a t = { rand_gen : size_c:(int code) -> random_c:(Splittable_random.State.t code) -> 'a Codecps.t }
 
-
-
-
 module C = struct
   type 'a t = 'a code
   let lift x = .< x >.
@@ -28,14 +25,39 @@ let bind (r : 'a t) ~(f : 'a -> 'b t) = { rand_gen = fun ~size_c ~random_c ->
   )
 }
 
-let join (x : 'a t t) : 'a t = bind x ~f:(fun z -> z)
+let map x ~f = bind x ~f:(fun cx -> return (f cx))
 
-let map ~f x = bind x ~f:(fun cx -> return (f cx))
+let apply f x = bind f ~f:(fun f -> bind x ~f:(fun x -> return (f x)))
 
-let map2 ~f x y = bind x ~f:(fun x -> bind y ~f:(fun y -> return (f x y)))
+module For_applicative = Base.Applicative.Make (struct
+    type nonrec 'a t = 'a t
 
-let ( >>= ) x f = bind x ~f
-let ( >>| ) (x : 'a t) (f : 'a -> 'b) = map ~f x
+    let return = return
+    let apply = apply
+    let map = `Custom map
+  end)
+
+let both = For_applicative.both
+let map2 = For_applicative.map2
+let map3 = For_applicative.map3
+
+module Applicative_infix = For_applicative.Applicative_infix
+include Applicative_infix
+
+ module For_monad = Base.Monad.Make (struct
+    type nonrec 'a t = 'a t
+
+    let return = return
+    let bind x ~f = bind x ~f
+    let map = `Define_using_bind
+  end)
+
+include For_monad
+include Monad_infix
+
+
+(* let ( >>= ) x f = bind x ~f *)
+(* let ( >>| ) (x : 'a t) (f : 'a -> 'b) = map ~f x *)
 
 let bool : bool code t = {
   rand_gen =

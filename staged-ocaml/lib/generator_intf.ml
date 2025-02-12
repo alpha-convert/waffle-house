@@ -11,15 +11,8 @@ module type GENERATOR = sig
   module C : C_INTF
   type 'a c = 'a C.t
 
-
-  val return : 'a -> 'a t
-  val bind : 'a t -> f:('a -> 'b t) -> 'b t
-  val map : f:('a -> 'b) -> 'a t -> 'b t
-  val map2 : f:('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
-  val join : 'a t t -> 'a t
-
-  val ( >>= ) : 'a t -> ('a -> 'b t) -> 'b t
-  val ( >>| ) : 'a t -> ('a -> 'b) -> 'b t
+  include Base.Applicative.S with type 'a t := 'a t
+  include Base.Monad.S with type 'a t := 'a t
 
   val int : lo:(int c) -> hi:(int c) -> int c t
   val bool : bool c t

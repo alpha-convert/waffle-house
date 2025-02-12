@@ -157,8 +157,10 @@ module BB : TestCase = struct
   type t = int [@@deriving eq, show]
   module F (G : Generator_intf.GENERATOR) = struct
     open G
+    open Let_syntax
     open C
     let gen =
+      let%bind x = return (lift 100) in
       union [
         return (lift 100);
         return (lift 102);
