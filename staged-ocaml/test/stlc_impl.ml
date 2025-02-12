@@ -1,7 +1,7 @@
 open Base
 
 module Typ = struct
-  type t = TBool | TFun of t * t [@@deriving sexp]
+  type t = TBool | TFun of t * t [@@deriving sexp, show]
 
   let rec equal x y =
     match x, y with
@@ -11,7 +11,7 @@ module Typ = struct
 end
 
 module Expr = struct
-  type t = | Var of Int.t | Bool of Bool.t | Abs of Typ.t * t | App of t * t [@@deriving eq, sexp]
+  type t = | Var of Int.t | Bool of Bool.t | Abs of Typ.t * t | App of t * t [@@deriving eq, sexp, show]
 
 end
 

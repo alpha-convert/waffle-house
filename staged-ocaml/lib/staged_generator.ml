@@ -19,6 +19,24 @@ type 'a c = 'a C.t
 
 let return x = { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return x }
 
+(*
+Ideally, we would really rather have this bind perform a let-insertion to ensure that effect order
+is *always* preserved. I.e. bind would look like:
+```
+Codecps.bind (r.rand_gen ~size_c ~random_c) @@ fun a ->
+  Codecps.bind (Codecps.let_insert a) @@ fun a ->
+      (f a).rand_gen ~size_c ~random_c
+```
+In this way, we would ensure that in the generated code we *always* run the effectful computation `r` before
+passing the result to the continuation, rather than just substituting the code for `r` into the place that `f` uses its argumetn.
+But for type reasons, this doesn't work. In order to do "the trick",
+we must have that `type 'a t = { rand_gen : size_c:(int code) -> random_c:(Splittable_random.State.t code) -> 'a Codecps.t }`
+and not `type 'a t = { rand_gen : size_c:(int code) -> random_c:(Splittable_random.State.t code) -> 'a code Codecps.t }` (note the `code` in the result type).
+This prevents us from adding a let-insert.
+
+So, in order to ensure that effects happen in the right order, we are very careful to ensure that any library combinator that
+might perform effects (or recursion) has a Codecps.let_insert at the top level, so that it hits the bind in the same way.
+*)
 let bind (r : 'a t) ~(f : 'a -> 'b t) = { rand_gen = fun ~size_c ~random_c ->
   Codecps.bind (r.rand_gen ~size_c ~random_c) (fun a ->
       (f a).rand_gen ~size_c ~random_c
@@ -155,17 +173,6 @@ let of_list_dyn cxs = {
     >.
 }
 
-(* g is a 'a list gen *)
-(* let dynamic_union g =
-  bind g ~f:(fun cxs -> {
-      rand_gen = fun ~size_c ~random_c ->
-        Codecps.bind (Codecps.let_insert .< List.length .~cxs >.) @@ fun len ->
-        Codecps.bind ((int ~lo:.<0>. ~hi:len).rand_gen ~size_c ~random_c) @@ fun n ->
-        _
-    }
-  )
-   *)
-
 let with_size f ~size_c =
   { rand_gen = fun ~size_c:_ ~random_c -> f.rand_gen ~size_c:size_c ~random_c }
 
@@ -219,7 +226,7 @@ let recursive (type a) (type r) (x0 : r code) (step : (a,r) recgen -> r code -> 
     rand_gen = fun ~size_c ~random_c -> 
       Codecps.bind (Codecps.let_insertv x0) @@ fun x0 ->
       (* let%bind x0 = Codecps.let_insert x0 in *)
-      Codecps.return @@ .< let rec go x ~size ~random = .~(
+      Codecps.let_insert @@ .< let rec go x ~size ~random = .~(
           Codecps.code_generate @@
             (step
                 (fun xc' -> { rand_gen = fun ~size_c ~random_c -> Codecps.return .< go .~xc' ~size:.~size_c ~random:.~random_c >. })
