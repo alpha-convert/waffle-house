@@ -78,26 +78,23 @@ module MakeStaged(R : Random_intf.S) = struct
   include Monad_infix
 
 
-  (* let ( >>= ) x f = bind x ~f *)
-  (* let ( >>| ) (x : 'a t) (f : 'a -> 'b) = map ~f x *)
-
   let bool : bool code t = {
     rand_gen =
       fun ~size_c:_ ~random_c ->
         (* adding these let-inserts here ensures that the effects happen in order of the binds. *)
-        Codecps.let_insert .< R.bool .~random_c >.
+        Codecps.let_insert (R.bool random_c)
   }
 
   let int ~(lo : int code) ~(hi : int code) : int code t = {
     rand_gen =
       fun ~size_c:_ ~random_c ->
-        Codecps.let_insert .< R.int ~lo:.~lo ~hi:.~hi .~random_c >.
+        Codecps.let_insert (R.int random_c ~lo:lo ~hi:hi)
   }
 
   let float ~(lo : float code) ~(hi : float code) : float code t = {
     rand_gen =
       fun ~size_c:_ ~random_c ->
-        Codecps.let_insert .< R.float ~lo:.~lo ~hi:.~hi .~random_c >.
+        Codecps.let_insert (R.float random_c ~lo:lo ~hi:hi)
   }
 
   let rec genpick n ws =
@@ -214,8 +211,11 @@ module MakeStaged(R : Random_intf.S) = struct
         failwith ("Could not find " ^ package)
 
   let () =
-    List.iter run_ocamlfind_query
-      [ "R"; "base" ]
+      let deps = match R.dep_name with
+                | None -> []
+                | Some s -> [s]
+      in
+    List.iter run_ocamlfind_query @@ "base" :: deps
 
   let jit ?deps cde =
     let () = match deps with
