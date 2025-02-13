@@ -34,7 +34,7 @@ module MT : Fast_gen.Splittable.S with type t = Typ.t and type f = [`TBool | `TF
     }
   end
 
-module Gen = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Bq_random)
+module Gen = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 open Gen
 open Let_syntax
 module GS = Gen.MakeSplit(M)
