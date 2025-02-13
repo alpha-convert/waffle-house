@@ -1,4 +1,5 @@
 (test
 (preprocess (pps ppx_jane ppx_deriving.eq ppx_deriving.show))
- (libraries fast_gen alcotest core)
+ (libraries fast_gen alcotest core core_bench)
  (name test_fast_gen))
+(include_subdirs unqualified)
