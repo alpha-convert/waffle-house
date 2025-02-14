@@ -11,4 +11,6 @@ module type S = sig
 
   val dep_name : string option
 
+  val print : t -> unit
+
 end

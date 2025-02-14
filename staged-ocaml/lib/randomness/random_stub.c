@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 
 // Define the struct
 typedef struct state {
@@ -61,13 +62,15 @@ int64_t next_seed(state_t *s){
   return next;
 }
 
+// This bug took me forever to figure out. A "logical shift right" requires
+// casting to uint64_t first.
 int64_t mix_bits(int64_t z, int64_t n) {
-  return z ^ (z >> n);
+  return z ^ ((uint64_t) z >> n);
 }
 
 int64_t mix64(int64_t z) {
-  z = mix_bits(z, 33) * 0xff51afd7ed558ccdL;
-  z = mix_bits(z, 33) * 0xc4ceb9fe1a85ec53L;
+  z = mix_bits(z,33) * 0xff51afd7ed558ccdL;
+  z = mix_bits(z,33) * 0xc4ceb9fe1a85ec53L;
   return mix_bits(z, 33);
 }
 
@@ -78,7 +81,8 @@ int64_t next_int64(state_t* st){
 CAMLprim value bool_c(value state_val) {
   CAMLparam1(state_val);
   state_t *st = Data_custom_val(state_val);
-  bool result = next_int64(st) & 1 != 0;
+  int64_t draw = next_int64(st);
+  bool result = (draw | 1L) == draw;
   CAMLreturn(Val_bool(result));
 }
 
@@ -122,4 +126,11 @@ CAMLprim value int_c_unchecked(value state_val, value lo_val, value hi_val) {
     result = between(st,lo,hi);
   }
   CAMLreturn(Val_int(result));
+}
+
+CAMLprim value print(value state_val) {
+  CAMLparam1(state_val);
+  state_t *st = Data_custom_val(state_val);
+  printf("C-Seed: %ld\n", st->seed);
+  CAMLreturn(Val_unit);
 }

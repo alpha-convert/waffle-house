@@ -14,3 +14,5 @@ let float _ = failwith "unimplemented"
 let of_int x = create (Int64.of_int x) golden_gamma
 
 let dep_name = None
+
+external print : t -> unit = "print"
