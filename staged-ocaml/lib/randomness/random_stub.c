@@ -7,39 +7,37 @@
 #include <string.h>
 #include <stdio.h>
 
+
 // Define the struct
 typedef struct state {
   int64_t seed;
   int64_t odd_gamma;
 } state_t;
 
-// Custom operations for handling the state struct
-static void finalize_state(value v) {
-  state_t *s = (state_t*)Data_custom_val(v);
-  free(s);
-}
-
 static struct custom_operations state_ops = {
-  .identifier = "state_ops",
-  .finalize = finalize_state,
-  .compare = custom_compare_default,
-  .hash = custom_hash_default,
-  .serialize = custom_serialize_default,
-  .deserialize = custom_deserialize_default
+  "jwc.c_splitmix",
+  custom_finalize_default,
+  custom_compare_default,
+  custom_hash_default,
+  custom_serialize_default,
+  custom_deserialize_default,
+  custom_compare_ext_default,
+  custom_fixed_length_default
 };
+
+#define State_val(v) (*((state_t *) Data_custom_val(v)))
 
 // Constructor
 CAMLprim value create_state(value seed, value gamma) {
   CAMLparam2(seed, gamma);
   CAMLlocal1(result);
   
-  state_t *s = malloc(sizeof(state_t));
-  s->seed = Int64_val(seed);
-  s->odd_gamma = Int64_val(gamma);
+  state_t s;
+  s.seed = Int64_val(seed);
+  s.odd_gamma = Int64_val(gamma);
   
   result = caml_alloc_custom(&state_ops, sizeof(state_t), 0, 1);
-  memcpy(Data_custom_val(result), s, sizeof(state_t));
-  free(s);
+  State_val(result) = s;
   
   CAMLreturn(result);
 }
@@ -80,8 +78,8 @@ int64_t next_int64(state_t* st){
 
 CAMLprim value bool_c(value state_val) {
   CAMLparam1(state_val);
-  state_t *st = Data_custom_val(state_val);
-  int64_t draw = next_int64(st);
+  state_t st = State_val(state_val);
+  int64_t draw = next_int64(&st);
   bool result = (draw | 1L) == draw;
   CAMLreturn(Val_bool(result));
 }
@@ -111,7 +109,7 @@ int64_t non_negative_up_to(state_t *st, int64_t max){
 
 CAMLprim value int_c_unchecked(value state_val, value lo_val, value hi_val) {
   CAMLparam3(state_val,lo_val,hi_val);
-  state_t *st = Data_custom_val(state_val);
+  state_t st = State_val(state_val);
 
   int64_t lo = (int64_t) Int_val(lo_val);
   int64_t hi = (int64_t) Int_val(hi_val);
@@ -119,11 +117,11 @@ CAMLprim value int_c_unchecked(value state_val, value lo_val, value hi_val) {
   int64_t diff = hi - lo;
   int64_t result;
   if(diff == INT64_MAX){
-    result = ((next_int64(st) & INT64_MAX) + lo);
+    result = ((next_int64(&st) & INT64_MAX) + lo);
   } else if (diff >= 0){
-    result = non_negative_up_to(st,diff) + lo;
+    result = non_negative_up_to(&st,diff) + lo;
   } else {
-    result = between(st,lo,hi);
+    result = between(&st,lo,hi);
   }
   CAMLreturn(Val_int(result));
 }
