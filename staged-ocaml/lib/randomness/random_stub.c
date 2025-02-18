@@ -8,7 +8,6 @@
 #include <stdio.h>
 
 
-// Define the struct
 typedef struct state {
   int64_t seed;
   int64_t odd_gamma;
@@ -27,7 +26,12 @@ static struct custom_operations state_ops = {
 
 #define State_val(v) (*((state_t *) Data_custom_val(v)))
 
-// Constructor
+/*
+NOTE: We could get around this single allocation (which will happen at the beginning of every generator call)
+by just punning the original state type of splittable_random, and just doing all of the int64 math in place.
+Doing it this way is *technically* illegal, since if I have a record like { mutable x : int64 }, it is (apparently) *not safe*
+to mutate the underlying int64 without allocating a fresh box. (!!).
+*/
 CAMLprim value create_state(value seed, value gamma) {
   CAMLparam2(seed, gamma);
   CAMLlocal1(result);
@@ -41,18 +45,6 @@ CAMLprim value create_state(value seed, value gamma) {
   
   CAMLreturn(result);
 }
-
-// CAMLprim value get_seed(value state_val) {
-//   CAMLparam1(state_val);
-//   state_t *s = Data_custom_val(state_val);
-//   CAMLreturn(caml_copy_int64(s->seed));
-// }
-
-// CAMLprim value get_gamma(value state_val) {
-//   CAMLparam1(state_val);
-//   state_t *s = Data_custom_val(state_val);
-//   CAMLreturn(caml_copy_int64(s->odd_gamma));
-// }
 
 int64_t next_seed(state_t *s){
   int64_t next = s->seed + s->odd_gamma;
