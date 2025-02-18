@@ -3,7 +3,7 @@ open Expr
 open Typ
 open Base
 
-module G = Bq_generator
+module G = Fast_gen.Bq_generator
 open G
 open Let_syntax
 

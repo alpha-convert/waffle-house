@@ -1,1 +1,0 @@
-include Fast_gen.Generator_intf.S with type 'a t = 'a Base_quickcheck.Generator.t with type 'a C.t = 'a with module R = Fast_gen.Sr_random

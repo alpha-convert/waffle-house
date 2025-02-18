@@ -11,7 +11,7 @@ end
 
 type 'a c = 'a C.t
 
-module R = Fast_gen.Sr_random
+module R = Sr_random
 
 module For_applicative = Base.Applicative.Make (struct
     type nonrec 'a t = 'a t
@@ -21,9 +21,9 @@ module For_applicative = Base.Applicative.Make (struct
     let map = `Custom Base_quickcheck.Generator.map
   end)
 
-let both = For_applicative.both
+(* let both = For_applicative.both
 let map2 = For_applicative.map2
-let map3 = For_applicative.map3
+let map3 = For_applicative.map3 *)
 
 include For_applicative
 module Applicative_infix = For_applicative.Applicative_infix
@@ -37,14 +37,14 @@ module For_monad = Base.Monad.Make (struct
     let map = `Custom Base_quickcheck.Generator.map
   end)
 
-let ignore_m = For_monad.ignore_m
-let join = For_monad.join
+(* let ignore_m = For_monad.ignore_m *)
+(* let join = For_monad.join *)
 
 include For_monad
 (* module Monad_infix = For_monad.Monad_infix *)
 include Monad_infix
-module Let_syntax = For_monad.Let_syntax
-open Let_syntax
+(* module Let_syntax = For_monad.Let_syntax *)
+(* open Let_syntax *)
 
 let weighted_union = Base_quickcheck.Generator.weighted_union
 let union = Base_quickcheck.Generator.union
