@@ -103,7 +103,7 @@ int64_t non_negative_up_to(state_t *st, int64_t max){
   int64_t draw;
   int64_t remainder;
   do {
-    draw = next_int64(st) & INT64_MAX; // is this the right int max? Want 64 bit
+    draw = next_int64(st) & INT64_MAX;
     remainder = draw % (max + 1);
   } while (!remainder_is_unbiased(draw,remainder,INT64_MAX,max));
   return remainder;

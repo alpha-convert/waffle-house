@@ -6,6 +6,7 @@ external bool_c : t -> bool = "bool_c"
 (* external float_c : t -> float -> float -> float = "float_c" *)
 external create : int64 -> int64 -> t = "create_state"
 
+
 let golden_gamma = 0x9e37_79b9_7f4a_7c15L
 
 let int st ~lo ~hi = .< int_c .~st .~lo .~hi >.
@@ -15,4 +16,8 @@ let of_int x = create (Int64.of_int x) golden_gamma
 
 let dep_name = None
 
-external print : t -> unit = "print"
+let of_sr sr_t =
+  let o = Obj.repr sr_t in
+  let seed : int64 = Obj.obj (Obj.field o 0) in
+  let odd_gamma : int64 = Obj.obj (Obj.field o 1) in
+  create seed odd_gamma

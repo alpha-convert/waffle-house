@@ -10,7 +10,4 @@ module type S = sig
   val float : t code -> lo:(float code) -> hi:(float code) -> float code
 
   val dep_name : string option
-
-  val print : t -> unit
-
 end
