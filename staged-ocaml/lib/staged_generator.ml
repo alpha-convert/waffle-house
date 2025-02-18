@@ -199,29 +199,10 @@ module MakeStaged(R : Random_intf.S) = struct
 
   let print sg = Codelib.print_code Format.std_formatter (to_fun sg)
 
-  let run_ocamlfind_query package =
-    let cmd = Printf.sprintf "ocamlfind query %s" package in
-    let ic = Unix.open_process_in cmd in
-    match In_channel.input_line ic with
-    | Some path -> 
-        ignore (Unix.close_process_in ic); 
-        Runnative.add_search_path path
-    | None -> 
-        ignore (Unix.close_process_in ic); 
-        failwith ("Could not find " ^ package)
+  
 
-  let () =
-      let deps = match R.dep_name with
-                | None -> []
-                | Some s -> [s]
-      in
-    List.iter run_ocamlfind_query @@ "base" :: deps
-
-  let jit ?deps cde =
-    let () = match deps with
-            | None -> ()
-            | Some strs -> List.iter (fun path -> Runnative.add_search_path path) strs
-    in
+  let jit cde =
+    List.iter Runnative.add_search_path R.dep_paths;
     Runnative.run_native (Codelib.close_code (to_fun cde))
 
   type ('a,'r) recgen = 'r code -> 'a code t

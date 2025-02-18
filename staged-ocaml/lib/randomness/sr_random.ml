@@ -8,7 +8,7 @@ let bool st = .< bool .~st >.
 let float st ~lo ~hi = .< float .~st ~lo:.~lo ~hi:.~hi >.
 let of_int = State.of_int
 
-let dep_name = Some "splittable_random"
+let dep_paths = List.map Util.run_ocamlfind_query ["splittable_random";"base"]
 
 
 let bool' x = Splittable_random.bool x

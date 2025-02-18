@@ -14,7 +14,7 @@ let bool st = .< bool_c .~st >.
 let float _ = failwith "unimplemented"
 let of_int x = create (Int64.of_int x) golden_gamma
 
-let dep_name = None
+let dep_paths = []
 
 let of_sr sr_t =
   let o = Obj.repr sr_t in

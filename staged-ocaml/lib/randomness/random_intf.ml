@@ -9,5 +9,5 @@ module type S = sig
   val int : t code -> lo:(int code) -> hi:(int code) -> int code
   val float : t code -> lo:(float code) -> hi:(float code) -> float code
 
-  val dep_name : string option
+  val dep_paths : string list
 end

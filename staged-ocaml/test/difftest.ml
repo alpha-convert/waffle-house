@@ -42,12 +42,12 @@ module MakeDiffTest(T : TestCase) = struct
   module BQ_G = T.F(Bq_generator)
 
   module SR_Staged = Staged_generator.MakeStaged(Fast_gen.Sr_random)
-  (* module CR_Staged = Staged_generator.MakeStaged(Fast_gen.C_random) *)
+  module CR_Staged = Staged_generator.MakeStaged(Fast_gen.C_random)
   module SR_ST_G = T.F(SR_Staged)
-  (* module C_ST_G = T.F(CR_Staged) *)
+  module C_ST_G = T.F(CR_Staged)
 
   let bq_gen = BQ_G.gen
-  let st_gen = Base_quickcheck.Generator.create (SR_Staged.jit ~deps:["splittable_random"] SR_ST_G.gen)
+  let st_gen = Base_quickcheck.Generator.create (SR_Staged.jit SR_ST_G.gen)
   let () = SR_Staged.print SR_ST_G.gen
 
   exception Fail of T.t * T.t

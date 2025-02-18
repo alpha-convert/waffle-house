@@ -183,10 +183,8 @@ module G_SR = Staged_generator.MakeStaged(Sr_random)
 module G_C = Staged_generator.MakeStaged(C_random)
 
 let stlc_test =
-  (* need to pass the path to the CMI files for stlc_impl *)
-  let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/" in
   let g1 = Stlc_gen_bq.genExpr in
-  let g2 = Base_quickcheck.Generator.create (G_SR.jit ~deps:[path] Stlc_gen_st.genExpr) in
+  let g2 = Base_quickcheck.Generator.create (G_SR.jit Stlc_gen_st.genExpr) in
   Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ Expr.show v1 ^ "\nST: " ^ Expr.show v2 ^"\n") Expr.equal g1 g2
 
 (* module M = MakeDiffTest(IntList) *)
@@ -208,11 +206,9 @@ let () =
       stlc_test;
     ]
   ]
-
-let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/"
 let bq_gen = Stlc_gen_bq.genExpr
 let () = G_SR.print Stlc_gen_st.genExpr 
-let st_gen = Base_quickcheck.Generator.create (G_SR.jit ~deps:[path] Stlc_gen_st.genExpr) 
+let st_gen = Base_quickcheck.Generator.create (G_SR.jit Stlc_gen_st.genExpr) 
 
 let sizes = [10;50;100;500]
 
