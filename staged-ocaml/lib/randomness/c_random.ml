@@ -1,23 +1,18 @@
-type t
-
-external int_c_unchecked : t -> int -> int -> int = "int_c_unchecked"
-let int_c x lo hi = if lo > hi then failwith "Crossed bounds" else int_c_unchecked x lo hi
-external bool_c : t -> bool = "bool_c"
-(* external float_c : t -> float -> float -> float = "float_c" *)
-external create : int64 -> int64 -> t = "create_state"
+type t = C_random_runtime.t
 
 
-let golden_gamma = 0x9e37_79b9_7f4a_7c15L
-
-let int st ~lo ~hi = .< int_c .~st .~lo .~hi >.
-let bool st = .< bool_c .~st >.
+let int st ~lo ~hi = .< C_random_runtime.int_c_unchecked .~st .~lo .~hi >.
+let bool st = .< C_random_runtime.bool_c .~st >.
 let float _ = failwith "unimplemented"
-let of_int x = create (Int64.of_int x) golden_gamma
 
-let dep_paths = []
+(* THIS IS A HACK!
+*)
+let dep_paths = ["/home/ubuntu/waffle-house/staged-ocaml/_build/default/lib/.fast_gen.objs/byte/"]
 
 let of_sr sr_t =
-  let o = Obj.repr sr_t in
-  let seed : int64 = Obj.obj (Obj.field o 0) in
-  let odd_gamma : int64 = Obj.obj (Obj.field o 1) in
-  create seed odd_gamma
+  .<
+    let o = Obj.repr .~(sr_t) in
+    let seed : int64 = Obj.obj (Obj.field o 0) in
+    let odd_gamma : int64 = Obj.obj (Obj.field o 1) in
+    C_random_runtime.create seed odd_gamma
+  >.

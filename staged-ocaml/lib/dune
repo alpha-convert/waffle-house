@@ -4,6 +4,7 @@
   (language c)
   (names random_stub)) 
  (libraries unix splittable_random dynlink metaocaml base)
+ (flags :standard -linkall)
  (name fast_gen))
 (include_subdirs unqualified)
 

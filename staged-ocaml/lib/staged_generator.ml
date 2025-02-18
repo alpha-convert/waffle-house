@@ -191,19 +191,25 @@ module MakeStaged(R : Random_intf.S) = struct
         .~(Codecps.code_generate (f ~size_c:.< size >. ~random_c:.< random >.))
     >.
 
-  (* let to_qc sg =
+  let to_bq sg =
     .<
-      Base_quickcheck.Generator.create .~(to_fun sg)
-    >. *)
+      Base_quickcheck.Generator.create (fun ~size ~random ->
+        .~(
+            let local_random = genlet (R.of_sr .<random>.) in
+            Codecps.code_generate (sg.rand_gen ~size_c:.<size>. ~random_c:local_random)
+          )
+      )
+    >.
 
 
   let print sg = Codelib.print_code Format.std_formatter (to_fun sg)
 
   
 
-  let jit cde =
+  let jit ?extra_cmi_paths cde =
+    List.flatten (Option.to_list extra_cmi_paths) |> List.iter Runnative.add_search_path;
     List.iter Runnative.add_search_path R.dep_paths;
-    Runnative.run_native (Codelib.close_code (to_fun cde))
+    Runnative.run_native (Codelib.close_code (to_bq cde))
 
   type ('a,'r) recgen = 'r code -> 'a code t
   let recurse f x = {

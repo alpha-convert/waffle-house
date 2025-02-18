@@ -182,9 +182,11 @@ let qc_cfg = { Base_quickcheck.Test.default_config with
 module G_SR = Staged_generator.MakeStaged(Sr_random)
 module G_C = Staged_generator.MakeStaged(C_random)
 
+let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/"
+
 let stlc_test =
   let g1 = Stlc_gen_bq.genExpr in
-  let g2 = Base_quickcheck.Generator.create (G_SR.jit Stlc_gen_st.genExpr) in
+  let g2 = G_SR.jit ~extra_cmi_paths:[path] Stlc_gen_st.genExpr in
   Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ Expr.show v1 ^ "\nST: " ^ Expr.show v2 ^"\n") Expr.equal g1 g2
 
 (* module M = MakeDiffTest(IntList) *)
@@ -192,23 +194,23 @@ let () =
   let open Alcotest in
   run "Fusion Equivalence" [
     "DiffTest", [
-      (let open MakeDiffTest(BindTC) in alco ~config:qc_cfg "Bind Ordering");
-      (let open MakeDiffTest(ChooseTC) in alco ~config:qc_cfg "Choose Correctness");
-      (let open MakeDiffTest(ChooseBind1) in alco ~config:qc_cfg "Choose with size weights");
-      (let open MakeDiffTest(ChooseBind2) in alco ~config:qc_cfg "Choose with bind ordering");
-      (let open MakeDiffTest(BoolChoose) in alco ~config:qc_cfg "More choose testing with bools");
-      (let open MakeDiffTest(SimpleInt) in alco ~config:qc_cfg "Int Sampling");
-      (let open MakeDiffTest(SimpleBool) in alco ~config:qc_cfg "Bool Sampling");
-      (let open MakeDiffTest(IntRange) in alco ~config:qc_cfg "Range of ints");
-      (let open MakeDiffTest(IntList) in alco ~config:qc_cfg "Int List Generator");
-      (let open MakeDiffTest(AA) in alco ~config:qc_cfg "Swing generator");
-      (let open MakeDiffTest(BB) in alco ~config:qc_cfg "BB");
+      (let open MakeDiffTest(BindTC)(Sr_random) in alco ~config:qc_cfg "Bind Ordering");
+      (let open MakeDiffTest(ChooseTC)(Sr_random) in alco ~config:qc_cfg "Choose Correctness");
+      (let open MakeDiffTest(ChooseBind1)(Sr_random) in alco ~config:qc_cfg "Choose with size weights");
+      (let open MakeDiffTest(ChooseBind2)(Sr_random) in alco ~config:qc_cfg "Choose with bind ordering");
+      (let open MakeDiffTest(BoolChoose)(Sr_random) in alco ~config:qc_cfg "More choose testing with bools");
+      (let open MakeDiffTest(SimpleInt)(Sr_random) in alco ~config:qc_cfg "Int Sampling");
+      (let open MakeDiffTest(SimpleBool)(Sr_random) in alco ~config:qc_cfg "Bool Sampling");
+      (let open MakeDiffTest(IntRange)(Sr_random) in alco ~config:qc_cfg "Range of ints");
+      (let open MakeDiffTest(IntList)(Sr_random) in alco ~config:qc_cfg "Int List Generator");
+      (let open MakeDiffTest(AA)(Sr_random) in alco ~config:qc_cfg "Swing generator");
+      (let open MakeDiffTest(BB)(C_random) in alco ~config:qc_cfg "BB");
       stlc_test;
     ]
   ]
 let bq_gen = Stlc_gen_bq.genExpr
 let () = G_SR.print Stlc_gen_st.genExpr 
-let st_gen = Base_quickcheck.Generator.create (G_SR.jit Stlc_gen_st.genExpr) 
+let st_gen = G_SR.jit Stlc_gen_st.genExpr
 
 let sizes = [10;50;100;500]
 

@@ -3,7 +3,7 @@ module MakeStaged(R : Random_intf.S) : sig
     include Generator_intf.S with type 'a C.t = 'a Codelib.code with module R = R
 
     val print : 'a c t -> unit
-    val jit : 'a c t -> (size:int -> random:R.t -> 'a)
+    val jit : ?extra_cmi_paths:string list -> 'a c t -> 'a Base_quickcheck.Generator.t
 
     val split_bool : bool c -> bool t
     val split_list : 'a list c -> [`Nil | `Cons of 'a c * ('a list c)] t

@@ -65,3 +65,5 @@ let recursive (type a) (type r) (x0 : r ) (step : (a,r) recgen -> r -> a t) =
     step go x 
   in
   (go x0)
+
+let to_bq x = x
