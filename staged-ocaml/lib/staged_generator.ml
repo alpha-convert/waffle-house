@@ -94,7 +94,16 @@ module MakeStaged(R : Random_intf.S) = struct
   let float ~(lo : float code) ~(hi : float code) : float code t = {
     rand_gen =
       fun ~size_c:_ ~random_c ->
-        Codecps.let_insert (R.float random_c ~lo:lo ~hi:hi)
+        (* if lower_inclusive > upper_inclusive
+          then
+            raise_s
+              [%message
+                "Float.uniform_exclusive: requested range is empty"
+                  (lower_bound : float)
+                  (upper_bound : float)]; *)
+        Codecps.bind (Codecps.let_insert .<Base.Float.one_ulp `Up .~lo >.) @@ fun lo_incl ->
+        Codecps.bind (Codecps.let_insert .<Base.Float.one_ulp `Down .~hi>.) @@ fun hi_incl ->
+        Codecps.let_insert (R.float random_c ~lo:lo_incl ~hi:hi_incl)
   }
 
   let rec genpick n ws =

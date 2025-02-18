@@ -17,6 +17,7 @@ module type S = sig
   include Base.Monad.S with type 'a t := 'a t
 
   val int : lo:(int c) -> hi:(int c) -> int c t
+  val float : lo:(float c) -> hi:(float c) -> float c t
   val bool : bool c t
 
   val weighted_union : (float c * 'a c t) list -> 'a c t

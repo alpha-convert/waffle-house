@@ -10,7 +10,3 @@ let float st ~lo ~hi = .< float .~st ~lo:.~lo ~hi:.~hi >.
 let dep_paths = List.map Util.run_ocamlfind_query ["splittable_random";"base_quickcheck";"base"]
 
 let of_sr x = x
-
-
-let bool' x = Splittable_random.bool x
-let int' x ~lo ~hi = Splittable_random.int x ~lo ~hi
