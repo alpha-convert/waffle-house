@@ -1,9 +1,14 @@
 type t = C_random_runtime.t
 
 
-let int st ~lo ~hi = .< C_random_runtime.int_c_unchecked .~st .~lo .~hi >.
+let int st ~lo ~hi = .< if .~lo > .~ hi then failwith "Crossed bounds!" else C_random_runtime.int_c_unchecked .~st .~lo .~hi >.
 let bool st = .< C_random_runtime.bool_c .~st >.
-let float _ = failwith "unimplemented"
+
+let float st ~(lo : float Codelib.code) ~hi = .<
+  if .~lo > .~ hi then failwith "Crossed bounds!" else
+  if (not (Float.is_finite .~lo && Float.is_finite .~hi)) then failwith "Infite floats" else
+  C_random_runtime.float_c_unchecked .~st .~lo .~hi
+>.
 
 (* THIS IS A HACK!
 *)

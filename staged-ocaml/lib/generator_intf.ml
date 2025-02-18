@@ -28,7 +28,7 @@ module type S = sig
   val size : int c t
   val with_size : 'a t -> size_c:(int c) -> 'a t
 
-  val to_fun : 'a c t -> (size:int -> random:R.t -> 'a) c
+  (* val to_fun : 'a c t -> (size:int -> random:R.t -> 'a) c *)
   val to_bq : 'a c t -> ('a Base_quickcheck.Generator.t) c
 
   type ('a,'r) recgen

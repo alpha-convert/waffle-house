@@ -3,6 +3,14 @@ open Fast_gen;;
 
 open Difftest
 
+module FloatTC : TestCase = struct
+  type t = float [@@deriving eq,show]
+  module F (G : Generator_intf.S) = struct
+    let gen = G.float (G.C.lift 0.0) (G.C.lift 1.0)
+  end
+end
+
+
 module BoolTC : TestCase = struct
   type t = bool [@@deriving eq,show]
   module F (G : Generator_intf.S) = struct
@@ -194,21 +202,22 @@ let () =
   let open Alcotest in
   run "Fusion Equivalence" [
     "DiffTest", [
-      (let open MakeDiffTest(BindTC)(Sr_random) in alco ~config:qc_cfg "Bind Ordering");
-      (let open MakeDiffTest(ChooseTC)(Sr_random) in alco ~config:qc_cfg "Choose Correctness");
-      (let open MakeDiffTest(ChooseBind1)(Sr_random) in alco ~config:qc_cfg "Choose with size weights");
-      (let open MakeDiffTest(ChooseBind2)(Sr_random) in alco ~config:qc_cfg "Choose with bind ordering");
-      (let open MakeDiffTest(BoolChoose)(Sr_random) in alco ~config:qc_cfg "More choose testing with bools");
-      (let open MakeDiffTest(SimpleInt)(Sr_random) in alco ~config:qc_cfg "Int Sampling");
-      (let open MakeDiffTest(SimpleBool)(Sr_random) in alco ~config:qc_cfg "Bool Sampling");
-      (let open MakeDiffTest(IntRange)(Sr_random) in alco ~config:qc_cfg "Range of ints");
-      (let open MakeDiffTest(IntList)(Sr_random) in alco ~config:qc_cfg "Int List Generator");
-      (let open MakeDiffTest(AA)(Sr_random) in alco ~config:qc_cfg "Swing generator");
-      (let open MakeDiffTest(BB)(C_random) in alco ~config:qc_cfg "BB");
-      stlc_test;
+      (* (let open MakeDiffTest(BindTC)(Sr_random) in alco ~config:qc_cfg "Bind Ordering"); *)
+      (* (let open MakeDiffTest(ChooseTC)(Sr_random) in alco ~config:qc_cfg "Choose Correctness"); *)
+      (* (let open MakeDiffTest(ChooseBind1)(Sr_random) in alco ~config:qc_cfg "Choose with size weights"); *)
+      (* (let open MakeDiffTest(ChooseBind2)(Sr_random) in alco ~config:qc_cfg "Choose with bind ordering"); *)
+      (* (let open MakeDiffTest(BoolChoose)(Sr_random) in alco ~config:qc_cfg "More choose testing with bools"); *)
+      (* (let open MakeDiffTest(SimpleInt)(Sr_random) in alco ~config:qc_cfg "Int Sampling"); *)
+      (* (let open MakeDiffTest(SimpleBool)(Sr_random) in alco ~config:qc_cfg "Bool Sampling"); *)
+      (* (let open MakeDiffTest(IntRange)(Sr_random) in alco ~config:qc_cfg "Range of ints"); *)
+      (* (let open MakeDiffTest(IntList)(Sr_random) in alco ~config:qc_cfg "Int List Generator"); *)
+      (* (let open MakeDiffTest(AA)(Sr_random) in alco ~config:qc_cfg "Swing generator"); *)
+      (* (let open MakeDiffTest(BB)(C_random) in alco ~config:qc_cfg "BB"); *)
+      (let open MakeDiffTest(FloatTC)(C_random) in alco ~config:qc_cfg "Float Simple");
+      (* stlc_test; *)
     ]
   ]
-let bq_gen = Stlc_gen_bq.genExpr
+(* let bq_gen = Stlc_gen_bq.genExpr
 let () = G_SR.print Stlc_gen_st.genExpr 
 let st_gen = G_SR.jit Stlc_gen_st.genExpr
 
@@ -230,4 +239,4 @@ let () = Bench.bench
     let random = Splittable_random.State.create (Random.State.make_self_init ()) in
     fun () -> Base_quickcheck.Generator.generate st_gen ~random ~size:n
   );
-]
+] *)

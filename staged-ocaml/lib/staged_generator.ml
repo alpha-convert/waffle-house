@@ -211,7 +211,7 @@ module MakeStaged(R : Random_intf.S) = struct
     >.
 
 
-  let print sg = Codelib.print_code Format.std_formatter (to_fun sg)
+  let print sg = Codelib.print_code Format.std_formatter (to_bq sg)
 
   
 

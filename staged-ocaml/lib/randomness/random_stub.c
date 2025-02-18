@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 
 
 typedef struct state {
@@ -68,12 +69,15 @@ int64_t next_int64(state_t* st){
   return mix64(next_seed(st));
 }
 
+bool next_bool(state_t *st){
+  int64_t draw = next_int64(st);
+  return ((draw | 1L) == draw);
+}
+
 CAMLprim value bool_c(value state_val) {
   CAMLparam1(state_val);
   state_t st = State_val(state_val);
-  int64_t draw = next_int64(&st);
-  bool result = (draw | 1L) == draw;
-  CAMLreturn(Val_bool(result));
+  CAMLreturn(Val_bool(next_bool(&st)));
 }
 
 
@@ -116,6 +120,38 @@ CAMLprim value int_c_unchecked(value state_val, value lo_val, value hi_val) {
     result = between(&st,lo,hi);
   }
   CAMLreturn(Val_int(result));
+}
+
+double unit_float_from_int64(int64_t n){
+  return ((uint64_t) n >> 11) * pow(2,-53);
+}
+// let unit_float_from_int64 int64 = Int64.to_float (int64 lsr 11) *. double_ulp
+
+double unit_float(state_t *st){
+  return unit_float_from_int64(next_int64(st));
+}
+
+
+double finite_float(state_t *st, double lo, double hi){
+  while(!(isfinite(hi - lo))){
+    double mid = (hi + lo) / 2.0;
+    if(next_bool(st)){
+      hi = mid;
+    } else {
+      lo = mid;
+    }
+  }
+  return (lo + unit_float(st) * (hi - lo));
+
+}
+
+CAMLprim value float_c_unchecked(value state_val, value lo_val, value hi_val){
+  CAMLparam3(state_val,lo_val,hi_val);
+  state_t st = State_val(state_val);
+  double lo = Double_val(lo_val);
+  double hi = Double_val(hi_val);
+  double result = finite_float(&st,lo,hi);
+  CAMLreturn(caml_copy_double(result));
 }
 
 CAMLprim value print(value state_val) {
