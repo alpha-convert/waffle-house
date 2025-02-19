@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "common.h"
+
 
 typedef struct state {
   int64_t seed;
@@ -53,18 +55,6 @@ int64_t next_seed(state_t *s){
   return next;
 }
 
-// This bug took me forever to figure out. A "logical shift right" requires
-// casting to uint64_t first.
-int64_t mix_bits(int64_t z, int64_t n) {
-  return z ^ ((uint64_t) z >> n);
-}
-
-int64_t mix64(int64_t z) {
-  z = mix_bits(z,33) * 0xff51afd7ed558ccdL;
-  z = mix_bits(z,33) * 0xc4ceb9fe1a85ec53L;
-  return mix_bits(z, 33);
-}
-
 int64_t next_int64(state_t* st){
   return mix64(next_seed(st));
 }
@@ -74,16 +64,8 @@ bool next_bool(state_t *st){
   return ((draw | 1L) == draw);
 }
 
-CAMLprim value bool_c(value state_val) {
-  CAMLparam1(state_val);
-  state_t st = State_val(state_val);
-  CAMLreturn(Val_bool(next_bool(&st)));
-}
 
 
-bool remainder_is_unbiased(int64_t draw, int64_t remainder, int64_t draw_max, int64_t remainder_max){
-  return (draw - remainder <= draw_max - remainder_max);
-}
 
 int64_t between(state_t* st,int64_t lo,int64_t hi){
   int64_t draw = next_int64(st);
@@ -103,13 +85,7 @@ int64_t non_negative_up_to(state_t *st, int64_t max){
   return remainder;
 }
 
-CAMLprim value int_c_unchecked(value state_val, value lo_val, value hi_val) {
-  CAMLparam3(state_val,lo_val,hi_val);
-  state_t st = State_val(state_val);
-
-  int64_t lo = (int64_t) Int_val(lo_val);
-  int64_t hi = (int64_t) Int_val(hi_val);
-
+int64_t next_int(state_t *st,int64_t lo, int64_t hi){
   int64_t diff = hi - lo;
   int64_t result;
   if(diff == INT64_MAX){
@@ -119,20 +95,18 @@ CAMLprim value int_c_unchecked(value state_val, value lo_val, value hi_val) {
   } else {
     result = between(&st,lo,hi);
   }
-  CAMLreturn(Val_int(result));
+
+  return result;
 }
 
-double unit_float_from_int64(int64_t n){
-  return ((uint64_t) n >> 11) * pow(2,-53);
-}
-// let unit_float_from_int64 int64 = Int64.to_float (int64 lsr 11) *. double_ulp
+
 
 double unit_float(state_t *st){
   return unit_float_from_int64(next_int64(st));
 }
 
 
-double finite_float(state_t *st, double lo, double hi){
+double next_float(state_t *st, double lo, double hi){
   while(!(isfinite(hi - lo))){
     double mid = (hi + lo) / 2.0;
     if(next_bool(st)){
@@ -145,18 +119,35 @@ double finite_float(state_t *st, double lo, double hi){
 
 }
 
+CAMLprim value bool_c(value state_val) {
+  CAMLparam1(state_val);
+  state_t st = State_val(state_val);
+  CAMLreturn(Val_bool(next_bool(&st)));
+}
+
 CAMLprim value float_c_unchecked(value state_val, value lo_val, value hi_val){
   CAMLparam3(state_val,lo_val,hi_val);
   state_t st = State_val(state_val);
   double lo = Double_val(lo_val);
   double hi = Double_val(hi_val);
-  double result = finite_float(&st,lo,hi);
+  double result = next_float(&st,lo,hi);
   CAMLreturn(caml_copy_double(result));
+}
+
+CAMLprim value int_c_unchecked(value state_val, value lo_val, value hi_val) {
+  CAMLparam3(state_val,lo_val,hi_val);
+  state_t st = State_val(state_val);
+
+  int64_t lo = (int64_t) Int_val(lo_val);
+  int64_t hi = (int64_t) Int_val(hi_val);
+
+  int64_t result = next_int(&st,lo,hi);
+  CAMLreturn(Val_int(result));
 }
 
 CAMLprim value print(value state_val) {
   CAMLparam1(state_val);
-  state_t *st = Data_custom_val(state_val);
-  printf("C-Seed: %ld\n", st->seed);
+  state_t st = State_val(state_val);
+  printf("C-Seed: %ld\n", st.seed);
   CAMLreturn(Val_unit);
 }
