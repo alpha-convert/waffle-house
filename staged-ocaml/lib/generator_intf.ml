@@ -16,6 +16,9 @@ module type S = sig
   include Base.Applicative.S with type 'a t := 'a t
   include Base.Monad.S with type 'a t := 'a t
 
+
+  val jit : ?extra_cmi_paths:string list -> 'a c t -> 'a Base_quickcheck.Generator.t
+
   val int : lo:(int c) -> hi:(int c) -> int c t
   val float : lo:(float c) -> hi:(float c) -> float c t
   val bool : bool c t

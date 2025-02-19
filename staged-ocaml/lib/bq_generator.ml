@@ -47,6 +47,7 @@ include Monad_infix
 (* open Let_syntax *)
 
 let weighted_union = Base_quickcheck.Generator.weighted_union
+let jit ?extra_cmi_paths:_ g = g
 let union = Base_quickcheck.Generator.union
 let of_list = Base_quickcheck.Generator.of_list
 let of_list_dyn = Base_quickcheck.Generator.of_list

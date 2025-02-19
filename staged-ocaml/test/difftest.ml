@@ -38,17 +38,14 @@ let difftest ?config ~name:s exn eq g1 g2 =
   in
     Alcotest.test_case s `Quick (completes dt)
 
-module MakeDiffTest(T : TestCase)(R:Random_intf.S) = struct
-  module BQ_G = T.F(Bq_generator)
+module MakeDiffTest(T : TestCase)(G1:Generator_intf.S)(G2:Generator_intf.S) = struct
+  module T1 = T.F(G1)
+  module T2 = T.F(G2)
 
-  module SR_Staged = Staged_generator.MakeStaged(R)
-  module ST_G = T.F(SR_Staged)
-
-  let bq_gen = BQ_G.gen
-  let st_gen = SR_Staged.jit ST_G.gen
-  let () = SR_Staged.print ST_G.gen
+  let g1 = G1.jit T1.gen
+  let g2 = G2.jit T2.gen
 
   exception Fail of T.t * T.t
 
-  let alco ?config name = difftest ?config ~name (fun v1 v2 -> raise (Fail (v1,v2))) T.equal bq_gen st_gen
+  let alco ?config name = difftest ?config ~name (fun v1 v2 -> raise (Fail (v1,v2))) T.equal g1 g2
 end

@@ -187,8 +187,10 @@ let qc_cfg = { Base_quickcheck.Test.default_config with
   seed = Base_quickcheck.Test.Config.Seed.Nondeterministic
 }
 
+module G_Bq = Bq_generator
 module G_SR = Staged_generator.MakeStaged(Sr_random)
 module G_C = Staged_generator.MakeStaged(C_random)
+module G_C_SR = Staged_generator.MakeStaged(C_sr_dropin_random)
 
 let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/"
 
@@ -213,7 +215,10 @@ let () =
       (* (let open MakeDiffTest(IntList)(Sr_random) in alco ~config:qc_cfg "Int List Generator"); *)
       (* (let open MakeDiffTest(AA)(Sr_random) in alco ~config:qc_cfg "Swing generator"); *)
       (* (let open MakeDiffTest(BB)(C_random) in alco ~config:qc_cfg "BB"); *)
-      (let open MakeDiffTest(FloatTC)(C_random) in alco ~config:qc_cfg "Float Simple");
+      (let open MakeDiffTest(FloatTC)(G_Bq)(G_C) in alco ~config:qc_cfg "Float Simple");
+      (let open MakeDiffTest(FloatTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "Float Simple");
+      (let open MakeDiffTest(FloatTC)(G_C)(G_SR) in alco ~config:qc_cfg "Float Simple");
+      (let open MakeDiffTest(FloatTC)(G_C_SR)(G_C) in alco ~config:qc_cfg "Float Simple");
       (* stlc_test; *)
     ]
   ]
