@@ -2,7 +2,7 @@
 (preprocess (pps ppx_jane))
  (foreign_stubs
   (language c)
-  (names random_stub)) 
+  (names common random_stub sr_random_stub)) 
  (libraries unix splittable_random dynlink metaocaml base)
  (flags :standard -linkall)
  (name fast_gen))
