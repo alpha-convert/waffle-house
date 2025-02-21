@@ -1,9 +1,0 @@
-(executable
- (public_name handwritten)
-  (preprocess (pps ppx_jane ppx_bench))
- (name main)
- (libraries base_quickcheck core_bench splittable_random core qcheck crowbar unboxed_splitmix))
-
-(env
-  (dev
-    (flags (:standard -warn-error -A))))

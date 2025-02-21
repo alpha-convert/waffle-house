@@ -5,6 +5,12 @@
   (names common random_stub sr_random_stub)) 
  (libraries unix splittable_random dynlink metaocaml base)
  (flags :standard -linkall)
- (name fast_gen))
+ (name fast_gen)
+ (public_name fast_gen)
+ )
 (include_subdirs unqualified)
 
+(env
+ (dev
+  (flags
+   (:standard -g -w "-26-27-32-33-34-37-39"))))

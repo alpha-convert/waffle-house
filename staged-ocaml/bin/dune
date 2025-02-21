@@ -2,3 +2,8 @@
  (public_name fast_gen)
  (name main)
  (libraries fast_gen splittable_random base dynlink metaocaml core_bench))
+
+(env
+ (dev
+  (flags
+   (:standard -g -w "-26-27-32-33-34-37-39"))))
