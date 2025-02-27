@@ -51,8 +51,8 @@ let genTyp : Typ.t code Gen.t =
       weighted_union [
         .<1.0>., return .<TBool>.;
         .<Int.to_float .~n>.,
-          let%bind t1 = (with_size ~size_c:.<.~n / 2>. (recurse go u)) in
-          let%bind t2 = (with_size ~size_c:.<.~n / 2>. (recurse go u)) in
+          let%bind t1 = with_size ~size_c:.<.~n / 2>. (recurse go u) in
+          let%bind t2 = with_size ~size_c:.<.~n / 2>. (recurse go u) in
           return .<TFun(.~t1,.~t2)>.
       ]
 

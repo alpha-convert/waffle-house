@@ -18,7 +18,7 @@ module BoolTC : TestCase = struct
   end
 end
 
-module BindTC : TestCase = struct
+module BindOrder : TestCase = struct
   type t = int * int [@@deriving eq, show]
   module F (G : Generator_intf.S) = struct
     let i = G.int ~lo:(G.C.lift 0) ~hi:(G.C.lift 100)
@@ -171,7 +171,7 @@ module BB : TestCase = struct
     open Let_syntax
     open C
     let gen =
-      let%bind x = return (lift 100) in
+      let%bind _ = return (lift 100) in
       union [
         return (lift 100);
         return (lift 102);
@@ -199,49 +199,29 @@ let stlc_test =
   let g2 = G_SR.jit ~extra_cmi_paths:[path] Stlc_gen_st.genExpr in
   Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ Expr.show v1 ^ "\nST: " ^ Expr.show v2 ^"\n") Expr.equal g1 g2
 
-(* module M = MakeDiffTest(IntList) *)
 let () =
   let open Alcotest in
-  run "Fusion Equivalence" [
-    "DiffTest", [
-      (* (let open MakeDiffTest(BindTC)(Sr_random) in alco ~config:qc_cfg "Bind Ordering"); *)
-      (* (let open MakeDiffTest(ChooseTC)(Sr_random) in alco ~config:qc_cfg "Choose Correctness"); *)
-      (* (let open MakeDiffTest(ChooseBind1)(Sr_random) in alco ~config:qc_cfg "Choose with size weights"); *)
-      (* (let open MakeDiffTest(ChooseBind2)(Sr_random) in alco ~config:qc_cfg "Choose with bind ordering"); *)
-      (* (let open MakeDiffTest(BoolChoose)(Sr_random) in alco ~config:qc_cfg "More choose testing with bools"); *)
-      (* (let open MakeDiffTest(SimpleInt)(Sr_random) in alco ~config:qc_cfg "Int Sampling"); *)
-      (* (let open MakeDiffTest(SimpleBool)(Sr_random) in alco ~config:qc_cfg "Bool Sampling"); *)
-      (* (let open MakeDiffTest(IntRange)(Sr_random) in alco ~config:qc_cfg "Range of ints"); *)
-      (* (let open MakeDiffTest(IntList)(Sr_random) in alco ~config:qc_cfg "Int List Generator"); *)
-      (* (let open MakeDiffTest(AA)(Sr_random) in alco ~config:qc_cfg "Swing generator"); *)
-      (* (let open MakeDiffTest(BB)(C_random) in alco ~config:qc_cfg "BB"); *)
-      (let open MakeDiffTest(FloatTC)(G_Bq)(G_C) in alco ~config:qc_cfg "Float Simple");
-      (let open MakeDiffTest(FloatTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "Float Simple");
-      (let open MakeDiffTest(FloatTC)(G_C)(G_SR) in alco ~config:qc_cfg "Float Simple");
-      (let open MakeDiffTest(FloatTC)(G_C_SR)(G_C) in alco ~config:qc_cfg "Float Simple");
+  run "Staged Generators" [
+    "Effect Ordering", [
+      (let open MakeDiffTest(BindOrder)(G_Bq)(G_SR) in alco ~config:qc_cfg "Bind Ordering Staging");
+      (let open MakeDiffTest(ChooseTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "Choose Correctness");
+      (let open MakeDiffTest(ChooseBind1)(G_Bq)(G_SR) in alco ~config:qc_cfg "Choose with size weights");
+      (let open MakeDiffTest(ChooseBind2)(G_Bq)(G_SR) in alco ~config:qc_cfg "Choose with bind ordering");
+      (let open MakeDiffTest(BoolChoose)(G_Bq)(G_SR) in alco ~config:qc_cfg "More choose testing with bools");
+      (let open MakeDiffTest(SimpleInt)(G_Bq)(G_SR) in alco ~config:qc_cfg "Int Sampling");
+      (let open MakeDiffTest(SimpleBool)(G_Bq)(G_SR) in alco ~config:qc_cfg "Bool Sampling");
+      (let open MakeDiffTest(IntRange)(G_Bq)(G_SR) in alco ~config:qc_cfg "Range of ints");
+      (let open MakeDiffTest(IntList)(G_Bq)(G_SR) in alco ~config:qc_cfg "Int List Generator");
+      (let open MakeDiffTest(AA)(G_Bq)(G_SR) in alco ~config:qc_cfg "Swing generator");
+      (let open MakeDiffTest(BB)(G_Bq)(G_SR) in alco ~config:qc_cfg "Unused bind-to-union");
+      
       (* stlc_test; *)
+    ];
+    "RNG Equivalence",[
+      (let open MakeDiffTest(FloatTC)(G_Bq)(G_C) in alco ~config:qc_cfg "Float Simple -- Bq/Staged_C");
+      (let open MakeDiffTest(FloatTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "Float Simple -- Bq/Staged_SR");
+      (let open MakeDiffTest(FloatTC)(G_C)(G_SR) in alco ~config:qc_cfg "Float Simple -- Staged_C/Staged_SR");
+      (let open MakeDiffTest(FloatTC)(G_C_SR)(G_C) in alco ~config:qc_cfg "Float Simple -- Staged_C_SR/Staged_C");
+      (let open MakeDiffTest(BB)(G_SR)(G_C) in alco ~config:qc_cfg "Union -- BQ/Staged_C");
     ]
   ]
-(* let bq_gen = Stlc_gen_bq.genExpr
-let () = G_SR.print Stlc_gen_st.genExpr 
-let st_gen = G_SR.jit Stlc_gen_st.genExpr
-
-let sizes = [10;50;100;500]
-
-open Core_bench
-open Core
-
-let () = Bench.bench 
-  ~run_config:(Bench.Run_config.create ~quota:(Bench.Quota.Num_calls 1000) ())
-  [
-  Bench.Test.create_indexed ~name:"BQ" ~args:sizes (
-    fun n -> Staged.stage @@ 
-    let random = Splittable_random.State.create (Random.State.make_self_init ()) in
-    fun () -> Base_quickcheck.Generator.generate bq_gen ~random ~size:n
-  );
-  Bench.Test.create_indexed ~name:"ST" ~args:sizes (
-    fun n -> Staged.stage @@ 
-    let random = Splittable_random.State.create (Random.State.make_self_init ()) in
-    fun () -> Base_quickcheck.Generator.generate st_gen ~random ~size:n
-  );
-] *)
