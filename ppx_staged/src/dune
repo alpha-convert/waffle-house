@@ -1,0 +1,13 @@
+(library
+ (public_name ppx_staged)
+ (modules :standard )
+ (kind ppx_rewriter)
+ (libraries ppx_staged_expander fast_gen ppx_staged_runtime core base_quickcheck base ppxlib)
+ (library_flags (-linkall))
+ (preprocess
+  (pps ppxlib.metaquot)))
+
+(env
+ (dev
+  (flags
+   (:standard -g -w "-26-27-32-33-34-37-39"))))
