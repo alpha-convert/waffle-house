@@ -11,6 +11,11 @@
 #include "common.h"
 
 
+/*
+Here, a state_t is just a "view" into an existing Splittable_random.State.t.
+The seed is a pointer to the actual SR's Int64.t (techncially immutable) custom block.
+Because the odd_gamma doesn't need to be mutated, we keep a copy of it.
+*/
 typedef struct state {
   int64_t *seed;
   int64_t odd_gamma;
