@@ -5,6 +5,7 @@
   (names common random_stub sr_random_stub)) 
  (libraries unix splittable_random dynlink metaocaml base)
  (flags :standard -linkall)
+ (public_name fast_gen)
  (name fast_gen))
 (include_subdirs unqualified)
 
