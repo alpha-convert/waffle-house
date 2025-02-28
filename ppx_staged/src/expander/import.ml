@@ -1,7 +1,7 @@
 include Base
 include Ppxlib
 include Ast_builder.Default
-open! Ppx_staged_staging;;
+open! Fast_gen;;
 open Codelib;;
 open Base;;
 open Ppxlib;;

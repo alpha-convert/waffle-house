@@ -1,10 +1,12 @@
 open Stdio
 open Base
 open Ppx_staged
-open Ppx_staged_staging;;
+open Fast_gen;;
 open Ppx_staged_expander;;
 (* open Base_quickcheck;; *)
-open Modules;;
+(* open Modules;; *)
+
+module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 
 module Pair = struct 
   type t = int * float [@@deriving wh]

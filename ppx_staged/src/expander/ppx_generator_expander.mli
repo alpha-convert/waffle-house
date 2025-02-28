@@ -1,6 +1,6 @@
 open! Import
-open! Ppx_staged_staging;;
-open! Modules;;
+open! Fast_gen;;
+(* open! Modules;; *)
 
 val compound
   :  generator_of_core_type:(core_type -> expression)

@@ -1,6 +1,5 @@
 open! Import
-open! Ppx_staged_staging;;
-open! Modules;;
+open! Fast_gen;;
 
 let compound_generator_new ~loc (x, y) =
   [%expr
