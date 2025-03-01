@@ -7,6 +7,40 @@ module MakeStaged(R : Random_intf.S) = struct
 
   type 'a t = { rand_gen : size_c:(int code) -> random_c:(R.t code) -> 'a Codecps.t }
 
+(*
+  Codegen stuff...
+  *)
+
+  let split_bool cb = {
+    rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_bool cb
+  }
+
+let split_int cn = {
+    rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_int cn
+  }
+
+  let split_pair cp = {
+    rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_pair cp
+  }
+
+  let split_triple ct = {
+    rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_triple ct
+  }
+
+  let split_list cxs = {
+    rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_list cxs
+  }
+
+  let split_option cxs = {
+    rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_option cxs
+  }
+
+  module MakeSplit(X : Splittable.S) = struct
+    let split cx = {
+      rand_gen = fun ~size_c:_ ~random_c:_ -> X.split cx
+    }
+  end
+
   module R = R
 
   module C = struct
@@ -89,6 +123,12 @@ module MakeStaged(R : Random_intf.S) = struct
     rand_gen =
       fun ~size_c:_ ~random_c ->
         Codecps.let_insert (R.int random_c ~lo:lo ~hi:hi)
+  }
+
+let log_uniform_int ~(lo : int code) ~(hi : int code) : int code t = {
+    rand_gen =
+      fun ~size_c:_ ~random_c ->
+        Codecps.let_insert (R.Log_uniform.int random_c ~lo:lo ~hi:hi)
   }
 
   let float ~(lo : float code) ~(hi : float code) : float code t = {
@@ -189,10 +229,66 @@ module MakeStaged(R : Random_intf.S) = struct
       >.
   }
 
+
   let with_size f ~size_c =
     { rand_gen = fun ~size_c:_ ~random_c -> f.rand_gen ~size_c:size_c ~random_c }
 
   let size = { rand_gen = fun ~size_c ~random_c:_ -> Codecps.return size_c }
+
+  let list g =
+    (* NOTE: this is a place where we could go way faster, if we wanted to move the effects around but keep the distribution the same  *)
+    let go len = {
+      rand_gen = fun ~size_c ~random_c ->
+        Codecps.bind (Codecps.let_insert .<Array.make .~len 0>.) @@ fun sizes ->
+        Codecps.bind (Codecps.let_insert .<.~size_c - .~len>.) @@ fun remaining ->
+        Codecps.bind (Codecps.let_insert .<.~len - 1>.) @@ fun max_index ->
+        Codecps.bind (Codecps.seq_insert .<
+          for _ = 1 to .~remaining do
+            let i = .~(R.Log_uniform.int random_c ~lo:.<0>. ~hi:max_index) in
+            .~sizes.(i) <- .~sizes.(i) + 1
+          done
+        >.) @@ fun () ->
+        Codecps.bind (Codecps.seq_insert .<
+          for i = 0 to .~max_index - 1 do
+            let j = .~(R.int random_c ~lo:.<i>. ~hi:max_index) in
+            let tmp = .~sizes.(i) in
+            .~sizes.(i) <- .~sizes.(j);
+            .~sizes.(j) <- tmp
+          done
+        >.) @@ fun () ->
+        Codecps.bind (Codecps.let_insert .<
+          fun sz xs ->
+            .~(Codecps.code_generate (g.rand_gen ~size_c:.<sz>. ~random_c)) :: xs
+        >.) @@ fun f ->
+          Codecps.return .<
+            Array.fold_right .~f .~sizes []
+          >.
+    }
+    in
+      (* permute the array so that no index is favored over another
+      for i = 0 to max_index - 1 do
+        let j = Splittable_random.int random ~lo:i ~hi:max_index in
+        Array.swap sizes i j
+      done;
+      assert (Array.sum (module Int) sizes ~f:Fn.id + (len - min_length) = size);
+      Array.to_list sizes)) *)
+
+
+    bind size ~f:(fun sz ->
+      bind (log_uniform_int ~lo:.<0>. ~hi:sz) ~f:(fun len -> 
+        bind (split_int len) ~f:(fun slen ->
+          match slen with
+          | `Z -> return .<[]>.
+          | `S _ -> go len
+        )
+      )
+    )
+    (* pick a length, weighted low so that most of the size is spent on elements *)
+    (* bind (return .<[1;2;3]>.) ~f:(fun sizes -> *)
+      (* all ( *)
+    (* ) *)
+
+
 
   let to_bq sg =
     .<
@@ -238,33 +334,5 @@ module MakeStaged(R : Random_intf.S) = struct
         >.
     }
 
-  (*
-  Codegen stuff...
-  *)
-
-  let split_bool cb = {
-    rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_bool cb
-  }
-
-  let split_pair cp = {
-    rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_pair cp
-  }
-
-  let split_triple ct = {
-    rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_triple ct
-  }
-
-  let split_list cxs = {
-    rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_list cxs
-  }
-
-  let split_option cxs = {
-    rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_option cxs
-  }
-
-  module MakeSplit(X : Splittable.S) = struct
-    let split cx = {
-      rand_gen = fun ~size_c:_ ~random_c:_ -> X.split cx
-    }
-  end
+  
 end

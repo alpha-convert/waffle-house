@@ -39,6 +39,10 @@ let let_insert (cx : 'a code) : 'a code t = {
   code_gen = fun k -> letl cx k
 }
 
+let seq_insert (cx : unit code) : unit t = {
+  code_gen = fun k -> .<.~cx ; .~(k ())>.
+}
+
 let let_insert_smart (cx : 'a code) : 'a code t = {
   code_gen = fun k -> k (genlet cx)
 }
@@ -53,6 +57,15 @@ let split_bool (cb : bool code) : bool t = {
     Codelib.letl cb (fun bvc ->
     .<
       if .~bvc then .~(k true) else .~(k false)
+    >.
+    )
+}
+
+let split_int (cn : int code) = {
+  code_gen = fun k ->
+    Codelib.letl cn (fun nvc ->
+    .<
+      if .~nvc = 0 then .~(k `Z) else .~(k (`S .<pred .~nvc>.))
     >.
     )
 }

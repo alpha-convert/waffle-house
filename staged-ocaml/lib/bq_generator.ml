@@ -55,6 +55,9 @@ let int ~lo ~hi = Base_quickcheck.Generator.int_uniform_inclusive lo hi
 let float ~lo ~hi = Base_quickcheck.Generator.float_uniform_exclusive lo hi
 (* let float ~lo ~hi = Base_quickcheck.Generator.float_uniform_exclusive lo hi *)
 let bool = Base_quickcheck.Generator.bool
+
+let list = Base_quickcheck.Generator.list
+
 let size = Base_quickcheck.Generator.size
 let with_size g ~size_c = Base_quickcheck.Generator.with_size ~size:size_c g
 

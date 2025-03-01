@@ -10,7 +10,7 @@ let float st ~(lo : float Codelib.code) ~hi = .<
 >.
 
 module Log_uniform = struct
-  let int = failwith "Unimpl"
+  let int st ~lo ~hi = failwith "Unimpl"
 end
 
 (* THIS IS A HACK!

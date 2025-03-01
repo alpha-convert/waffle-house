@@ -28,6 +28,8 @@ module type S = sig
   val of_list : 'a list -> 'a t
   val of_list_dyn : 'a list c -> 'a c t
 
+  val list : 'a c t -> 'a list c t
+
   val size : int c t
   val with_size : 'a t -> size_c:(int c) -> 'a t
 
