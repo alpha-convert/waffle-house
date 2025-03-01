@@ -125,7 +125,7 @@ let split_int cn = {
         Codecps.let_insert (R.int random_c ~lo:lo ~hi:hi)
   }
 
-let log_uniform_int ~(lo : int code) ~(hi : int code) : int code t = {
+let int_log_uniform ~(lo : int code) ~(hi : int code) : int code t = {
     rand_gen =
       fun ~size_c:_ ~random_c ->
         Codecps.let_insert (R.Log_uniform.int random_c ~lo:lo ~hi:hi)
@@ -275,7 +275,7 @@ let log_uniform_int ~(lo : int code) ~(hi : int code) : int code t = {
 
 
     bind size ~f:(fun sz ->
-      bind (log_uniform_int ~lo:.<0>. ~hi:sz) ~f:(fun len -> 
+      bind (int_log_uniform ~lo:.<0>. ~hi:sz) ~f:(fun len -> 
         bind (split_int len) ~f:(fun slen ->
           match slen with
           | `Z -> return .<[]>.

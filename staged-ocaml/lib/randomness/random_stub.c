@@ -145,6 +145,59 @@ CAMLprim value int_c_unchecked(value state_val, value lo_val, value hi_val) {
   CAMLreturn(Val_int(result));
 }
 
+
+int64_t min_represented_by_n_bits(int64_t n) {
+  if (n == 0) {
+      return 0;
+  } else {
+      return 1LL << (n - 1);
+  }
+}
+
+int64_t max_represented_by_n_bits(int64_t bits) {
+  return (1LL << bits) - 1;
+}
+
+
+int64_t max(int64_t a, int64_t b) {
+  return (a > b) ? a : b;
+}
+
+int64_t min(int64_t a, int64_t b) {
+  return (a < b) ? a : b;
+}
+
+uint64_t bits_to_represent(int64_t t) {
+  uint64_t n = 0;
+  
+  while (t > 0) {
+      t >>= 1;
+      n++;
+  }
+  
+  return n;
+}
+
+int64_t next_int_log_uniform(state_t *st, int64_t lo, int64_t hi) {
+  uint64_t min_bits = bits_to_represent(lo);
+  uint64_t max_bits = bits_to_represent(hi);
+  int64_t bits = next_int(st,min_bits,max_bits);
+  lo = max(lo,min_represented_by_n_bits(bits));
+  hi = min(hi,max_represented_by_n_bits(bits));
+  return next_int(st,lo,hi);
+}
+
+CAMLprim value int_c_log_uniform(value state_val, value lo_val, value hi_val) {
+  CAMLparam3(state_val,lo_val,hi_val);
+  state_t st = State_val(state_val);
+
+  int64_t lo = (int64_t) Int_val(lo_val);
+  int64_t hi = (int64_t) Int_val(hi_val);
+
+  int64_t result = next_int_log_uniform(&st,lo,hi);
+  CAMLreturn(Val_int(result));
+}
+
 CAMLprim value print(value state_val) {
   CAMLparam1(state_val);
   state_t st = State_val(state_val);

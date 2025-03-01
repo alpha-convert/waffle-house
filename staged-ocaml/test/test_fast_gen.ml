@@ -3,6 +3,20 @@ open Fast_gen;;
 
 open Difftest
 
+module IntTC : TestCase = struct
+  type t = int [@@deriving eq,show]
+  module F (G : Generator_intf.S) = struct
+    let gen = G.int ~lo:(G.C.lift 0) ~hi:(G.C.lift 1)
+  end
+end
+
+module IntLogUniformTC : TestCase = struct
+  type t = int [@@deriving eq,show]
+  module F (G : Generator_intf.S) = struct
+    let gen = G.int_log_uniform ~lo:(G.C.lift 0) ~hi:(G.C.lift 100)
+  end
+end
+
 module FloatTC : TestCase = struct
   type t = float [@@deriving eq,show]
   module F (G : Generator_intf.S) = struct
@@ -266,10 +280,26 @@ let () =
       (* stlc_test; *)
     ];
     "RNG Equivalence",[
+      (let open MakeDiffTest(BoolTC)(G_Bq)(G_C) in alco ~config:qc_cfg "Bool Simple -- Bq/Staged_C");
+      (let open MakeDiffTest(BoolTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "Bool Simple -- Bq/Staged_SR");
+      (let open MakeDiffTest(BoolTC)(G_C)(G_SR) in alco ~config:qc_cfg "Bool Simple -- Staged_C/Staged_SR");
+      (let open MakeDiffTest(BoolTC)(G_C_SR)(G_C) in alco ~config:qc_cfg "Bool Simple -- Staged_C_SR/Staged_C");
+      (let open MakeDiffTest(BoolTC)(G_C_SR)(G_SR) in alco ~config:qc_cfg "Bool Simple -- Staged_C_SR/Staged_SR");
+      (let open MakeDiffTest(IntTC)(G_Bq)(G_C) in alco ~config:qc_cfg "Int Simple -- Bq/Staged_C");
+      (let open MakeDiffTest(IntTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "Int Simple -- Bq/Staged_SR");
+      (let open MakeDiffTest(IntTC)(G_C)(G_SR) in alco ~config:qc_cfg "Int Simple -- Staged_C/Staged_SR");
+      (let open MakeDiffTest(IntTC)(G_C_SR)(G_C) in alco ~config:qc_cfg "Int Simple -- Staged_C_SR/Staged_C");
+      (let open MakeDiffTest(IntTC)(G_C_SR)(G_SR) in alco ~config:qc_cfg "Int Simple -- Staged_C_SR/Staged_SR");
+      (let open MakeDiffTest(IntLogUniformTC)(G_Bq)(G_C) in alco ~config:qc_cfg "Int LU Simple -- Bq/Staged_C");
+      (let open MakeDiffTest(IntLogUniformTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "Int LU Simple -- Bq/Staged_SR");
+      (let open MakeDiffTest(IntLogUniformTC)(G_C)(G_SR) in alco ~config:qc_cfg "Int LU Simple -- Staged_C/Staged_SR");
+      (* (let open MakeDiffTest(IntLogUniformTC)(G_C_SR)(G_C) in alco ~config:qc_cfg "Int LU Simple -- Staged_C_SR/Staged_C"); *)
+      (* (let open MakeDiffTest(IntLogUniformTC)(G_C_SR)(G_SR) in alco ~config:qc_cfg "Int LU Simple -- Staged_C_SR/Staged_SR"); *)
       (let open MakeDiffTest(FloatTC)(G_Bq)(G_C) in alco ~config:qc_cfg "Float Simple -- Bq/Staged_C");
       (let open MakeDiffTest(FloatTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "Float Simple -- Bq/Staged_SR");
       (let open MakeDiffTest(FloatTC)(G_C)(G_SR) in alco ~config:qc_cfg "Float Simple -- Staged_C/Staged_SR");
       (let open MakeDiffTest(FloatTC)(G_C_SR)(G_C) in alco ~config:qc_cfg "Float Simple -- Staged_C_SR/Staged_C");
+      (let open MakeDiffTest(FloatTC)(G_C_SR)(G_SR) in alco ~config:qc_cfg "Float Simple -- Staged_C_SR/Staged_SR");
       (* (let open MakeDiffTest(BB)(G_SR)(G_C) in alco ~config:qc_cfg "Union -- BQ/Staged_C"); *)
     ]
   ]

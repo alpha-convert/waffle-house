@@ -7,6 +7,7 @@ Otherwise, MetaOCaml tries to serialize these external functions and gets confus
 type t
 
 external int_c_unchecked : t -> int -> int -> int = "int_c_unchecked"
+external int_c_log_uniform : t -> int -> int -> int = "int_c_log_uniform"
 external bool_c : t -> bool = "bool_c"
 external float_c_unchecked : t -> float -> float -> float = "float_c_unchecked"
 external create : int64 -> int64 -> t = "create_state"
