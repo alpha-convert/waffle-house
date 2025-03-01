@@ -7,6 +7,7 @@
 %% samples.dtx  (with options: `all,proceedings,bibtex,sigplan')
 %% 
 %% IMPORTANT NOTICE:
+
 %% 
 %% For the copyright see the source file.
 %% 
@@ -306,7 +307,7 @@ Our solution is \name, a generator library that preserves
 \bq’s functionality while improving performance through
 \textit{staged metaprogramming} (staging). Staging is a lightweight,
 domain-specific compilation technique that allows us to completely eliminate the
-runtime overhead of many common generator abstractions. For instance, in
+runtime overhead of many common generator abstractions. \jwc{This relies on the fact that the code of generators is known statically at compile time} For instance, in
 \name, monadic operations are zero-cost.
 \name’s staged eliminates unnecessary allocations,
 generates static control structures, and leverages unboxed integer libraries to
@@ -348,10 +349,28 @@ by optimizing them for speed. In speicific, we make the following contributions:
 
 \section{Background}
 \subsection{Staged Metaprogramming}
-\subsection{Property-Based Testing}
-\subsection{Existing PBT Generators}
 
-\tr{Here's where we talk about what's going on in the world, and ultimately make the argument that \bq\ is the best tool to reproduce.}
+\jwc{A good quick presentation of staged metaprogramming is here, in section 6.
+https://www.cl.cam.ac.uk/~jdy22/papers/a-typed-algebraic-approach-to-parsing.pdf
+}
+
+
+\subsection{Property-Based Testing}
+\subsection{Other Languages and Libraries}
+
+\tr{Here's where we talk about what's going on in the world, and ultimately make the argument that \bq{} is the best tool to reproduce.}
+
+\jwc{Note that this explanation require some prior note of exactly *why* BQ is slow... i.e. the abstraction overhead of the library is high.}
+
+\jwc{
+  \begin{itemize}
+    \item Scala. Functional abstractions like QC generators are known to be costly in Scala, that's why they have LMS. Example: parser combinators (``On Staged Parser Combinators for Efficient Data Processing''), functional data structures (\href{https://ppl.stanford.edu/papers/popl13_rompf.pdf}{Link}), web programming (``Efficient High-Level Abstractions for Web Programming'').
+    % \item Haskell: GHC does a lot of these optimizations already, since the code is pure. Since QC generators are relatively small programs,
+    % GHC has little trouble specializing them. Of course, this is not guaranteed. A version of this idea can easily be ported to the original QC with template haskell, to guarantee
+    % the highest-performance generators.
+    % \item Rust: Not GC'd, so no alloc overhead but bind'd generators still dispatch through runtime data.
+  \end{itemize}
+}
 
 \subsection{\bq}
 
@@ -364,10 +383,36 @@ by optimizing them for speed. In speicific, we make the following contributions:
     \item How does BQ work?
     \begin{itemize}
       \item The basic generator type: \texttt{'a generator = size:int -> random:SR.t -> 'a}. Size and random seed to deterministic value.
-      \item This gets a monad intance in the obvious way
+      \item Also two inverse functions, \texttt{create}, and \texttt{generate}.
+      \item This gets a monad intance in the obvious way (show code).
     \end{itemize}
+    \item Note that \emph{extensionally} \texttt{generate (create (fun ~size ~random -> e)) ~size ~random = e}, but the OCaml compiler does not always perform this optimization, or do the inlining required to expose it.
+    (When sufficiently obfuscated behind returns and binds ...) This program compiles to code that (1) allocates the closure for `e', (2) passes it to create (which returns the closure), and then calls (3) generate, which immediately jumps into the closure.
   \end{itemize}
 }
+
+In OCaml, garbage collection is the killer.
+
+This generator generates a list of bools. To generate a list of 100 bools, it allocates \texttt{4808.00w (minor)}, and runs for an average of
+3.9us. Merely representing a list of bools of length 100 requires 300 words in OCaml, so this generator allocates 16 times more than the theoretical minimum.
+
+\begin{lstlisting}
+let gen_list_bool =
+  fixed_point (fun gl ->
+    let%bind n = size in
+    if n <= 0 then return [] else
+      let%bind x = bool in
+      let%bind xs = with_size ~size:(n-1) gl in
+      return (x :: xs)
+  )
+\end{lstlisting}
+
+On the other hand, this generator allocates only 303w, and runs for 0.7us, to generate the same list of 100 bools.
+\begin{lstlisting}
+  let rec gen_list_bool_faster ~size ~random  = 
+    if size <= 0 then []
+    else (Unboxed_splitmix.bool random)::(gen_list_bool_faster ~size:(size - 1) ~random)
+\end{lstlisting}
 
 \tr{Each of these consist of an explanation of the problem and pseudocode outlining the solution.}
 \subsubsection{Monadic bind}
@@ -383,6 +428,21 @@ by optimizing them for speed. In speicific, we make the following contributions:
 \subsubsection{Boxed integers}
 
 \section{\name: A Library for Staging Generators}
+
+\jwc{
+  \begin{itemize}
+    \item To eliminate this runtime overhead and generate efficient code, we do a usual ``binding-time analysis''.
+    \item The crux of this binding-time analysis is that while generators are `just' values of type \texttt{'a t}, in practice they are always \emph{completely statically defined}: one never
+    computes a generator dynamically at test time.
+  \end{itemize}
+}
+
+\jwc{Here!}
+
+\begin{lstlisting}
+type 'a gen = int code -> Random.t code -> 'a
+\end{lstlisting}
+
 
 \tr{Now, we formally introduce the library, describe all its functionality, how things work, etc.}
 
