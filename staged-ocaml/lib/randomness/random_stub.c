@@ -89,11 +89,11 @@ int64_t next_int(state_t *st,int64_t lo, int64_t hi){
   int64_t diff = hi - lo;
   int64_t result;
   if(diff == INT64_MAX){
-    result = ((next_int64(&st) & INT64_MAX) + lo);
+    result = ((next_int64(st) & INT64_MAX) + lo);
   } else if (diff >= 0){
-    result = non_negative_up_to(&st,diff) + lo;
+    result = non_negative_up_to(st,diff) + lo;
   } else {
-    result = between(&st,lo,hi);
+    result = between(st,lo,hi);
   }
 
   return result;
