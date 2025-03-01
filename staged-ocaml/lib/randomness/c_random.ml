@@ -11,7 +11,7 @@ let float st ~(lo : float Codelib.code) ~hi = .<
 >.
 
 module Log_uniform = struct
-  let int st ~lo ~hi = failwith "Unimpl"
+  let int st ~lo ~hi = (ignore lo; ignore hi; ignore st; failwith "Unimpl")
 end
 
 (* THIS IS A HACK!
