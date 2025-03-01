@@ -257,11 +257,11 @@ let log_uniform_int ~(lo : int code) ~(hi : int code) : int code t = {
           done
         >.) @@ fun () ->
         Codecps.bind (Codecps.let_insert_smart .<
-          fun xs sz ->
-            .~(Codecps.code_generate (g.rand_gen ~size_c:.<sz>. ~random_c)) :: xs
+          fun sz ->
+            .~(Codecps.code_generate (g.rand_gen ~size_c:.<sz>. ~random_c))
         >.) @@ fun f ->
           Codecps.return .<
-            List.rev (Array.fold_left .~f [] .~sizes)
+            List.map .~f (Array.to_list .~sizes)
           >.
     }
     in
