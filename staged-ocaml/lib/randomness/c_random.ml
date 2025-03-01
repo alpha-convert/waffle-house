@@ -10,6 +10,10 @@ let float st ~(lo : float Codelib.code) ~hi = .<
   C_random_runtime.float_c_unchecked .~st .~lo .~hi
 >.
 
+module Log_uniform = struct
+  let int = failwith "Unimpl"
+end
+
 (* THIS IS A HACK!
 *)
 let dep_paths = ["/home/ubuntu/waffle-house/staged-ocaml/_build/default/lib/.fast_gen.objs/byte/"]
