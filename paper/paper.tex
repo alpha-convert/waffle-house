@@ -1,0 +1,416 @@
+%%
+%% This is file `sample-sigplan.tex',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% samples.dtx  (with options: `all,proceedings,bibtex,sigplan')
+%% 
+%% IMPORTANT NOTICE:
+%% 
+%% For the copyright see the source file.
+%% 
+%% Any modified versions of this file must be renamed
+%% with new filenames distinct from sample-sigplan.tex.
+%% 
+%% For distribution of the original source see the terms
+%% for copying and modification in the file samples.dtx.
+%% 
+%% This generated file may be distributed as long as the
+%% original source files, as listed above, are part of the
+%% same distribution. (The sources need not necessarily be
+%% in the same archive or directory.)
+%%
+%%
+%% Commands for TeXCount
+%TC:macro \cite [option:text,text]
+%TC:macro \citep [option:text,text]
+%TC:macro \citet [option:text,text]
+%TC:envir table 0 1
+%TC:envir table* 0 1
+%TC:envir tabular [ignore] word
+%TC:envir displaymath 0 word
+%TC:envir math 0 word
+%TC:envir comment 0 0
+%%
+%% The first command in your LaTeX source must be the \documentclass
+%% command.
+%%
+%% For submission and review of your manuscript please change the
+%% command to \documentclass[manuscript, screen, review]{acmart}.
+%%
+%% When submitting camera ready or to TAPS, please change the command
+%% to \documentclass[sigconf]{acmart} or whichever template is required
+%% for your publication.
+%%
+%%
+\documentclass[sigplan,screen]{acmart}%%
+%% \BibTeX command to typeset BibTeX logo in the docs
+\AtBeginDocument{%
+  \providecommand\BibTeX{{%
+    Bib\TeX}}}
+
+\newif\ifdraft\drafttrue{}
+\newif\iflater\latertrue{}
+
+\PassOptionsToPackage{names,dvipsnames}{xcolor}
+
+\settopmatter{printfolios=false,printccs=false,printacmref=false}
+\setcopyright{none}
+
+\usepackage{listings}
+\usepackage{subcaption}
+
+\definecolor{dkred}{rgb}{0.7,0,0}
+\definecolor{dkblue}{rgb}{0,0,0.7}
+\definecolor{notered}{rgb}{0.85,0,0}
+\definecolor{dkpurple}{HTML}{4e02eb}
+\definecolor{dkgreen}{HTML}{006329}
+\definecolor{teal}{HTML}{007982}
+\definecolor{fuchsia}{HTML}{8C368C}
+
+\newcommand{\comm}[3]{\ifdraft\textcolor{#1}{[#2: #3]}\fi}
+\newcommand{\cn}{\ifdraft{\color{blue} [CITE]}\fi}
+\newcommand{\hg}[1]{\comm{dkred}{HG}{#1}}
+\newcommand{\tr}[1]{\comm{dkblue}{TR}{#1}}
+\newcommand{\bcp}[1]{\comm{dkpurple}{BCP}{#1}}
+\newcommand{\jwc}[1]{\comm{dkgreen}{JWC}{#1}}
+\newcommand{\outline}[1]{\ifdraft{\color{teal} #1}\fi}
+
+\newcommand{\bq}{\texttt{base\_quickcheck}}
+\newcommand{\name}{\texttt{waffle\_house}}
+\newcommand{\tool}{Waffle House}
+
+\newcommand{\secref}[1]{\S\ref{#1}}
+
+\newcommand{\proposecut}[1]{\ifdraft{\color{gray} [#1]}\fi}
+\newcommand{\proposechange}[2]{\ifdraft{\color{gray} {#1}
+    $\rightarrow$ #2}\else #2\fi}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+
+\newtheorem{claim}{Claim}
+
+\AtBeginDocument{%
+  \providecommand\BibTeX{{%
+    \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
+
+
+%% Rights management information.  This information is sent to you
+%% when you complete the rights form.  These commands have SAMPLE
+%% values in them; it is your responsibility as an author to replace
+%% the commands and values with those provided to you when you
+%% complete the rights form.
+\setcopyright{acmlicensed}
+\copyrightyear{2025}
+\acmYear{2025}
+\acmDOI{XXXXXXX.XXXXXXX}
+%% These commands are for a PROCEEDINGS abstract or paper.
+\acmConference[Conference acronym 'XX]{Make sure to enter the correct
+  conference title from your rights confirmation email}{June 03--05,
+  2018}{Woodstock, NY}
+%%
+%%  Uncomment \acmBooktitle if the title of the proceedings is different
+%%  from ``Proceedings of ...''!
+%%
+%%\acmBooktitle{Woodstock '18: ACM Symposium on Neural Gaze Detection,
+%%  June 03--05, 2018, Woodstock, NY}
+\acmISBN{978-1-4503-XXXX-X/2025/02}
+
+
+%%
+%% Submission ID.
+%% Use this when submitting an article to a sponsored event. You'll
+%% receive a unique submission ID from the organizers
+%% of the event, and this ID should be used as the parameter to this command.
+%%\acmSubmissionID{123-A56-BU3}
+
+%%
+%% For managing citations, it is recommended to use bibliography
+%% files in BibTeX format.
+%%
+%% You can then either use BibTeX with the ACM-Reference-Format style,
+%% or BibLaTeX with the acmnumeric or acmauthoryear sytles, that include
+%% support for advanced citation of software artefact from the
+%% biblatex-software package, also separately available on CTAN.
+%%
+%% Look at the sample-*-biblatex.tex files for templates showcasing
+%% the biblatex styles.
+%%
+
+%%
+%% The majority of ACM publications use numbered citations and
+%% references.  The command \citestyle{authoryear} switches to the
+%% "author year" style.
+%%
+%% If you are preparing content for an event
+%% sponsored by ACM SIGGRAPH, you must use the "author year" style of
+%% citations and references.
+%% Uncommenting
+%% the next command will enable that style.
+%%\citestyle{acmauthoryear}
+
+
+%%
+%% end of the preamble, start of the body of the document source.
+\begin{document}
+
+%%
+%% The "title" command has an optional parameter,
+%% allowing the author to define a "short title" to be used in page headers.
+\title{Fail Faster}
+
+%%
+%% The "author" command and its associated commands are used to define
+%% the authors and their affiliations.
+%% Of note is the shared affiliation of the first two authors, and the
+%% "authornote" and "authornotemark" commands
+%% used to denote shared contribution to the research.
+\author{Cynthia Richey}
+\affiliation{%
+  \institution{University of Pennsylvania}
+  \city{Philadelphia}
+  \state{Pennsylvania}
+  \country{USA}
+}
+
+\author{Joseph W. Cutler}
+\affiliation{%
+  \institution{University of Pennsylvania}
+  \city{Philadelphia}
+  \state{Pennsylvania}
+  \country{USA}}
+
+\author{Harrison Goldstein}
+\affiliation{%
+  \institution{University of Maryland}
+  \city{College Park}
+  \state{Maryland}
+  \country{USA}
+}
+
+\author{Benjamin C. Pierce}
+\affiliation{%
+ \institution{University of Pennsylvania}
+ \city{Philadelphia}
+ \state{Pennsylvania}
+ \country{USA}}
+%%
+%% By default, the full list of authors will be used in the page
+%% headers. Often, this list is too long, and will overlap
+%% other information printed in the page headers. This command allows
+%% the author to define a more concise list
+%% of authors' names for this purpose.
+\renewcommand{\shortauthors}{Richey et al.}
+
+%%
+%% The abstract is a short summary of the work to be presented in the
+%% article.
+\begin{abstract} \tr{Abstract needs a lot of work.}
+Property-based testing (PBT) is a software testing approach that verifies a system against a large suite of automatically-generated inputs. Since testing pipelines typically run under strict time constraints, PBT generators must produce inputs as quickly as possible to maximize the likelihood of finding bugs in the time available. However, existing PBT libraries often prioritize generality at the cost of performance. We introduce \texttt{waffle\_house}, a high-performance generator library that uses staging, a lightweight compilation technique, to eliminate many common generator abstractions. To evaluate \texttt{waffle\_house}, we design a novel benchmarking methodology that compares generators based on program equivalence, isolating performance improvements from differences in input distribution. Using this methodology, we compare \texttt{waffle\_house} to a leading generator library, and, through extensive evaluation over a diverse range of generators, demonstrate that \texttt{waffle\_house} significantly improves generation speed and resource efficiency while matching \texttt{base\_quickcheck}'s expressiveness.
+\end{abstract}
+
+%%
+%% The code below is generated by the tool at http://dl.acm.org/ccs.cfm.
+%% Please copy and paste the code instead of the example below.
+%%
+
+\begin{CCSXML}
+<ccs2012>
+   <concept>
+       <concept_id>10011007</concept_id>
+       <concept_desc>Software and its engineering</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10011007.10011006</concept_id>
+       <concept_desc>Software and its engineering~Software notations and tools</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10011007.10011006.10011072</concept_id>
+       <concept_desc>Software and its engineering~Software libraries and repositories</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+   <concept>
+       <concept_id>10011007.10011006.10011041.10011046</concept_id>
+       <concept_desc>Software and its engineering~Translator writing systems and compiler generators</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+ </ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Software and its engineering}
+\ccsdesc[500]{Software and its engineering~Software notations and tools}
+\ccsdesc[500]{Software and its engineering~Software libraries and repositories}
+\ccsdesc[500]{Software and its engineering~Translator writing systems and compiler generators}
+
+%%
+%% Keywords. The author(s) should pick words that accurately describe
+%% the work being presented. Separate the keywords with commas.
+\keywords{Property-based testing, Generators, Staging, Meta-programming}
+%% A "teaser" image appears between the author and affiliation
+%% information and the body of the document, and typically spans the
+%% page.
+
+\received{--}
+\received[revised]{--}
+\received[accepted]{--}
+
+%%
+%% This command processes the author and affiliation and title
+%% information and builds the first part of the formatted document.
+\maketitle
+
+\section{Introduction}
+Property-based testing (PBT) is a widely-used testing framework consisting of
+two key components: a set of \textit{properties} that a system must satisfy, and
+a large number of \textit{inputs} to that system. In contrast to traditional
+unit testing, where inputs are hand-written, PBT users create a random-input
+\textit{generator} that automatically produces inputs. Sometimes, this process
+can itself be automated through the use of PBT libraries that synthesize
+generators from type definitions; however, when inputs are required to maintain
+invariants not communicated by the type, users must write a custom generator (or
+filter out a broad class of invalid inputs). 
+
+Writing ``good" generators—those that uncover more bugs in the system under
+test—is challenging. Much effort has been dedicated to this problem, often by
+developing sophisticated domain-specific languages for specifying constrained
+generators. However, these approaches do not always reflect the needs of real
+PBT users. Under ideal conditions, a PBT suite would continue to run
+until it stopped finding bugs, real-world usage patterns are very different; a
+study of expert PBT users reported time budgets of between 50 milliseconds and
+30 seconds for their test suites~\cite{inpractice}. Consequently, generation
+time is a significant factor in PBT efficacy---that is, if a generator can
+produce inputs twice as fast, it has twice as many chances within a given time
+bound to find a bug. Therefore, it is imperative that PBT libraries are built
+with efficiency in mind.
+
+To better understand and address performance challenges in the landscape of PBT
+generators, we explore popular libraries across several widely-used programming
+languages. We find that the flexibility of these libraries comes at a cost to 
+performance,
+introducing abstraction overhead, frequent boxing and unboxing, and avoidable
+allocations (which lead to costly garbage collection pauses). We focus primarily 
+on OCaml's \bq, selected for its efficiency relative to other OCaml PBT libraries 
+and its integration with industrial build systems, where it is expected to run 
+within tight time constraints. These
+inefficiencies raise a fundamental question: how can PBT libraries produce code
+that is both efficient \textit{and} general? By analyzing
+\bq\ and similar libraries in other languages \tr{Rust?
+More?}, we provide a broader perspective on common performance challenges in PBT
+and explore potential strategies for more efficient generator implementations.
+
+Our solution is \name, a generator library that preserves
+\bq’s functionality while improving performance through
+\textit{staged metaprogramming} (staging). Staging is a lightweight,
+domain-specific compilation technique that allows us to completely eliminate the
+runtime overhead of many common generator abstractions. For instance, in
+\name, monadic operations are zero-cost.
+\name’s staged eliminates unnecessary allocations,
+generates static control structures, and leverages unboxed integer libraries to
+achieve performance improvements over \texttt{base\_quickcheck}, making it
+well-suited to real-world PBT applications.
+
+We present a new methodology for evaluating the relative effectiveness of PBT
+generators. Prior work has compared generators based on bug-finding ability: 
+generators are considered equally effective if they find bugs in a
+system at the same rate over a large number of trials ~\cite{etna}. However,
+because \name\ preserves the semantics of
+\bq, a \name\ generator produces exactly
+the same inputs as its \bq\ counterpart. By comparing
+generators based on \textit{program equality}, we ensure that any speedups in
+bug-finding ability stem from performance enhancements rather than variations in
+input distribution. This approach establishes a foundation for benchmarking
+optimizations that enhance performance without compromising expressiveness.
+
+Finally, we conduct an extensive evaluation, implementing both type-derived and
+custom generators in \name\ and \bq. Our
+generators produce a diverse range of inputs, including recursive data
+structures, lambda calculus terms, and regular expressions. We benchmark
+generation time, resource usage, and time-to-failure for each pair of staged and
+unstaged generators, demonstrating that \name\ achieves
+significant gains in speed and resource.
+
+In summary, we dramatically improve the bug-finding effectiveness of PBT generators
+by optimizing them for speed. In speicific, we make the following contributions:
+\begin{enumerate}
+    \item An empirical analysis of the sources of inefficiency in PBT
+    generators. 
+    \item A library, \name, which offers efficient generator functions through the
+    use of staged metaprogramming; this is the first known application of metaprogramming to PBT.
+    \item The insight that generators should be compared by program equality 
+    \item An evaluation demonstrating the improved performance of generators constructed
+    using our library in a controlled comparison.
+
+\end{enumerate}
+
+\section{Background}
+\subsection{Staged Metaprogramming}
+\subsection{Property-Based Testing}
+\subsection{Existing PBT Generators}
+
+\tr{Here's where we talk about what's going on in the world, and ultimately make the argument that \bq\ is the best tool to reproduce.}
+
+\subsection{\bq}
+
+\tr{Discuss BQ, including type-derived generators.}
+
+\section{Why is \bq\ slow, and how can we fix it?}
+
+\jwc{
+  \begin{itemize}
+    \item How does BQ work?
+    \begin{itemize}
+      \item The basic generator type: \texttt{'a generator = size:int -> random:SR.t -> 'a}. Size and random seed to deterministic value.
+      \item This gets a monad intance in the obvious way
+    \end{itemize}
+  \end{itemize}
+}
+
+\tr{Each of these consist of an explanation of the problem and pseudocode outlining the solution.}
+\subsubsection{Monadic bind}
+
+\jwc{
+  \begin{itemize}
+    \item Naked binds like \texttt{Bind}
+  \end{itemize}
+}
+
+\subsubsection{Weighted unions}
+% \subsubsection{Function call overhead}
+\subsubsection{Boxed integers}
+
+\section{\name: A Library for Staging Generators}
+
+\tr{Now, we formally introduce the library, describe all its functionality, how things work, etc.}
+
+\jwc{Note: tradeoff between maintaining the effect ordering and even more performance. }
+
+\jwc{Note with bind that we don't split because it's imperatively updated. Note that this omits the need to use SR, but we use it to maintain backwards compat.}
+
+\subsection{Comparing Generators}
+\subsubsection{Existing Approaches}
+\subsubsection{Equality up to Program Equality}
+\subsubsection{Effect Ordering}
+\subsubsection{PBT for PBT}
+\subsubsection{Does maintaining program equality in \name\ affect performance?}
+\section{Evaluation}
+\subsubsection{Implementation}
+\subsection{Benchmarking speed \& resource usage}
+\subsection{Impact on bug-finding ability}
+\section{Conclusion \& Future Work}
+%%
+%% The next two lines define the bibliography style to be used, and
+%% the bibliography file.
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{bib}
+
+
+%%
+%% If your work has an appendix, this is the place to put it.
+\end{document}
+\endinput
+%%
+%% End of file `sample-sigplan.tex'.
