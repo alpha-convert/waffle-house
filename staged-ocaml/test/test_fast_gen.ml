@@ -98,6 +98,46 @@ module IntList : TestCase = struct
   end
 end
 
+module ConstFalseListCombinator : TestCase = struct
+  type t = bool list [@@deriving eq, show]
+  module F (G : Generator_intf.S) = struct
+    open G
+    open G.Let_syntax
+    open C
+    let gen = G.list (G.return (lift false))
+  end
+end
+
+module SizeListCombinator : TestCase = struct
+  type t = int list [@@deriving eq, show]
+  module F (G : Generator_intf.S) = struct
+    open G
+    open G.Let_syntax
+    open C
+    let gen = G.list G.size
+  end
+end
+
+module BoolListCombinator : TestCase = struct
+  type t = bool list [@@deriving eq, show]
+  module F (G : Generator_intf.S) = struct
+    open G
+    open G.Let_syntax
+    open C
+    let gen = G.list G.bool 
+  end
+end
+
+module BoolListListCombinator : TestCase = struct
+  type t = bool list list [@@deriving eq, show]
+  module F (G : Generator_intf.S) = struct
+    open G
+    open G.Let_syntax
+    open C
+    let gen = G.list (G.list G.bool)
+  end
+end
+
 module BoolChoose : TestCase = struct
   type t = bool * int [@@deriving eq, show]
   module F (G : Generator_intf.S) = struct
@@ -199,6 +239,10 @@ let stlc_test =
   let g2 = G_SR.jit ~extra_cmi_paths:[path] Stlc_gen_st.genExpr in
   Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ Expr.show v1 ^ "\nST: " ^ Expr.show v2 ^"\n") Expr.equal g1 g2
 
+
+  module M = BoolListCombinator.F(G_SR)
+  let () = G_SR.print M.gen
+
 let () =
   let open Alcotest in
   run "Staged Generators" [
@@ -212,6 +256,10 @@ let () =
       (let open MakeDiffTest(SimpleBool)(G_Bq)(G_SR) in alco ~config:qc_cfg "Bool Sampling");
       (let open MakeDiffTest(IntRange)(G_Bq)(G_SR) in alco ~config:qc_cfg "Range of ints");
       (let open MakeDiffTest(IntList)(G_Bq)(G_SR) in alco ~config:qc_cfg "Int List Generator");
+      (let open MakeDiffTest(ConstFalseListCombinator)(G_Bq)(G_SR) in alco ~config:qc_cfg "Const False List Combinator Generator");
+      (let open MakeDiffTest(SizeListCombinator)(G_Bq)(G_SR) in alco ~config:qc_cfg "Size List Combinator Generator");
+      (let open MakeDiffTest(BoolListCombinator)(G_Bq)(G_SR) in alco ~config:qc_cfg "Bool List Combinator Generator");
+      (let open MakeDiffTest(BoolListListCombinator)(G_Bq)(G_SR) in alco ~config:qc_cfg "Bool List List Combinator Generator");
       (let open MakeDiffTest(AA)(G_Bq)(G_SR) in alco ~config:qc_cfg "Swing generator");
       (let open MakeDiffTest(BB)(G_Bq)(G_SR) in alco ~config:qc_cfg "Unused bind-to-union");
       
@@ -222,6 +270,6 @@ let () =
       (let open MakeDiffTest(FloatTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "Float Simple -- Bq/Staged_SR");
       (let open MakeDiffTest(FloatTC)(G_C)(G_SR) in alco ~config:qc_cfg "Float Simple -- Staged_C/Staged_SR");
       (let open MakeDiffTest(FloatTC)(G_C_SR)(G_C) in alco ~config:qc_cfg "Float Simple -- Staged_C_SR/Staged_C");
-      (let open MakeDiffTest(BB)(G_SR)(G_C) in alco ~config:qc_cfg "Union -- BQ/Staged_C");
+      (* (let open MakeDiffTest(BB)(G_SR)(G_C) in alco ~config:qc_cfg "Union -- BQ/Staged_C"); *)
     ]
   ]

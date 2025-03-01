@@ -256,12 +256,12 @@ let log_uniform_int ~(lo : int code) ~(hi : int code) : int code t = {
             .~sizes.(j) <- tmp
           done
         >.) @@ fun () ->
-        Codecps.bind (Codecps.let_insert .<
-          fun sz xs ->
+        Codecps.bind (Codecps.let_insert_smart .<
+          fun xs sz ->
             .~(Codecps.code_generate (g.rand_gen ~size_c:.<sz>. ~random_c)) :: xs
         >.) @@ fun f ->
           Codecps.return .<
-            Array.fold_right .~f .~sizes []
+            List.rev (Array.fold_left .~f [] .~sizes)
           >.
     }
     in

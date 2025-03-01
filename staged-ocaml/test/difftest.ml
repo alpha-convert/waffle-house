@@ -45,7 +45,7 @@ module MakeDiffTest(T : TestCase)(G1:Generator_intf.S)(G2:Generator_intf.S) = st
   let g1 = G1.jit T1.gen
   let g2 = G2.jit T2.gen
 
-  exception Fail of T.t * T.t
+  exception Fail of string * string
 
-  let alco ?config name = difftest ?config ~name (fun v1 v2 -> raise (Fail (v1,v2))) T.equal g1 g2
+  let alco ?config name = difftest ?config ~name (fun v1 v2 -> raise (Fail (T.show v1,T.show v2))) T.equal g1 g2
 end
