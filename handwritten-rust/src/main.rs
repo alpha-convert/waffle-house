@@ -1,7 +1,36 @@
 
 use std::collections::LinkedList;
-use bolero_generator::{driver::*, gen, one_of, combinator};
+use bolero::TypeGenerator;
+use bolero_generator::{driver::*, gen, one_of, ValueGenerator};
 
+#[derive(Clone)]
+enum LL {
+    Nil,
+    Cons(u32,Box<LL>)
+}
+
+
+impl ValueGenerator for LL {
+    type Output = LL;
+
+    fn generate<D : Driver>(&self, driver : &mut D) -> Option<LL> {
+        Some(self.clone())
+    }
+
+}
+
+fn g<D : Driver>(sz : u32) -> dyn TypeGenerator {
+    let g = gen::<bool>().and_then_gen(|b|
+        if(sz == 0 || b) {
+            LL::Nil
+        } else {
+            g(sz / 2).and_then_gen(|l|
+                LL::Nil
+            )
+        }
+    );
+    return g.generate(driver);
+}
 
 fn main() {
     let mut driver = ByteSliceDriver::new(&[0xF,0xA,3,4,6,7,8,9], &Options::default());
