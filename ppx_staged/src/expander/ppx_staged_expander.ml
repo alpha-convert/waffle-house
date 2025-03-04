@@ -87,7 +87,14 @@ let generator_attribute =
 
 let rec generator_of_core_type core_type ~gen_env ~obs_env =
   let loc = { core_type.ptyp_loc with loc_ghost = true } in
-  match Attribute.get generator_attribute core_type with
+  let gen_of_type ty =
+    match ty.ptyp_desc with
+    | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> Some [%expr G_SR.bool]
+    | Ptyp_constr ({ txt = Lident "int"; _ }, _) -> Some [%expr (G_SR.int ~lo:(G_SR.C.lift 0) ~hi:(G_SR.C.lift 100))]
+    | Ptyp_constr ({ txt = Lident "float"; _ }, _) -> Some [%expr G_SR.float ~lo:(G_SR.C.lift 0.0) ~hi:(G_SR.C.lift 1.0)]
+    | _ -> None
+  in
+  match gen_of_type core_type with
   | Some expr -> expr
   | None ->
     (match core_type.ptyp_desc with
@@ -99,20 +106,24 @@ let rec generator_of_core_type core_type ~gen_env ~obs_env =
          (List.map args ~f:(generator_of_core_type ~gen_env ~obs_env))
      | Ptyp_var tyvar -> Environment.lookup gen_env ~loc ~tyvar
      | Ptyp_arrow (arg_label, input_type, output_type) -> unsupported ~loc "Arrow types are not supported, %s" (short_string_of_core_type core_type)
-     | Ptyp_tuple fields ->
+     | Ptyp_tuple (x1 :: x2 :: _) ->
+          compound_generator_new ~loc (generator_of_core_type x1 ~gen_env ~obs_env, generator_of_core_type x2 ~gen_env ~obs_env)
+        (*
        Ppx_generator_expander.compound
          ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
          ~loc
          ~fields
          (module Field_syntax.Tuple)
-     | Ptyp_variant (clauses, Closed, None) ->
-       Ppx_generator_expander.variant
+         *)
+     | Ptyp_variant (clauses, Closed, None) -> unsupported ~loc "Variant types are not supported"
+(*       Ppx_generator_expander.variant
          ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
          ~loc
          ~variant_type:core_type
          ~clauses
          ~rec_names:(Set.empty (module String))
          (module Clause_syntax.Polymorphic_variant)
+*)
      | Ptyp_variant (_, Open, _) -> unsupported ~loc "polymorphic variant type with [>]"
      | Ptyp_variant (_, _, Some _) -> unsupported ~loc "polymorphic variant type with [<]"
      | Ptyp_extension (tag, payload) -> unsupported ~loc "No custom extensions allowed!"
@@ -244,7 +255,6 @@ let maybe_mutually_recursive decls ~loc ~rec_flag ~of_lazy ~impl =
     [%str
       include struct
         open [%m pmod_structure ~loc (pstr_value_list ~loc Recursive recursive_bindings)]
-
         [%%i
           pstr_value
             ~loc
@@ -302,33 +312,8 @@ let intf type_decl ~f ~covar ~contravar =
 let generator_intf = intf ~f:generator_name ~covar:"Generator" ~contravar:"Observer"
 let generator_intf_list type_decl_list = List.map type_decl_list ~f:generator_intf
 
-let try_include_decl type_decl_list ~loc =
-  match type_decl_list with
-  | [ type_decl ] ->
-    let has_contravariant_arg =
-      List.exists type_decl.ptype_params ~f:(fun (_type, (variance, _inj)) ->
-        match variance with
-        | Contravariant -> true
-        | NoVariance | Covariant -> false)
-    in
-    if has_contravariant_arg
-    then None
-    else (
-      let sg_name = "Ppx_quickcheck_runtime.Quickcheckable.S" in
-      mk_named_sig ~loc ~sg_name ~handle_polymorphic_variant:true type_decl_list
-      |> Option.map ~f:(fun include_info -> psig_include ~loc include_info))
-  | _ ->
-    (* Don't bother testing anything since [mk_named_sig] will definitely return
-       [None] anyway *)
-    None
-;;
-
-
 let sig_type_decl =
   Deriving.Generator.make_noarg (fun ~loc ~path:_ (_, decls) ->
-    match try_include_decl ~loc decls with
-    | Some decl -> [ decl ]
-    | None ->
       generator_intf_list decls)
 ;;
 
