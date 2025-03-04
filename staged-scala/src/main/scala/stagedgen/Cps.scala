@@ -29,6 +29,12 @@ object Cps {
     def apply[Z : Type](cont: T => Expr[Z]): Expr[Z] = cont(t)
   }
 
+  def cps[T](f : [Z : Type] => (T => Expr[Z]) => Expr[Z]) : Cps[T] = {
+    new Cps[T]{
+      def apply[Z : Type](cont: T => Expr[Z]): Expr[Z] = f(cont)
+    }
+  }
+
   def run[T : Type](c : Cps[Expr[T]]) : Expr[T] = {
     c.apply(x => x)
   }

@@ -49,7 +49,6 @@ private def chLng(l: Long, h: Long)(p: Gen.Parameters, seed: Seed): (Long,Seed) 
 
 abstract class StGen[T] { self =>
   def doApply(p : Expr[Gen.Parameters],seed:Expr[Seed]) : Cps[(Option[T],Expr[Seed])]
-
   
 
   def map[S](f : T => S) : StGen[S] = {
@@ -68,8 +67,6 @@ abstract class StGen[T] { self =>
         )
     )
   }
-
-  
 }
 
 object StGen {
@@ -90,7 +87,7 @@ object StGen {
   def chooseLong(lo : Expr[Long],hi:Expr[Long])(using Quotes) : StGen[Expr[Long]] = {
     StGen.gen((p,seed) =>
         for {
-            (x,y) <- Cps.splitPair('{chLng(${lo},${hi})(${p},${seed})})
+            (x,y) <- ('{chLng(${lo},${hi})(${p},${seed})}).split
         } yield (Some(x),y)
     )
   }
@@ -110,12 +107,15 @@ object StGen {
       println(s"Generator: $s")
   }
 
-  def complexStGenImpl (using Quotes): Expr[Gen.Parameters => Seed => Option[(Long,Long)]] =
-    StGen.splat(for {
+  def complexStGenImpl (using q : Quotes): Expr[Gen.Parameters => Seed => Option[(Long,Long)]] = {
+    val e = StGen.splat(for {
         x <- StGen.chooseLong('{1},'{1000})
         y <- StGen.chooseLong('{0},x)
     } yield '{(${x},${y})}
     )
+    q.reflect.report.info(s"Generated code: ${e.show}")
+    e
+  }
 
   inline def complexStGen = {
     ${complexStGenImpl}
