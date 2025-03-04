@@ -1,27 +1,44 @@
 open! Import
 open! Fast_gen;;
 
-let compound_generator ~loc (x, y) =
-  [%expr
-    G_SR.bind [%e x] ~f:(fun x' ->
-      G_SR.bind [%e y] ~f:(fun y' ->
-        G_SR.return (G_SR.C.pair x' y')
-      )
-    )
-  ]
-;;
+let compound_generator ~loc ~make_compound_expr generator_list =
+    let rec go gs acc =
+      match gs with
+      | [] -> [%expr G_SR.return [%e make_compound_expr ~loc (List.rev acc)]]
+      | g::gs -> 
+        let x_pat, x_expr = gensym "x" loc in
+        [%expr 
+          G_SR.bind [%e g] ~f:(fun [%p x_pat] -> [%e go gs (x_expr :: acc)])
+          ] 
+        in go generator_list []
 
-let compound 
-  (type field)
-  ~generator_of_core_type
-  ~loc
-  ~fields
-  (module Field: Field_syntax.S with type ast = field)
-  =
-  let (f1 :: f2 :: _) = List.map fields ~f:Field.create in
-    compound_generator
+(*    make_compound_expr ~loc (List.map generator_list ~f:(fun generator ->
+        [%expr G_SR.bind [%e generator] ~f:(fun x -> G_SR.return .< .~x >.)] 
+      )
+    )*)
+
+(*
+    let quickcheck_generator =
+          G_SR.bind G_SR.bool
+            ~f:(fun x ->
+                  G_SR.bind
+                    (G_SR.int ~lo:(G_SR.C.lift 0) ~hi:(G_SR.C.lift 100))
+                    ~f:(fun y -> G_SR.return .< (.~y, .~x) >.))
+*)
+
+let compound
+      (type field)
+      ~generator_of_core_type
       ~loc
-      (generator_of_core_type (Field.core_type f1), generator_of_core_type (Field.core_type f2))
+      ~fields
+      (module Field : Field_syntax.S with type ast = field)
+  =
+  let fields = List.map fields ~f:Field.create in
+  compound_generator
+    ~loc
+    ~make_compound_expr:(Field.expression fields)
+    (List.map fields ~f:(fun field -> generator_of_core_type (Field.core_type field)))
+;;
 
 type impl =
   { loc : location
