@@ -377,7 +377,10 @@ On the other hand, this generator allocates only 303w, and runs for 0.7us, to ge
   \end{itemize}
 }
 
-\subsubsection{Weighted unions}
+\subsubsection{Expensive Combinators}
+\jwc{Many combinators like \texttt{union} and \texttt{weighted_union} needlessly allocate large data structures in the generation hot path.
+Using a combination of staging and more careful algorithm design, we can avoid this overhead.
+}
 % \subsubsection{Function call overhead}
 \subsubsection{Boxed integers}
 
@@ -405,6 +408,17 @@ type 'a gen = int code -> Random.t code -> 'a
 \jwc{Note with bind that we don't split because it's imperatively updated. Note that this omits the need to use SR, but we use it to maintain backwards compat.}
 
 \subsection{Comparing Generators}
+
+\jwc{NOTE: we should test generator speed across both languages, but speed -> bugfinding ability in only OCaml.}
+\jwc{
+  Baseline generators to test speed in both languages:
+  \begin{itemize}
+    \item Single int
+    \item Pair of ints, constrained
+    \item List of ints
+  \end{itemize}
+}
+
 \subsubsection{Existing Approaches}
 \subsubsection{Equality up to Program Equality}
 \subsubsection{Effect Ordering}
