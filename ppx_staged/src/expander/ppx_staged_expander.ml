@@ -13,12 +13,6 @@ let compound_generator_new ~loc (x, y) =
 
 let rec generator_of_core_type ~loc core_type =
   match core_type.ptyp_desc with
-  | Ptyp_tuple fields -> compound_generator_new ~loc ([%expr G_SR.bool], [%expr G_SR.bool])
-  | _ -> failwith "Only compound (tuple) types a re supported."
-;;
-
-let rec generator_of_core_type ~loc core_type =
-  match core_type.ptyp_desc with
   | Ptyp_tuple (t1 :: t2 :: _) -> 
       let gen_of_type ty =
         match ty.ptyp_desc with
@@ -39,6 +33,7 @@ type impl =
   ; exp : expression
   }
 
+(*
 let generator_impl type_decl =
   let loc = type_decl.ptype_loc in
   let typ =
@@ -80,27 +75,7 @@ let str_type_decl =
     [ pstr_value ~loc Nonrecursive
         [ value_binding ~loc:impl.loc ~pat:impl.pat ~expr:impl.exp ] ])
 ;;
-
-(*
-let compound_generator_new generator_list =
-  match generator_list with
-  | [x; y] -> G_SR.bind x ~f:(fun x' ->
-      G_SR.bind y ~f:(fun y' ->
-        G_SR.return (G_SR.C.pair x' y')
-      )
-    )
-  | _ -> failwith ""
-;;
-
-let compound_new
-      (type field)
-      ~generator_of_core_type
-      ~fields
-      (module Field : Field_syntax.S with type ast = field)
-  =
-  let fields = List.map fields ~f:Field.create in 
-  compound_generator_new
-      (List.map fields ~f:(fun field -> G_SR.bool))
+*)
 
 let generator_attribute =
   Attribute.declare
@@ -110,15 +85,6 @@ let generator_attribute =
     (fun x -> x)
 ;;
 
-let rec generator_of_core_type core_type ~gen_env ~obs_env =
-  match core_type.ptyp_desc with
-     | Ptyp_tuple fields -> compound_new
-        ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
-        ~fields
-        (module Field_syntax.Tuple)
-     | _ -> failwith "Only compound types are supported at this time."
-
-(*
 let rec generator_of_core_type core_type ~gen_env ~obs_env =
   let loc = { core_type.ptyp_loc with loc_ghost = true } in
   match Attribute.get generator_attribute core_type with
@@ -133,19 +99,13 @@ let rec generator_of_core_type core_type ~gen_env ~obs_env =
          (List.map args ~f:(generator_of_core_type ~gen_env ~obs_env))
      | Ptyp_var tyvar -> Environment.lookup gen_env ~loc ~tyvar
      | Ptyp_arrow (arg_label, input_type, output_type) -> unsupported ~loc "Arrow types are not supported, %s" (short_string_of_core_type core_type)
-     | Ptyp_tuple fields -> compound_new
-        ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
-        ~fields
-        (module Field_syntax.Tuple)
-     (*
+     | Ptyp_tuple fields ->
        Ppx_generator_expander.compound
          ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
          ~loc
          ~fields
          (module Field_syntax.Tuple)
-      *)
-     | Ptyp_variant (clauses, Closed, None) -> unsupported ~loc "Variant types are not supported, %s" (short_string_of_core_type core_type)
-      (*
+     | Ptyp_variant (clauses, Closed, None) ->
        Ppx_generator_expander.variant
          ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
          ~loc
@@ -153,25 +113,15 @@ let rec generator_of_core_type core_type ~gen_env ~obs_env =
          ~clauses
          ~rec_names:(Set.empty (module String))
          (module Clause_syntax.Polymorphic_variant)
-      *)
      | Ptyp_variant (_, Open, _) -> unsupported ~loc "polymorphic variant type with [>]"
      | Ptyp_variant (_, _, Some _) -> unsupported ~loc "polymorphic variant type with [<]"
-     | Ptyp_extension (tag, payload) -> custom_extension ~loc tag payload
+     | Ptyp_extension (tag, payload) -> unsupported ~loc "No custom extensions allowed!"
      | Ptyp_any
      | Ptyp_object _
      | Ptyp_class _
      | Ptyp_alias _
      | Ptyp_poly _
      | Ptyp_package _ -> unsupported ~loc "%s" (short_string_of_core_type core_type))
-*)
-
-type impl =
-  { loc : location
-  ; typ : core_type
-  ; pat : pattern
-  ; var : expression
-  ; exp : core_type G_SR.c G_SR.t
-  }
 
 let generator_impl type_decl ~rec_names =
   let loc = type_decl.ptype_loc in
@@ -202,7 +152,7 @@ let generator_impl type_decl ~rec_names =
           ~rec_names
           (module Clause_syntax.Variant)
         *)
-      | Ptype_record fields -> unsupported ~loc "field type"
+      | Ptype_record fields -> unsupported ~loc "record type"
         (*
         Ppx_generator_expander.compound
           ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
@@ -349,21 +299,8 @@ let intf type_decl ~f ~covar ~contravar =
   psig_value ~loc (value_description ~loc ~name ~type_ ~prim:[])
 ;;
 
-(*
 let generator_intf = intf ~f:generator_name ~covar:"Generator" ~contravar:"Observer"
 let generator_intf_list type_decl_list = List.map type_decl_list ~f:generator_intf
-*)
-
-let generator_intf type_decl =
-  let loc = type_decl.ptype_loc in
-  let name = loc_map type_decl.ptype_name ~f:generator_name in
-
-  let bool_type = Ast_helper.Typ.constr ~loc { txt = Longident.Lident "bool"; loc } [] in
-  let c_type = Ast_helper.Typ.constr ~loc { txt = Longident.Lident "G_SR.c"; loc } [bool_type] in
-  let t_type = Ast_helper.Typ.constr ~loc { txt = Longident.Lident "G_SR.t"; loc } [c_type] in
-
-  psig_value ~loc (value_description ~loc ~name ~type_:t_type ~prim:[])
-;;
 
 let try_include_decl type_decl_list ~loc =
   match type_decl_list with
@@ -386,7 +323,7 @@ let try_include_decl type_decl_list ~loc =
     None
 ;;
 
-(*
+
 let sig_type_decl =
   Deriving.Generator.make_noarg (fun ~loc ~path:_ (_, decls) ->
     match try_include_decl ~loc decls with
@@ -394,16 +331,9 @@ let sig_type_decl =
     | None ->
       generator_intf_list decls)
 ;;
-*)
-
-let sig_type_decl =
-  Deriving.Generator.make_noarg (fun ~loc ~path:_ (_, decls) ->
-    List.map decls ~f:generator_intf)
-;;
 
 let str_type_decl =
   Deriving.Generator.make_noarg (fun ~loc ~path:_ (rec_flag, decls) ->
     let rec_flag = really_recursive rec_flag decls in
     generator_impl_list ~loc ~rec_flag decls)
 ;;
-*)
