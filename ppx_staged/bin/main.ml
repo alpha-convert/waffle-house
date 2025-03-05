@@ -15,7 +15,7 @@ end
 module Variant = struct
   type t = 
   | Int of int
-  | Float of float
+  | Float of (float * bool) * int
   | Pair of int * float [@@deriving wh]
 end
 
