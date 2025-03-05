@@ -440,6 +440,8 @@ Using a combination of staging and more careful algorithm design, we can avoid t
 variants, whose options are known at compile time.
 Put more simply, you basically always call weighted union with an \emph{explicit list}: For this reason, you should not have to incur the cost of allocating this list at runtime.}
 
+\jwc{ofc, sometimes you only know the list at runtime (see the STLC generator for an example), so you the library also includes this.}
+
 % \subsubsection{Function call overhead}
 \subsubsection{Boxed integers}
 
@@ -455,12 +457,14 @@ Put more simply, you basically always call weighted union with an \emph{explicit
 
 \subsection{Basic Design}
 
+\jwc{Note that some of this is a lie, but it's a good first cut: point to the section on \emph{The Trick} to see the real version.}
+
 \begin{lstlisting}
 type 'a gen = int code -> Random.t code -> 'a code
 
 let return (cx : 'a code) : 'a gen = fun size_c random_c -> cx
 
-let bind (g : 'a gen) (k : 'a -> 'b gen) : 'b gen =
+let bind (g : 'a gen) (k : 'a code -> 'b gen) : 'b gen =
   fun size_c random_c ->
     .<
       let x = .~(g size_c random_c) in
@@ -489,10 +493,11 @@ let to_bq (g : 'a code gen) : ('a Bq.t) code =
 
 \begin{lstlisting}
 let int_pair_staged : ((int * int) code) gen =
-  let%bind x = int 0 100 in
-  let%bind y = int 0 x in
-  return (x,y)
-
+  bind (int .<0>. .<100>.) (fun cx ->
+    bind (int .<0> cx) (fun cy ->
+      return .<(.~cx,.~cy)>.
+    )
+  )
 let int_pair : (int * int) Bq.t code = to_bq int_pair_staged
 ====
 .<
@@ -555,9 +560,9 @@ Then, if we write
 \begin{lstlisting}
 let grades : charBq.t gen = to_bq (
   weighted_union [
-    (.<3.0>., 'a');
-    (.<2.0>., 'b');
-    (.<1.0>., 'c');
+    (.<3.0>., .<'a'>.);
+    (.<2.0>., .<'b'>.);
+    (.<1.0>., .<'c'>.);
   ]
 )
 ===
@@ -577,18 +582,86 @@ Bq.create (
 )
 \end{lstlisting}
 
-\subsection{``The Trick'' and Effect Ordering}
+\subsection{Effect Ordering, and Equivalence is Program Equality}
+\jwc{``Wait, why was the defintion of bind like that''?
+Careful readers might note that the definition of bind was a little strange. In particular, why not just do this?}
+\begin{lstlisting}
+  let bind (g : 'a gen) (k : 'a code -> 'b gen) : 'b gen =
+    fun size_c random_c ->
+      k (g size_c random_c) size_c random_c
+\end{lstlisting}
+\jwc{The answer is that this doesn't generate the right code! In particular, this definition of bind means that
+\texttt{bind (int 0 1) (fun x -> return .<(.~x,.~x)>.)} would generate \texttt{fun size random -> (int random 0 1, int random 0 1)},
+which is \emph{not} the desired behavior. (Cite cbn/cbv randomness here).
+A splice is a (hygenic) syntactic replacment, so
+if a function \texttt{f : 'a code -> 'b code} splices its argument multiple times into its output, the argument code will be directly copied in.
+This is why we insert a let-binding in the definition of bind, to ensure that
+the explicit sequencing of bind is preserved into explicit sequencing in the
+generated code.
+}
 
-\jwc{Note: tradeoff between maintaining the effect ordering and even more performance. }
+\jwc{
+The library is carefully design to preserve exactly the effect order of BQ. If
+you write the same generator in both, they run identically: for the same size
+and random seed, they produce the same value.
+}
 
+\jwc{Note: tradeoff between maintaining the effect ordering and even more performance.}
 
+\subsection{A Real Monad Instance, CPS, and ``The Trick''}
 
-\subsubsection{Equality up to Program Equality}
-\subsubsection{Effect Ordering}
-\subsubsection{PBT for PBT}
-% \subsubsection{Does maintaining program equality in \name\ affect performance?}
+\jwc{
+  \begin{itemize}
+    \item Careful readers might note that the types of return and bind are not actually the right types.
+    \item This means that they aren't compatible with ppx-jane syntax.
+    \item We could try a different type, \texttt{type 'a gen = int code -> SR.t code -> 'a}. This has an actual monad instance (show), and ou can write teh combinators of before, with \texttt{'a code gen} everywhere you had \texttt{'a gen} before.
+    \item But because the result type isn't always in \texttt{code}, \texttt{bind} can't perform the let-insertion needed to preserve effect ordering.
+    \item Instead, we turn to a classic technique from the multistage programming literature: writing our staged program in continuation-passing style.
+    \item We define \texttt{type 'a codecps = 'z. ('a -> 'z code) -> 'z code}. This is the polymorphic CPS monad, with the continuation type always in `code'.
+    (Cite: ``improving binding times without explicit cps conversion'', ``Multi-stage programming with functors and monads: Eliminating abstraction overhead from generic code'', and ``Closure-Free Functional Programming in a Two-Level Type Theory'')
+    \item This lets us define the function \texttt{let\_insert : 'a code -> 'a codecps} as \texttt{let\_insert cx = fun k -> k .< let x = .~cx in .~(k .<x>.) >.}.
+    \item We then define \texttt{type 'a gen = int code -> SR.t code -> 'a codecps}, which lets us have it both ways. the effectful programs like \texttt{int} do their \emph{own} let-insertion
+  \end{itemize}
+}
+
+\jwc{This gives us the final definitions:}
+
+\begin{lstlisting}
+module CodeCps = struct
+  type 'a t = 'z. ('a -> 'z code) -> 'z code
+
+  let run (t : 'a code t) : 'a code = t (fun x -> x)
+
+  let let_insert (cx : 'a code) : 'a code t =
+    fun k -> k .< let x = .~cx in .~(k .<x>.) >.
+end
+
+module Gen = struct
+  type 'a t = int code -> SR.t code -> 'a CodeCps.t
+
+  let return (x : 'a) : 'a t = fun _ _ -> x
+
+  let bind (g : 'a t) (f : 'a -> 'b t) =
+    fun size random ->
+      f (g size random) size random
+  
+  let int (lo : int code) (hi : int code) : int code t =
+    fun size random ->
+      let_insert .< SR.int .~random .~lo .~hi >.
+end
+\end{lstlisting}
+
+\jwc {
+And this has the desired effect that
+\texttt{bind (int .<0>. .<1.>) (fun x -> return .<(.~x,.~x)>.)} generates
+\texttt{fun size random -> let x = SR.int random 0 1 in (x,x)}
+}
+
+\subsubsection{The Trick}
 
 \subsection{Staged Type-Derived Generators}
+
+\jwc{Todo: Thia}
 
 \section{Evaluation}
 
