@@ -390,7 +390,7 @@ https://www.cl.cam.ac.uk/~jdy22/papers/a-typed-algebraic-approach-to-parsing.pdf
 
 
 \tr{Each of these consist of an explanation of the problem and pseudocode outlining the solution.}
-\subsubsection{Monadic bind}
+\subsubsection{Monadic Bind}
 
 \jwc{
   \begin{itemize}
@@ -443,7 +443,23 @@ Put more simply, you basically always call weighted union with an \emph{explicit
 \jwc{ofc, sometimes you only know the list at runtime (see the STLC generator for an example), so you the library also includes this.}
 
 % \subsubsection{Function call overhead}
-\subsubsection{Boxed integers}
+\subsubsection{Boxed RNG}
+
+\jwc{
+  \begin{itemize}
+    \item The pRNG at the heart of BQ is the hottest part of the hot path: generating a single int with \texttt{int st lo hi} samples from the underlying rng many many times.
+    \item BQ's prng is the SplitMix algorithm, implemented in the splittablerandom package.
+    \item The precise details of how SplitMix works are unimportant for this paper, but the core of it does an enormous amount of 64-bit int arithmetic.
+    \item Because of implementation details related to the garbage collector, OCaml's \texttt{int} type is 63 bits, so an \texttt{Int64.t} is actually \emph{boxed}: a pointer to a custom block, not scanned by the garbage collector.
+    \item Because of this, all \texttt{Int64.t} operations (both arithmetic and bitwise operations) must allocate! A single call to \texttt{int} in Bq calls the samples the RNG many times, and each sample (call to \texttt{next\_int64}) allocates 9 words (2 multiplications, one addition, and 6 logical operations).
+  \end{itemize}
+}
+
+\jwc{We discuss ways to fix this in section ...}
+
+\jwc{We note that this inefficiency is not due to the ``abstraction overhead'' of the DSL itself, but simply due to language implementation and algorithm choices.
+We include this to demonstrate the amount of slack in the system, and so we can demonstrate the additional testing-time savings in the evaluation section.
+}
 
 \section{\name: A Library for Staging Generators}
 
@@ -617,10 +633,11 @@ and random seed, they produce the same value.
     \item We could try a different type, \texttt{type 'a gen = int code -> SR.t code -> 'a}. This has an actual monad instance (show), and ou can write teh combinators of before, with \texttt{'a code gen} everywhere you had \texttt{'a gen} before.
     \item But because the result type isn't always in \texttt{code}, \texttt{bind} can't perform the let-insertion needed to preserve effect ordering.
     \item Instead, we turn to a classic technique from the multistage programming literature: writing our staged program in continuation-passing style.
-    \item We define \texttt{type 'a codecps = 'z. ('a -> 'z code) -> 'z code}. This is the polymorphic CPS monad, with the continuation type always in `code'.
+    \item We define \texttt{type 'a codecps = 'z. ('a -> 'z code) -> 'z code}. This is the polymorphic CPS monad, with the continuation type always in `code'. (Footnote: this is an instance of the \emph{codensity} monad, cf ``Asymptotic Improvement of Computations over Free Monads'')
     (Cite: ``improving binding times without explicit cps conversion'', ``Multi-stage programming with functors and monads: Eliminating abstraction overhead from generic code'', and ``Closure-Free Functional Programming in a Two-Level Type Theory'')
     \item This lets us define the function \texttt{let\_insert : 'a code -> 'a codecps} as \texttt{let\_insert cx = fun k -> k .< let x = .~cx in .~(k .<x>.) >.}.
-    \item We then define \texttt{type 'a gen = int code -> SR.t code -> 'a codecps}, which lets us have it both ways. the effectful programs like \texttt{int} do their \emph{own} let-insertion
+    \item of course, \texttt{codecps} has the usual monad instance for the CPS monad with a polymorphic result type.
+    \item We then define \texttt{type 'a gen = int code -> SR.t code -> 'a codecps}, which lets us have it both ways. the effectful programs like \texttt{int} do their \emph{own} let-insertion, and we get a real monad instance.
   \end{itemize}
 }
 
@@ -628,12 +645,17 @@ and random seed, they produce the same value.
 
 \begin{lstlisting}
 module CodeCps = struct
-  type 'a t = 'z. ('a -> 'z code) -> 'z code
+  type 'a t = { cps : 'z. ('a -> 'z code) -> 'z code }
 
-  let run (t : 'a code t) : 'a code = t (fun x -> x)
+  let return x = {cps = fun k -> k x}
+
+  let bind (x : 'a t) (f : 'a -> 'b t) : 'b t =
+    {cps = fun k -> x.cps (fun a -> (f a).cps k)}
+
+  let run (t : 'a code t) : 'a code = t.cps (fun x -> x)
 
   let let_insert (cx : 'a code) : 'a code t =
-    fun k -> k .< let x = .~cx in .~(k .<x>.) >.
+    {cps = fun k -> k .< let x = .~cx in .~(k .<x>.) >.}
 end
 
 module Gen = struct
@@ -643,7 +665,9 @@ module Gen = struct
 
   let bind (g : 'a t) (f : 'a -> 'b t) =
     fun size random ->
-      f (g size random) size random
+      CodeCps.bind (g size random) (fun x ->
+        (f x) size random
+      )
   
   let int (lo : int code) (hi : int code) : int code t =
     fun size random ->
@@ -662,6 +686,14 @@ And this has the desired effect that
 \subsection{Staged Type-Derived Generators}
 
 \jwc{Todo: Thia}
+
+\subsection{Faster Random Number Generators}
+
+\jwc{
+  \begin{itemize}
+    \item 
+  \end{itemize}
+}
 
 \section{Evaluation}
 
