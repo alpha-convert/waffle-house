@@ -32,8 +32,8 @@ module Record = struct
 
   let expression list ~loc expr_list =
     let alist =
-      List.map2_exn list expr_list ~f:(fun t expr -> lident_loc t.pld_name, expr)
+      List.map2_exn list expr_list ~f:(fun t expr -> lident_loc t.pld_name, [%expr .~[%e expr]])
     in
-    pexp_record ~loc alist None
+    [%expr .< [%e pexp_record ~loc alist None ] >. ]
   ;;
 end
