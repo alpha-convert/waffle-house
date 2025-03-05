@@ -9,8 +9,11 @@ module Tuple = struct
   let location t = t.ptyp_loc
   let core_type t = t
   let pattern _ ~loc pat_list = ppat_tuple ~loc pat_list
-  let expression _ ~loc expr_list = pexp_tuple ~loc expr_list
-end
+  (*let expression _ ~loc expr_list = pexp_tuple ~loc expr_list*)
+  let expression _ ~loc expr_list =
+    let quoted = List.map ~f:(fun x -> [%expr .~[%e x]]) expr_list in 
+    [%expr .< [%e pexp_tuple ~loc quoted ] >. ]
+  end
 
 module Record = struct
   type ast = label_declaration

@@ -1,28 +1,43 @@
 open! Import
 open! Fast_gen;;
 
-let compound_generator_new ~loc (x, y) =
-  [%expr
-    G_SR.bind [%e x] ~f:(fun x' ->
-      G_SR.bind [%e y] ~f:(fun y' ->
-        G_SR.return (G_SR.C.pair x' y')
-      )
-    )
-  ]
-;;
+let compound_generator ~loc ~make_compound_expr generator_list =
+    let rec go gs acc =
+      match gs with
+      | [] -> [%expr G_SR.return [%e make_compound_expr ~loc (List.rev acc)]]
+      | g::gs -> 
+        let x_pat, x_expr = gensym "x" loc in
+        [%expr 
+          G_SR.bind [%e g] ~f:(fun [%p x_pat] -> [%e go gs (x_expr :: acc)])
+          ] 
+        in go generator_list []
 
-let rec generator_of_core_type ~loc core_type =
-  match core_type.ptyp_desc with
-  | Ptyp_tuple (t1 :: t2 :: _) -> 
-      let gen_of_type ty =
-        match ty.ptyp_desc with
-        | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> [%expr G_SR.bool]
-        | Ptyp_constr ({ txt = Lident "int"; _ }, _) -> [%expr (G_SR.int ~lo:(G_SR.C.lift 0) ~hi:(G_SR.C.lift 100))]
-        | Ptyp_constr ({ txt = Lident "float"; _ }, _) -> [%expr G_SR.float ~lo:(G_SR.C.lift 0.0) ~hi:(G_SR.C.lift 1.0)]
-        | _ -> failwith "Unsupported type in tuple."
-      in
-      compound_generator_new ~loc (gen_of_type t1, gen_of_type t2)
-  | _ -> failwith "Only compound (tuple) types with at least two elements are supported."
+(*    make_compound_expr ~loc (List.map generator_list ~f:(fun generator ->
+        [%expr G_SR.bind [%e generator] ~f:(fun x -> G_SR.return .< .~x >.)] 
+      )
+    )*)
+
+(*
+    let quickcheck_generator =
+          G_SR.bind G_SR.bool
+            ~f:(fun x ->
+                  G_SR.bind
+                    (G_SR.int ~lo:(G_SR.C.lift 0) ~hi:(G_SR.C.lift 100))
+                    ~f:(fun y -> G_SR.return .< (.~y, .~x) >.))
+*)
+
+let compound
+      (type field)
+      ~generator_of_core_type
+      ~loc
+      ~fields
+      (module Field : Field_syntax.S with type ast = field)
+  =
+  let fields = List.map fields ~f:Field.create in
+  compound_generator
+    ~loc
+    ~make_compound_expr:(Field.expression fields)
+    (List.map fields ~f:(fun field -> generator_of_core_type (Field.core_type field)))
 ;;
 
 type impl =
@@ -32,58 +47,6 @@ type impl =
   ; var : expression
   ; exp : expression
   }
-
-(*
-let generator_impl type_decl =
-  let loc = type_decl.ptype_loc in
-  let typ =
-    combinator_type_of_type_declaration type_decl ~f:(fun ~loc ty ->
-      [%type: [%t ty] G_SR.c G_SR.t])
-  in
-  let pat = pgenerator type_decl.ptype_name in
-  let var = egenerator type_decl.ptype_name in
-  let exp =
-    match type_decl.ptype_kind with
-    | Ptype_record fields -> failwith "Unimpl"
-    | Ptype_abstract ->
-      (match type_decl.ptype_manifest with
-       | Some core_type -> generator_of_core_type ~loc:loc core_type
-       | None -> failwith "Abstract type without manifest is not supported")
-    | _ -> failwith "Only tuple types are supported"
-  in
-  { loc; typ; pat; var; exp }
-;;
-
-let generator_intf type_decl =
-  let loc = type_decl.ptype_loc in
-  let name = loc_map type_decl.ptype_name ~f:generator_name in
-  let typ =
-    combinator_type_of_type_declaration type_decl ~f:(fun ~loc ty ->
-      [%type: [%t ty] G_SR.c G_SR.t])
-  in
-  psig_value ~loc (value_description ~loc ~name ~type_:typ ~prim:[])
-;;
-
-let sig_type_decl =
-  Deriving.Generator.make_noarg (fun ~loc ~path:_ (_, decls) ->
-    List.map decls ~f:generator_intf)
-;;
-
-let str_type_decl =
-  Deriving.Generator.make_noarg (fun ~loc ~path:_ (_, [decl]) ->
-    let impl = generator_impl decl in
-    [ pstr_value ~loc Nonrecursive
-        [ value_binding ~loc:impl.loc ~pat:impl.pat ~expr:impl.exp ] ])
-;;
-*)
-
-let generator_attribute =
-  Attribute.declare
-    "wh.generator"
-    Attribute.Context.core_type
-    Ast_pattern.(pstr (pstr_eval __ nil ^:: nil))
-    (fun x -> x)
-;;
 
 let rec generator_of_core_type core_type ~gen_env ~obs_env =
   let loc = { core_type.ptyp_loc with loc_ghost = true } in
@@ -106,15 +69,12 @@ let rec generator_of_core_type core_type ~gen_env ~obs_env =
          (List.map args ~f:(generator_of_core_type ~gen_env ~obs_env))
      | Ptyp_var tyvar -> Environment.lookup gen_env ~loc ~tyvar
      | Ptyp_arrow (arg_label, input_type, output_type) -> unsupported ~loc "Arrow types are not supported, %s" (short_string_of_core_type core_type)
-     | Ptyp_tuple (x1 :: x2 :: _) ->
-          compound_generator_new ~loc (generator_of_core_type x1 ~gen_env ~obs_env, generator_of_core_type x2 ~gen_env ~obs_env)
-        (*
-       Ppx_generator_expander.compound
-         ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
-         ~loc
-         ~fields
-         (module Field_syntax.Tuple)
-         *)
+     | Ptyp_tuple labeled_fields ->
+          compound 
+            ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
+            ~loc
+            ~fields:labeled_fields
+            (module Field_syntax.Tuple)
      | Ptyp_variant (clauses, Closed, None) -> unsupported ~loc "Variant types are not supported"
 (*       Ppx_generator_expander.variant
          ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
