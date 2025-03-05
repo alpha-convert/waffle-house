@@ -512,8 +512,72 @@ let int_pair : (int * int) Bq.t code = to_bq int_pair_staged
 
 \jwc{Weighted unions: recall that we should not need to materialize}
 
-\subsection{Basic Design}
+% let rec genpick n ws =
+% match ws with
+% | [] -> { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return .< failwith "Fell of the end of pick list" >. }
+% | (k,g) :: ws' ->
+%       { rand_gen = 
+%         fun ~size_c ~random_c ->
+%           Codecps.bind (Codecps.split_bool .< Float.compare .~(v2c n) .~(v2c k) <= 0 >.) (fun leq ->
+%             if leq then
+%               g.rand_gen ~size_c ~random_c
+%             else
+%               Codecps.bind (Codecps.let_insertv .< .~(v2c n) -. .~(v2c k) >.) @@ fun n' ->
+%               (* let%bind n' =  in *)
+%               (genpick n' ws').rand_gen ~size_c ~random_c
+%         )
+%       }
 
+\begin{lstlisting}
+  let weighted_union (weighted_elts : (float code * 'a code) list) : 'a t =
+    let sum_code = List.foldr _ in
+    let go (rc : int code) (weighted_elts : (float code * 'a code) list) : 'a code =
+      match weighted_elts with
+      | [] -> .< failwith "Error" >.
+      | (wc,xc) :: elts' ->
+        .<
+          if .~rc <= .~wc then .~xc
+          else
+            let r' = .~rc - .~wc in
+            .~(go .<r'>. elts')
+        >.
+
+    fun size_c random_c ->
+      .<
+        let sum = .~sum_code in
+        let r = SR.int .~random_c 0 sum in
+        .~(go .<r>. gwcs)
+      >.
+\end{lstlisting}
+
+Then, if we write
+
+\begin{lstlisting}
+let grades : charBq.t gen = to_bq (
+  weighted_union [
+    (.<3.0>., 'a');
+    (.<2.0>., 'b');
+    (.<1.0>., 'c');
+  ]
+)
+===
+Bq.create (
+  fun size random ->
+    let sum = 3.0 + 2.0 + 1.0 in
+    let r = SR.int random 0 sum in
+    if r <= 3.0 then 'a'
+    else
+      let r' = r - 3.0 in
+      if r' <= 2.0 then 'b'
+      else
+        let r'' = r' - 2.0 in
+        if r'' <= 1.0 then 'c'
+        else
+          failwith "Error"
+)
+\end{lstlisting}
+
+\subsection{``The Trick'' and Effect Ordering}
 
 \jwc{Note: tradeoff between maintaining the effect ordering and even more performance. }
 
