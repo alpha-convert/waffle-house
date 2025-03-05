@@ -12,6 +12,13 @@ module Tuple = struct
   type t = bool * int * int [@@deriving wh]
 end
 
+module Variant = struct
+  type t = 
+  | Int of int
+  | Float of float
+  | Pair of int * float [@@deriving wh]
+end
+
 let () =
 let generator = G_SR.jit (Tuple.quickcheck_generator) in
 let () = G_SR.print (Tuple.quickcheck_generator) in

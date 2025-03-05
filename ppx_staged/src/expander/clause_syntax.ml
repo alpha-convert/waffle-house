@@ -40,10 +40,11 @@ module Variant = struct
     match Attribute.get do_not_generate_attribute t.ast with
     | Some () -> None
     | None ->
+      let loc = { (location t) with loc_ghost = true } in
       Some
         (match Attribute.get weight_attribute t.ast with
-         | Some expr -> expr
-         | None -> efloat ~loc:{ (location t) with loc_ghost = true } "1.")
+         | Some expr -> [%expr .< [%e expr] >. ]
+         | None -> [%expr .< [%e efloat ~loc:{ (location t) with loc_ghost = true } "1."]>. ])
   ;;
 
   let core_type_list t =
@@ -77,16 +78,16 @@ module Variant = struct
       | Pcstr_tuple _ ->
         (match expr_list with
          | [] -> None
-         | [ expr ] -> Some expr
-         | _ -> Some (pexp_tuple ~loc expr_list))
+         | [ expr ] -> Some [%expr .~[%e expr] ] (* TODO: Not sure... *)
+         | _ -> Some (pexp_tuple ~loc (List.map expr_list ~f:(fun expr -> [%expr .~[%e expr]])) ))
       | Pcstr_record label_decl_list ->
         let alist =
           List.map2_exn label_decl_list expr_list ~f:(fun label_decl expr ->
-            lident_loc label_decl.pld_name, expr)
+            lident_loc label_decl.pld_name, [%expr .~[%e expr]])
         in
         Some (pexp_record ~loc alist None)
     in
-    pexp_construct ~loc (lident_loc t.ast.pcd_name) arg
+    [%expr .< [%e pexp_construct ~loc (lident_loc t.ast.pcd_name) arg] >. ]
   ;;
 end
 
@@ -124,10 +125,11 @@ module Polymorphic_variant = struct
     match Attribute.get do_not_generate_attribute t with
     | Some () -> None
     | None ->
+      let loc = { (location t) with loc_ghost = true } in
       Some
         (match Attribute.get weight_attribute t with
-         | Some expr -> expr
-         | None -> efloat ~loc:{ (location t) with loc_ghost = true } "1.")
+         | Some expr -> [%expr .< [%e expr] >. ]
+         | None -> [%expr .< [%e efloat ~loc:{ (location t) with loc_ghost = true } "1."]>. ])
   ;;
 
   let core_type_list t =
