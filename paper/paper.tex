@@ -581,9 +581,19 @@ Bq.create (
 
 \jwc{Note: tradeoff between maintaining the effect ordering and even more performance. }
 
-\jwc{Note with bind that we don't split because it's imperatively updated. Note that this omits the need to use SR, but we use it to maintain backwards compat.}
 
-\subsection{Comparing Generators}
+
+\subsubsection{Equality up to Program Equality}
+\subsubsection{Effect Ordering}
+\subsubsection{PBT for PBT}
+% \subsubsection{Does maintaining program equality in \name\ affect performance?}
+
+\subsection{Staged Type-Derived Generators}
+
+\section{Evaluation}
+
+\subsubsection{Implementation}
+\subsection{Benchmarking speed \& resource usage}
 
 \jwc{NOTE: we should test generator speed across both languages, but speed -> bugfinding ability in only OCaml.}
 \jwc{
@@ -594,15 +604,6 @@ Bq.create (
     \item List of ints
   \end{itemize}
 }
-
-\subsubsection{Existing Approaches}
-\subsubsection{Equality up to Program Equality}
-\subsubsection{Effect Ordering}
-\subsubsection{PBT for PBT}
-\subsubsection{Does maintaining program equality in \name\ affect performance?}
-\section{Evaluation}
-\subsubsection{Implementation}
-\subsection{Benchmarking speed \& resource usage}
 \subsection{Impact on bug-finding ability}
 \section{Conclusion \& Future Work}
 %%
