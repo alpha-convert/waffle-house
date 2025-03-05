@@ -8,13 +8,13 @@ open Ppx_staged_expander;;
 
 module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 
-module Pair = struct 
+module Tuple = struct 
   type t = bool * int * int [@@deriving wh]
 end
 
 let () =
-let generator = G_SR.jit (Pair.quickcheck_generator) in
-let () = G_SR.print (Pair.quickcheck_generator) in
+let generator = G_SR.jit (Tuple.quickcheck_generator) in
+let () = G_SR.print (Tuple.quickcheck_generator) in
 let random = Splittable_random.State.of_int 5 in
 let size = 10 in
 for _ = 1 to 10 do
