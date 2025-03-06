@@ -82,60 +82,57 @@ let variant
       clause_is_recursive ~clause ~rec_names (module Clause))
   with
   | [], [] -> invalid ~loc "variant had no (generated) cases"
-  | clauses, [] -> unsupported ~loc "Recursive clauses are not supported."
-  | [], clauses ->
+  | clauses, [] | [], clauses ->
     let pairs = List.filter_map clauses ~f:make_pair in
     [%expr
       G_SR.weighted_union
         [%e elist ~loc pairs]]
-  | recursive_clauses, nonrecursive_clauses -> unsupported ~loc "recursive variant types are not supported"
-  (*
-    let size_pat, size_expr = gensym "size" loc in
-    let nonrec_pat, nonrec_expr = gensym "gen" loc in
-    let rec_pat, rec_expr = gensym "gen" loc in
-    let nonrec_pats, nonrec_exprs =
-      gensyms "pair" (List.map nonrecursive_clauses ~f:Clause.location)
-    in
-    let rec_pats, rec_exprs =
-      gensyms "pair" (List.map recursive_clauses ~f:Clause.location)
-    in
-    let bindings =
-      List.filter_opt
-        (List.map2_exn nonrec_pats nonrecursive_clauses ~f:(fun pat clause ->
-           let loc = { (Clause.location clause) with loc_ghost = true } in
-           Option.map (make_pair clause) ~f:(fun expr -> value_binding ~loc ~pat ~expr))
-         @ List.map2_exn rec_pats recursive_clauses ~f:(fun pat clause ->
-           Option.map (Clause.weight clause) ~f:(fun weight_expr ->
-             let loc = { (Clause.location clause) with loc_ghost = true } in
-             let gen_expr =
-               [%expr
-                 Ppx_quickcheck_runtime.Base_quickcheck.Generator.bind
-                   Ppx_quickcheck_runtime.Base_quickcheck.Generator.size
-                   ~f:(fun [%p size_pat] ->
-                     Ppx_quickcheck_runtime.Base_quickcheck.Generator.with_size
-                       ~size:(Ppx_quickcheck_runtime.Base.Int.pred [%e size_expr])
-                       [%e make_generator clause])]
-             in
-             let expr = pexp_tuple ~loc [ weight_expr; gen_expr ] in
-             value_binding ~loc ~pat ~expr)))
-    in
-    let body =
-      [%expr
-        let [%p nonrec_pat] =
-          Ppx_quickcheck_runtime.Base_quickcheck.Generator.weighted_union
-            [%e elist ~loc nonrec_exprs]
-        and [%p rec_pat] =
-          Ppx_quickcheck_runtime.Base_quickcheck.Generator.weighted_union
-            [%e elist ~loc (nonrec_exprs @ rec_exprs)]
-        in
-        Ppx_quickcheck_runtime.Base_quickcheck.Generator.bind
-          Ppx_quickcheck_runtime.Base_quickcheck.Generator.size
-          ~f:(function
-            | 0 -> [%e nonrec_expr]
-            | _ -> [%e rec_expr])]
-    in
-    pexp_let ~loc Nonrecursive bindings body
-  *)
+  | recursive_clauses, nonrecursive_clauses ->
+      let size_pat, size_expr = gensym "size" loc in
+      let nonrec_pat, nonrec_expr = gensym "gen" loc in
+      let rec_pat, rec_expr = gensym "gen" loc in
+      let nonrec_pats, nonrec_exprs =
+        gensyms "pair" (List.map nonrecursive_clauses ~f:Clause.location)
+      in
+      let rec_pats, rec_exprs =
+        gensyms "pair" (List.map recursive_clauses ~f:Clause.location)
+      in
+      let bindings =
+        List.filter_opt
+          (List.map2_exn nonrec_pats nonrecursive_clauses ~f:(fun pat clause ->
+            let loc = { (Clause.location clause) with loc_ghost = true } in
+            Option.map (make_pair clause) ~f:(fun expr -> value_binding ~loc ~pat ~expr))
+          @ List.map2_exn rec_pats recursive_clauses ~f:(fun pat clause ->
+            Option.map (Clause.weight clause) ~f:(fun weight_expr ->
+              let loc = { (Clause.location clause) with loc_ghost = true } in
+              let gen_expr =
+                [%expr
+                  G_SR.bind
+                    G_SR.size
+                    ~f:(fun [%p size_pat] ->
+                      G_SR.with_size
+                        ~size:(G_SR.C.pred [%e size_expr])
+                        [%e make_generator clause])]
+              in
+              let expr = pexp_tuple ~loc [ weight_expr; gen_expr ] in
+              value_binding ~loc ~pat ~expr)))
+      in
+      let body =
+        [%expr
+          let [%p nonrec_pat] =
+            G_SR.weighted_union
+              [%e elist ~loc nonrec_exprs]
+          and [%p rec_pat] =
+            G_SR.weighted_union
+              [%e elist ~loc (nonrec_exprs @ rec_exprs)]
+          in
+          G_SR.bind
+            G_SR.size
+            ~f:(function
+              | 0 -> [%e nonrec_expr]
+              | _ -> [%e rec_expr])]
+      in
+      pexp_let ~loc Nonrecursive bindings body
 ;;
 
 type impl =

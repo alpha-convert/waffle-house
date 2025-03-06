@@ -6,6 +6,15 @@ open Ppx_staged_expander;;
 
 module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 
+let () =
+  let _generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_list_generator.quickcheck_generator_my_list) in
+  let _ = G_SR.print (My_list_generator.quickcheck_generator_my_list) in
+  let _random = Splittable_random.State.of_int 5 in
+  let _size = 10 in
+  for _ = 1 to 10 do
+    ()  (* No-op instead of printing *)
+  done
+(*
 module Tuple = struct 
   type t = bool * int * int [@@deriving wh]
 end
@@ -19,3 +28,4 @@ let () =
     Variant_generator.show (Base_quickcheck.Generator.generate generator ~size ~random)
     (* Stdio.print_endline (Sexp.to_string_hum (Variant.sexp_of_variant value))*)
   done
+*)

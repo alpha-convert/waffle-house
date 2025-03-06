@@ -1,0 +1,5 @@
+(library
+ (name ppx_staged_runtime)
+ (public_name ppx_staged.runtime)
+ (libraries base base_quickcheck)
+ (preprocess no_preprocessing))
