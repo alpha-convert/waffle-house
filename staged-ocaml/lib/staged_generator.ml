@@ -310,8 +310,10 @@ let int_log_uniform ~(lo : int code) ~(hi : int code) : int code t = {
   
 
   let jit ?extra_cmi_paths cde =
-    List.flatten (Option.to_list extra_cmi_paths) |> List.iter Runnative.add_search_path;
+    List.iter Runnative.add_search_path (List.flatten (Option.to_list extra_cmi_paths));
     List.iter Runnative.add_search_path R.dep_paths;
+    Runnative.add_search_path (Util.run_ocamlfind_query "base_quickcheck");
+    Runnative.add_search_path (Util.run_ocamlfind_query "base");
     Runnative.run_native (Codelib.close_code (to_bq cde))
 
 
