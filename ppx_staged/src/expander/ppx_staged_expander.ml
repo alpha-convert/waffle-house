@@ -137,7 +137,7 @@ let variant
                 G_SR.size
                 ~f:(fun x -> G_SR.if_z [%e [%expr x]] [%e nonrec_expr] [%e rec_expr])]]]
         in
-        [%expr G_SR.recursive ((G_SR.C.lift ())) (fun go -> [%e pexp_let ~loc Nonrecursive bindings body])]
+        [%expr G_SR.recursive ((G_SR.C.lift ())) (fun go _ -> [%e pexp_let ~loc Nonrecursive bindings body])]
 ;;
 
 type impl =
