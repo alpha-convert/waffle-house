@@ -40,7 +40,7 @@ let prefixed_type_name prefix type_name =
   | _ -> prefix ^ "_" ^ type_name
 ;;
 
-let generator_name type_name = prefixed_type_name "quickcheck_generator" type_name
+let generator_name type_name = prefixed_type_name "staged_quickcheck_generator" type_name
 let observer_name type_name = prefixed_type_name "quickcheck_observer" type_name
 let shrinker_name type_name = prefixed_type_name "quickcheck_shrinker" type_name
 let pname { loc; txt } ~f = pvar ~loc (f txt)
