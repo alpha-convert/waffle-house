@@ -59,6 +59,9 @@ let bool = Base_quickcheck.Generator.bool
 
 let list = Base_quickcheck.Generator.list
 
+let if_z (n : int c) (gz : 'a t) (gsucc : 'a t) : 'a t =
+  if n <= 0 then gz else gsucc
+
 let size = Base_quickcheck.Generator.size
 let with_size g ~size_c = Base_quickcheck.Generator.with_size ~size:size_c g
 

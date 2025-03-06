@@ -31,6 +31,8 @@ module type S = sig
 
   val list : 'a c t -> 'a list c t
 
+  val if_z : int c -> 'a t -> 'a t -> 'a t
+
   val size : int c t
   val with_size : 'a t -> size_c:(int c) -> 'a t
 
