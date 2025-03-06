@@ -382,6 +382,15 @@ specializing programs at an earlier stage to run more efficiently at a later sta
   \begin{itemize}
     \item The \texttt{'a code} type, quote, splice, stage distinction.
     \item The difference between \texttt{('a -> 'b) code} and \texttt{'a code -> 'b code}
+    \item We can convert one way, but not the other.
+    \item Functions \texttt{'a code -> 'b code} ``fuse''.
+    \begin{itemize}
+      \item Consider writing \texttt{even . succ}. This
+      \item Consider \texttt{even_c : int code -> bool code = fun cx -> .<.~cx mod 2 == 0>.} and \texttt{succ_c : int code -> int code = fun cx -> .< .~x + 1 >.}
+      \item If you do \texttt{to_dyn (even_c . succ_c)}, you get \texttt{fun x -> (x + 1) mod 2 == 0}. Composing functions from code to code, and then \emph{only at the end} stamping out
+      a dynamic function value ensures that the resulting code is free of abstractions.
+    \end{itemize}
+    and 
   \end{itemize}
 }
 
@@ -409,18 +418,19 @@ specializing programs at an earlier stage to run more efficiently at a later sta
 
 \section{Why is \bq\ slow, and how can we fix it?}
 
+\jwc{We can simplify this further by getting rid of the size parameter. Make the story even cleaner, I think!}
+
 \jwc{
   \begin{itemize}
-    \item How does BQ work?
+    \item How does (simplified) BQ work?
     \begin{itemize}
       \item The basic generator type: \texttt{'a generator = int -> SR.t -> 'a}. Size and random seed to deterministic value. (note: \texttt{SR.t} is a mutable seed)
-      \item Also two inverse functions, \texttt{create}, and \texttt{generate}.
       \item This gets a monad intance in the obvious way (show code).
       \item Also show the code for \texttt{int}, how it calls the underlying SR function.
     \end{itemize}
-    \item Note that \emph{extensionally} \texttt{generate (create (fun size random -> e)) size random = e}, but the OCaml compiler does not always perform this optimization, or do the inlining required to expose it.
-    (When sufficiently obfuscated behind returns and binds ...) This program compiles to code that (1) allocates the closure for `e', (2) passes it to create (which returns the closure), and then calls (3) generate, which immediately jumps into the closure.
-    \item Show allocation benchmarks of the running example, versus the version where you inline everything.
+    % \item Note that \emph{extensionally} \texttt{generate (create (fun size random -> e)) size random = e}, but the OCaml compiler does not always perform this optimization, or do the inlining required to expose it.
+    % (When sufficiently obfuscated behind returns and binds ...) This program compiles to code that (1) allocates the closure for `e', (2) passes it to create (which returns the closure), and then calls (3) generate, which immediately jumps into the closure.
+    \item Show benchmarks of the running example, versus the version where you inline everything. ()
     \item Let's look at the running example: inline it all the way.
   \end{itemize}
 }
@@ -431,44 +441,35 @@ let int_pair : (int * int) Bq.t =
     Bq.bind (Bq.gen_int 0 x) (fun y ->
       Bq.return (x,y)
   ))
+
+let int_pair_inlined : (int * int) Bq.t
+  fun sr ->
+    let x = Splittable_random.int sr ~lo:0 ~hi:100 in
+    let y = Splittable_random.int sr ~lo:0 ~hi:x in
+    (x,y)
 \end{lstlisting}
 
+\jwc{Show benchmark difference between these two generators: the benchmark is in \texttt{waffle-house/handwritten-ocaml/bin/basic-compare.ml}. It's about 2x. (see comment in latex here.)}
 
+\jwc{The native code OCaml compiler, even with -O3, fails to specialize this code and eliminate the overhead of this abstraction --- inlining all of the funciton definitions and then performing beta-reductions speeds up sampling by a factor of 2.}
 
+% ┌───────┬──────────┬─────────┬────────────┐
+% │ Name  │ Time/Run │ mWd/Run │ Percentage │
+% ├───────┼──────────┼─────────┼────────────┤
+% │ bq    │  70.47ns │  78.00w │    100.00% │
+% │ fused │  35.86ns │  78.00w │     50.89% │
+% └───────┴──────────┴─────────┴────────────┘
 
-% In OCaml, garbage collection is the killer.
-
-% This generator generates a list of bools. To generate a list of 100 bools, it allocates \texttt{4808.00w (minor)}, and runs for an average of
-% 3.9us. Merely representing a list of bools of length 100 requires 300 words in OCaml, so this generator allocates 16 times more than the theoretical minimum.
-
-% \jwc{Mention ppx_jane and let syntax}
-
-% \begin{lstlisting}
-% let gen_list_bool =
-%   fixed_point (fun gl ->
-%     let%bind n = size in
-%     if n <= 0 then return [] else
-%       let%bind x = bool in
-%       let%bind xs = with_size ~size:(n-1) gl in
-%       return (x :: xs)
-%   )
-% \end{lstlisting}
-
-% On the other hand, this generator allocates only 303w, and runs for 0.7us, to generate the same list of 100 bools.
-% \begin{lstlisting}
-%   let rec gen_list_bool_faster ~size ~random  = 
-%     if size <= 0 then []
-%     else (Unboxed_splitmix.bool random)::(gen_list_bool_faster ~size:(size - 1) ~random)
-% \end{lstlisting}
-
-
+\jwc{The overhead of the abstraction is 2x.
+The reality is actually worse: actual base-quickcheck includes even more indirection in its type.}
 
 \tr{Each of these consist of an explanation of the problem and pseudocode outlining the solution.}
 \subsubsection{Monadic Bind}
 
 \jwc{
   \begin{itemize}
-    \item Naked binds like \texttt{Bind}
+    \item In cases where the compiler cannot statically eliminate them, binds allocate short-lived closures: we allocate a closure for the continuation, and then immediately jump into it.
+    \item Each closure allocation is relatively cheap (they're going to be minor allocations since they're short-lived), but doing lots of allocation in a generation hot loop adds up fast, and each minor allocation brings us closer to the next costly GC pause.
   \end{itemize}
 }
 
@@ -535,7 +536,7 @@ Put more simply, you basically always call weighted union with an \emph{explicit
 We include this to demonstrate the amount of slack in the system, and so we can demonstrate the additional testing-time savings in the evaluation section.
 }
 
-\section{\name: A Library for Staging Generators}
+\section{\name: A Library for Staged Generators}
 
 \jwc{Usual introduction to this section, corresponding to how we talked about it in the intro}
 
@@ -561,6 +562,10 @@ A generator of \texttt{'a}s is then a (compile-time) function \texttt{int code -
     \item \texttt{return} is the constant generator, given code for \texttt{x : 'a}, it gives the generator which always generates \texttt{x}
     \item \texttt{bind} is like BQ's bind --- sequencing generators by passing the result of one to another --- except that the continuation gets access to the
     \texttt{code} for the result of running the first generator. At compile time, we know only that \texttt{g} will return \emph{some} \texttt{a}, but we do not get access to the particular \texttt{a}.
+    \item Bind takes code for the size and seed, and returns code that first let-binds the result of the first generator.
+    The function application \texttt{g size_c random_c} runs during the first stage, producing the code for the \texttt{a}. This is then spliced into the quote: the specialized code of the generator \texttt{g}
+    put on the right-hand side of the let. Then, we splice in the code for the continuation, passing first the variable x, and the same size and random seed.
+    \item \texttt{}
   \end{itemize}
 }
 
@@ -575,51 +580,44 @@ module Gen = struct
     fun size_c random_c ->
       .<
         let x = .~(g size_c random_c) in
-        .~(
-          (k .<x>.) size_c random_c
-        )
+        .~(k .<x>. size_c random_c)
       >.
 
   let int (lo : int code) (hi : int code) : int t =
     fun size_c random_c ->
       .< SR.int .~random_c .~lo .~hi >.
+
+  let to_bq (g : 'a code Gen.t) : ('a Bq.t) code =
+  .<
+    fun size random -> .~(g .<size>. .<random>.)
+  >.
 end
 \end{lstlisting}
 
 \jwc{Conversion to a bq generator}
 
-\begin{lstlisting}
-let to_bq (g : 'a code Gen.t) : ('a Bq.t) code =
-  .<
-    Bq.create (fun size random ->
-      .~(g .<size>. .<random>.)
-    )
-  >.
-\end{lstlisting}
-
 \jwc{Then show the running example, with }
 
 \begin{lstlisting}
 let int_pair_staged : ((int * int) code) Gen.t =
-  Gen.bind (int .<0>. .<100>.) (fun cx ->
-    Gen.bind (int .<0> cx) (fun cy ->
+  Gen.bind (Gen.int .<0>. .<100>.) (fun cx ->
+    Gen.bind (Gen.int .<0> cx) (fun cy ->
       Gen.return .<(.~cx,.~cy)>.
     )
   )
 let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
 ====
 .<
-  Bq.create (fun size random ->
+  fun size random ->
     let x = SR.int random 0 100 in
     let y = SR.int random 0 x in
     (x,y)
-  )
 .>
 \end{lstlisting}
 
-\jwc{So if you write with the \texttt{Gen} combinators and then only call \texttt{to\_bq} at the end, you get something that includes no creates/generates!}
+\jwc{So if you write with the \texttt{Gen} combinators and then only call \texttt{to\_bq} at the end, you get something that inlines everything all the way down!}
 
-\jwc{Show benchmark difference between these two generators.}
+
 
 \subsection{Staging More Combinators}
 
@@ -716,7 +714,9 @@ and random seed, they produce the same value.
 
 \jwc{Note: tradeoff between maintaining the effect ordering and even more performance.}
 
-\subsection{A Real Monad Instance, CPS, and ``The Trick''}
+\subsection{Size Parameters, A Real Monad Instance, CPS, and ``The Trick''}
+
+\jwc{Introduce the size parameter here. (if you deleted it beforehand.)}
 
 \jwc{
   \begin{itemize}
@@ -753,7 +753,7 @@ end
 module Gen = struct
   type 'a t = int code -> SR.t code -> 'a CodeCps.t
 
-  let return (x : 'a) : 'a t = fun _ _ -> x
+  let return (x : 'a) : 'a t = fun _ _ -> Codecps.return x
 
   let bind (g : 'a t) (f : 'a -> 'b t) =
     fun size random ->
