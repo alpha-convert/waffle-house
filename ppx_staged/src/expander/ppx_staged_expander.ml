@@ -137,7 +137,7 @@ let variant
                 G_SR.size
                 ~f:(fun x -> G_SR.if_z [%e [%expr x]] [%e nonrec_expr] [%e rec_expr])]]]
         in
-        [%expr G_SR.recursive ((G_SR.C.lift ())) (fun go _ -> [%e pexp_let ~loc Nonrecursive bindings body])]
+        [%expr G_SR.recursive ((G_SR.C.lift ())) (fun go -> [%e pexp_let ~loc Nonrecursive bindings body])]
 ;;
 
 type impl =
@@ -296,12 +296,8 @@ let maybe_mutually_recursive decls ~loc ~rec_flag ~of_lazy ~impl =
       List.map2_exn decls impls ~f:(fun decl impl ->
         let body = wrap impl.exp in
         let lazy_expr = [%expr [%e body]] in
-        let typed_pat =
-          [%type: [%t impl.typ]]
-          |> ptyp_poly ~loc (List.map decl.ptype_params ~f:get_type_param_name)
-          |> ppat_constraint ~loc impl.pat
-        in
-        value_binding ~loc:impl.loc ~pat:typed_pat ~expr:lazy_expr)
+        (* Use the raw pattern without type constraint *)
+        value_binding ~loc:impl.loc ~pat:impl.pat ~expr:lazy_expr)
     in
     [%str
       include struct
