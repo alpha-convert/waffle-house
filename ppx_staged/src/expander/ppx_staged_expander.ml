@@ -87,8 +87,19 @@ let variant
     [%expr
       G_SR.weighted_union
         [%e elist ~loc pairs]]
-  | recursive_clauses, nonrecursive_clauses ->
-      G_SR.recursive (lift ()) (fun go -> 
+  | recursive_clauses, nonrecursive_clauses -> 
+    let pairs = List.filter_map nonrecursive_clauses ~f:make_pair in
+    [%expr
+      G_SR.weighted_union
+        [%e elist ~loc pairs]]
+(*     
+    let recursive_generator clause rec_type =
+      compound_generator
+      ~loc:(Clause.location clause)
+      ~make_compound_expr:(Clause.expression clause variant_type)
+      (List.map (Clause.core_type_list clause) ~f:(fun type -> if x == rec_type then go (lift ()) else generator_of_core_type))
+    [%expr 
+      G_SR.recursive (.< () >.) (fun go -> 
         let size_pat, size_expr = gensym "size" loc in
         let nonrec_pat, nonrec_expr = gensym "gen" loc in
         let rec_pat, rec_expr = gensym "gen" loc in
@@ -132,7 +143,7 @@ let variant
               ~f:(fun x -> [%e x] [%e nonrec_expr] [%e rec_expr])]
         in
         pexp_let ~loc Nonrecursive bindings body
-      )
+      )] *)
 ;;
 
 type impl =
