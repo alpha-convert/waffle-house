@@ -1,7 +1,7 @@
 open Core;;
 open Core_bench;;
 
-module Bq = struct
+module Fake_Bq = struct
   type 'a t = Splittable_random.t -> 'a
 
   let return (x : 'a) : 'a t = fun _ -> x
@@ -14,7 +14,7 @@ module Bq = struct
   let create (f : Splittable_random.t -> 'a) : 'a t = f
 end
 
-let g1 = Bq.bind (Bq.int 0 100) (fun x -> Bq.bind (Bq.int 0 x) (fun y -> Bq.return (x,y)))
+let g1 = Fake_Bq.bind (Fake_Bq.int 0 100) (fun x -> Fake_Bq.bind (Fake_Bq.int 0 x) (fun y -> Fake_Bq.return (x,y)))
 
 let g2 = fun sr ->
   let x = Splittable_random.int sr ~lo:0 ~hi:100 in
