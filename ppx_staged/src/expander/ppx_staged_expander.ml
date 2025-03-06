@@ -116,7 +116,7 @@ let variant
                       G_SR.size
                       ~f:(fun [%p size_pat] ->
                         G_SR.with_size
-                          ~size:(G_SR.C.pred [%e size_expr])
+                          ~size_c:(G_SR.C.pred [%e size_expr])
                           [%e make_generator clause])]
                 in
                 let expr = pexp_tuple ~loc [ weight_expr; gen_expr ] in
@@ -137,7 +137,7 @@ let variant
                 G_SR.size
                 ~f:(fun x -> G_SR.if_z [%e [%expr x]] [%e nonrec_expr] [%e rec_expr])]]]
         in
-        [%expr G_SR.recursive ((G_SR.C.lift ())) (fun go -> [%e pexp_let ~loc Nonrecursive bindings body])]
+        [%expr G_SR.recursive ((G_SR.C.lift ())) (fun go _ -> [%e pexp_let ~loc Nonrecursive bindings body])]
 ;;
 
 type impl =
