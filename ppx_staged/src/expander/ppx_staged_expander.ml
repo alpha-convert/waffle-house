@@ -64,7 +64,12 @@ let variant
     compound_generator
       ~loc:(Clause.location clause)
       ~make_compound_expr:(Clause.expression clause variant_type)
-      (List.map (Clause.core_type_list clause) ~f:generator_of_core_type)
+      (List.map (Clause.core_type_list clause) ~f:(fun typ -> match typ.ptyp_desc with
+      | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> [%expr G_SR.bool]
+      | Ptyp_constr ({ txt = Lident "float"; _}, _) -> [%expr G_SR.float ~lo:(G_SR.C.lift 0.0) ~hi:(G_SR.C.lift 1.0)]
+      | Ptyp_constr ({ txt = Lident "int"; _}, _) -> [%expr (G_SR.int ~lo:(G_SR.C.lift 0) ~hi:(G_SR.C.lift 100))]
+      | _ -> [%expr G_SR.recurse go (G_SR.C.lift ())]
+      ))
   in
   let make_pair clause =
     Option.map (Clause.weight clause) ~f:(fun weight ->
@@ -87,19 +92,7 @@ let variant
     [%expr
       G_SR.weighted_union
         [%e elist ~loc pairs]]
-  | recursive_clauses, nonrecursive_clauses -> 
-    let pairs = List.filter_map nonrecursive_clauses ~f:make_pair in
-    [%expr
-      G_SR.weighted_union
-        [%e elist ~loc pairs]]
-(*     
-    let recursive_generator clause rec_type =
-      compound_generator
-      ~loc:(Clause.location clause)
-      ~make_compound_expr:(Clause.expression clause variant_type)
-      (List.map (Clause.core_type_list clause) ~f:(fun type -> if x == rec_type then go (lift ()) else generator_of_core_type))
-    [%expr 
-      G_SR.recursive (.< () >.) (fun go -> 
+  | recursive_clauses, nonrecursive_clauses ->
         let size_pat, size_expr = gensym "size" loc in
         let nonrec_pat, nonrec_expr = gensym "gen" loc in
         let rec_pat, rec_expr = gensym "gen" loc in
@@ -132,18 +125,19 @@ let variant
         let body =
           [%expr
             let [%p nonrec_pat] =
-              G_SR.weighted_union
-                [%e elist ~loc nonrec_exprs]
+              [%e [%expr G_SR.weighted_union
+                [%e elist ~loc nonrec_exprs]]]
             and [%p rec_pat] =
-              G_SR.weighted_union
-                [%e elist ~loc (nonrec_exprs @ rec_exprs)]
+              [%e [%expr G_SR.weighted_union
+                [%e elist ~loc (nonrec_exprs @ rec_exprs)]]]
             in
-            G_SR.bind
-              G_SR.size
-              ~f:(fun x -> [%e x] [%e nonrec_expr] [%e rec_expr])]
+            [%e
+            [%expr
+              G_SR.bind
+                G_SR.size
+                ~f:(fun x -> G_SR.if_z [%e [%expr x]] [%e nonrec_expr] [%e rec_expr])]]]
         in
-        pexp_let ~loc Nonrecursive bindings body
-      )] *)
+        [%expr G_SR.recursive ((G_SR.C.lift ())) (fun go -> [%e pexp_let ~loc Nonrecursive bindings body])]
 ;;
 
 type impl =
@@ -248,7 +242,7 @@ let close_the_loop ~of_lazy decl impl =
   let loc = impl.loc in
   let exp = impl.var in
   match decl.ptype_params with
-  | [] -> exp
+  | [] -> [%expr [%e exp]]
   | params ->
     let pats, exps =
       gensyms "recur" (List.map params ~f:(fun (core_type, _) -> core_type.ptyp_loc))
