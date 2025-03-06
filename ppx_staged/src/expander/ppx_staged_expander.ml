@@ -288,10 +288,7 @@ let maybe_mutually_recursive decls ~loc ~rec_flag ~of_lazy ~impl =
         | Pexp_fun (arg_label, default, pat, body) ->
           { exp with pexp_desc = Pexp_fun (arg_label, default, pat, wrap body) }
         | _ ->
-          List.fold impls ~init:exp ~f:(fun acc impl ->
-            let ign = [%expr [%e impl.var]] in
-            pexp_sequence ~loc ign acc)
-          |> pexp_let ~loc Nonrecursive inner_bindings
+          exp
       in
       List.map2_exn decls impls ~f:(fun decl impl ->
         let body = wrap impl.exp in
