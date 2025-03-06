@@ -39,6 +39,5 @@ let quickcheck_generator_my_list =
     let _gen__005_ = G_SR.weighted_union [_pair__007_]
     and _gen__006_ =
       G_SR.weighted_union [_pair__007_; _pair__008_] in
-    G_SR.bind G_SR.size
-      ~f:(function | 0 -> _gen__005_ | _ -> _gen__006_)
+    G_SR.bind G_SR.size  ~f:(fun x -> G_SR.if_z x _gen__005_ _gen__006_)
   )

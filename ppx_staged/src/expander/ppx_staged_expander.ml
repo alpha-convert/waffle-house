@@ -237,7 +237,7 @@ let close_the_loop ~of_lazy decl impl =
   let loc = impl.loc in
   let exp = impl.var in
   match decl.ptype_params with
-  | [] -> eapply ~loc of_lazy [ exp ]
+  | [] -> exp
   | params ->
     let pats, exps =
       gensyms "recur" (List.map params ~f:(fun (core_type, _) -> core_type.ptyp_loc))
@@ -245,17 +245,12 @@ let close_the_loop ~of_lazy decl impl =
     eabstract
       ~loc
       pats
-      (eapply
-         ~loc
-         of_lazy
-         [ [%expr
-           lazy
-             [%e
-               eapply
-                 ~loc
-                 (eapply ~loc [%expr Ppx_quickcheck_runtime.Base.Lazy.force] [ exp ])
-                 exps]]
-         ])
+      [%expr
+          [%e
+            eapply
+              ~loc
+              (eapply ~loc [%expr ()] [ exp ])
+              exps]]
 ;;
 
 let maybe_mutually_recursive decls ~loc ~rec_flag ~of_lazy ~impl =
@@ -289,15 +284,15 @@ let maybe_mutually_recursive decls ~loc ~rec_flag ~of_lazy ~impl =
           { exp with pexp_desc = Pexp_fun (arg_label, default, pat, wrap body) }
         | _ ->
           List.fold impls ~init:exp ~f:(fun acc impl ->
-            let ign = [%expr ignore [%e impl.var]] in
+            let ign = [%expr [%e impl.var]] in
             pexp_sequence ~loc ign acc)
           |> pexp_let ~loc Nonrecursive inner_bindings
       in
       List.map2_exn decls impls ~f:(fun decl impl ->
         let body = wrap impl.exp in
-        let lazy_expr = [%expr lazy [%e body]] in
+        let lazy_expr = [%expr [%e body]] in
         let typed_pat =
-          [%type: [%t impl.typ] Ppx_quickcheck_runtime.Base.Lazy.t]
+          [%type: [%t impl.typ]]
           |> ptyp_poly ~loc (List.map decl.ptype_params ~f:get_type_param_name)
           |> ppat_constraint ~loc impl.pat
         in
@@ -320,7 +315,7 @@ let generator_impl_list decls ~loc ~rec_flag =
     decls
     ~loc
     ~rec_flag
-    ~of_lazy:[%expr Ppx_quickcheck_runtime.Base_quickcheck.Generator.of_lazy]
+    ~of_lazy:[%expr ()]
     ~impl:generator_impl
 ;;
 

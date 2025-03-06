@@ -6,6 +6,10 @@ open Ppx_staged_expander;;
 
 module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 
+type t =
+| Empty
+| Cons of int * t [@@deriving wh]
+
 let () =
   let _generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_list_generator.quickcheck_generator_my_list) in
   let _ = G_SR.print (My_list_generator.quickcheck_generator_my_list) in
