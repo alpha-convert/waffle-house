@@ -8,3 +8,5 @@ module G_SR : sig
   end
   
 val quickcheck_generator_variant : Variant.t G_SR.c G_SR.t
+
+val show : t -> unit

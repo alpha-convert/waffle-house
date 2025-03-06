@@ -8,5 +8,3 @@ type t =
 | MyInt of int
 | MyFloat of (float * bool) * int
 | MyPair of int * float [@@deriving sexp]
-
-let show t = _

@@ -35,3 +35,8 @@ let quickcheck_generator_variant =
                  ~f:(fun _x__010_ ->
                        G_SR.return
                          (.< MyPair ((.~_x__009_), (.~_x__010_))  >.)))))]
+
+let show = function
+| MyInt i -> printf "\nMyInt %d\n" i
+| MyFloat ((f, b), i) -> printf "\nMyFloat ((%f, %b), %d)\n" f b i
+| MyPair (i, f) -> printf "\nMyPair (%d, %f)\n" i f
