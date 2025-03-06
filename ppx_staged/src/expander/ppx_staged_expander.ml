@@ -298,7 +298,7 @@ let maybe_mutually_recursive decls ~loc ~rec_flag ~of_lazy ~impl =
     in
     [%str
       include struct
-        open [%m pmod_structure ~loc (pstr_value_list ~loc Recursive recursive_bindings)]
+        open [%m pmod_structure ~loc (pstr_value_list ~loc Nonrecursive recursive_bindings)]
         [%%i
           pstr_value
             ~loc

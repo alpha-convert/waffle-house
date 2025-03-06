@@ -1,7 +1,6 @@
 open Stdio
 open Fast_gen;;
 open Ppx_staged_expander;;
-open My_list;;
 
 module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 (*
@@ -42,10 +41,12 @@ let quickcheck_generator_my_list =
     G_SR.bind G_SR.size  ~f:(fun x -> G_SR.if_z x _gen__005_ _gen__006_)
   )
 *)
+
+
 let rec show = function
-| Empty -> Printf.printf "\nEmpty\n"
-| Cons (i, rest) -> 
-    Printf.printf "\nCons (%d, _)\n" i;
+| My_list.Empty -> Printf.printf "\nEmpty\n"
+| My_list.Cons (i, rest) -> 
+    Printf.printf "\nCons (%d, )\n" i;
     show rest
   
     let rec quickcheck_generator_my_list =
@@ -53,7 +54,7 @@ let rec show = function
         (fun go ->
            fun _ ->
              let _pair__004_ =
-               ((.< 1.  >.), (G_SR.return (.< Empty  >.)))
+               ((.< 1.  >.), (G_SR.return (.< My_list.Empty  >.)))
              and _pair__005_ =
                ((.< 1.  >.),
                  (G_SR.bind G_SR.size
@@ -70,7 +71,7 @@ let rec show = function
                                        ~f:(fun _x__007_ ->
                                              G_SR.return
                                                (.<
-                                                  Cons
+                                                  My_list.Cons
                                                     ((.~_x__006_),
                                                       (.~_x__007_)) 
                                                   >.))))))) in
