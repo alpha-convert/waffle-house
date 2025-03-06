@@ -15,6 +15,10 @@
 \usepackage{listings}
 \usepackage{subcaption}
 
+\lstset{
+  basicstyle=\small\fontfamily{cmtt}\selectfont, % Computer Modern Typewriter
+}
+
 \definecolor{dkred}{rgb}{0.7,0,0}
 \definecolor{dkblue}{rgb}{0,0,0.7}
 \definecolor{notered}{rgb}{0.85,0,0}
@@ -306,19 +310,45 @@ by optimizing them for speed. In speicific, we make the following contributions:
 \jwc{In this paper, we'll use OCaml to illustrate the ideas, but the concepts are portable to other languages: see Section~\ref{subsection:other-langs}}
 
 \subsection{Property-Based Testing}
-\jwc{Mention the shape of PBT dsls, give running example here (or maybe earlier!). Monadic dsls.}
+\jwc{Usual spiel about pbt and generators: here's the BQ generator library, it has return and bind, this is what they're for.}
 
-\jwc{Introduce BQ.}
+\begin{lstlisting}
+module Bq = struct
+  type 'a t = int -> SR.t -> 'a
 
+  let return (x : 'a) : 'a t = fun size seed -> x
+
+  let bind (g : 'a t) (f : 'a -> 'b t) : 'b t =
+    fun size seed ->
+      let x = g size seed in
+      (f x) size seed
+
+  let gen_int (lo : int) (hi : int) : int t =
+    fun size seed -> SR.int seed lo hi
+end
+\end{lstlisting}
+
+\jwc{\texttt{gen\_int} here is really \texttt{int\_uniform\_inclusive}. I also think we should completely omit named arguments in the paper so we don't confuse with splices.}
+
+\jwc{Here's an example of a generator: you can sample from it and it gives you pairs of ints, one less than the other.}
 
 \begin{lstlisting}
 let int_pair : (int * int) Bq.t =
-  let%bind x = int 0 100 in
-  let%bind y = int 0 x in
+  let%bind x = Bq.gen_int 0 100 in
+  let%bind y = Bq.gen_int 0 x in
   return (x,y)
 \end{lstlisting}
 
-\jwc{\texttt{int} here is really \texttt{int\_uniform\_inclusive}. I also think we should completely omit named arguments in the paper so we don't confuse with splices.}
+\jwc{This desugars to...}
+
+\begin{lstlisting}
+let int_pair : (int * int) Bq.t =
+  Bq.bind (Bq.gen_int 0 100) (fun x ->
+    Bq.bind (Bq.gen_int 0 x) (fun y ->
+      Bq.return (x,y)
+  ))
+\end{lstlisting}
+
 
 \subsection{Staged Metaprogramming}
 
@@ -326,10 +356,14 @@ let int_pair : (int * int) Bq.t =
 https://www.cl.cam.ac.uk/~jdy22/papers/a-typed-algebraic-approach-to-parsing.pdf
 }
 
+\jwc{Staged metaprogramming has a long history as a technique for eliminating the runtime overhead of abstractions,
+specializing programs at an earlier stage to run more efficiently at a later stage.}
+
 
 \jwc{
   \begin{itemize}
-    \item 
+    \item The \texttt{'a code} type, quote, splice, stage distinction.
+    \item The difference between \texttt{('a -> 'b) code} and \texttt{'a code -> 'b code}
   \end{itemize}
 }
 
@@ -369,8 +403,19 @@ https://www.cl.cam.ac.uk/~jdy22/papers/a-typed-algebraic-approach-to-parsing.pdf
     \item Note that \emph{extensionally} \texttt{generate (create (fun size random -> e)) size random = e}, but the OCaml compiler does not always perform this optimization, or do the inlining required to expose it.
     (When sufficiently obfuscated behind returns and binds ...) This program compiles to code that (1) allocates the closure for `e', (2) passes it to create (which returns the closure), and then calls (3) generate, which immediately jumps into the closure.
     \item Show allocation benchmarks of the running example, versus the version where you inline everything.
+    \item Let's look at the running example: inline it all the way.
   \end{itemize}
 }
+
+\begin{lstlisting}
+let int_pair : (int * int) Bq.t =
+  Bq.bind (Bq.gen_int 0 100) (fun x ->
+    Bq.bind (Bq.gen_int 0 x) (fun y ->
+      Bq.return (x,y)
+  ))
+\end{lstlisting}
+
+
 
 
 % In OCaml, garbage collection is the killer.
@@ -474,41 +519,59 @@ We include this to demonstrate the amount of slack in the system, and so we can 
 
 \section{\name: A Library for Staging Generators}
 
+\jwc{Usual introduction to this section, corresponding to how we talked about it in the intro}
+
 \jwc{
   \begin{itemize}
     \item To eliminate this runtime overhead and generate efficient code, we do a usual ``binding-time analysis''.
     \item The crux of this binding-time analysis is that while generators are `just' values of type \texttt{'a t}, in practice they are always \emph{completely statically defined}: one never
     computes a generator dynamically at test time.
+    \item The size and the random seed are only known at run-time (the later stage), but the code of the generator itself is known at compile time.
+    \item This means the generator type should be \texttt{int code -> SR.t code -> 'a code}: a statically known-function from dynamically-known int and seed to dynamically-determined result.
   \end{itemize}
 }
 
 \subsection{Basic Design}
 
+A generator of \texttt{'a}s is then a (compile-time) function \texttt{int code -> Random.t code -> 'a code}.
+
 \jwc{Note that some of this is a lie, but it's a good first cut: point to the section on \emph{The Trick} to see the real version.}
 
+\jwc{
+  \begin{itemize}
+    \item The simplest combinators are presented below.
+    \item \texttt{return} is the constant generator, given code for \texttt{x : 'a}, it gives the generator which always generates \texttt{x}
+    \item \texttt{bind} is like BQ's bind --- sequencing generators by passing the result of one to another --- except that the continuation gets access to the
+    \texttt{code} for the result of running the first generator. At compile time, we know only that \texttt{g} will return \emph{some} \texttt{a}, but we do not get access to the particular \texttt{a}.
+  \end{itemize}
+}
+
 \begin{lstlisting}
-type 'a gen = int code -> Random.t code -> 'a code
 
-let return (cx : 'a code) : 'a gen = fun size_c random_c -> cx
+module Gen = struct
+  type 'a t = int code -> Random.t code -> 'a code
 
-let bind (g : 'a gen) (k : 'a code -> 'b gen) : 'b gen =
-  fun size_c random_c ->
-    .<
-      let x = .~(g size_c random_c) in
-      .~(
-        (k .<x>.) size_c random_c
-      )
-    >.
+  let return (cx : 'a code) : 'a t = fun size_c random_c -> cx
 
-let int (lo : int code) (hi : int code) : int code gen =
-  fun size_c random_c ->
-    .< SR.int .~random_c .~lo .~hi >.
+  let bind (g : 'a t) (k : 'a code -> 'b t) : 'b t =
+    fun size_c random_c ->
+      .<
+        let x = .~(g size_c random_c) in
+        .~(
+          (k .<x>.) size_c random_c
+        )
+      >.
+
+  let int (lo : int code) (hi : int code) : int t =
+    fun size_c random_c ->
+      .< SR.int .~random_c .~lo .~hi >.
+end
 \end{lstlisting}
 
 \jwc{Conversion to a bq generator}
 
 \begin{lstlisting}
-let to_bq (g : 'a code gen) : ('a Bq.t) code =
+let to_bq (g : 'a code Gen.t) : ('a Bq.t) code =
   .<
     Bq.create (fun size random ->
       .~(g .<size>. .<random>.)
@@ -519,13 +582,13 @@ let to_bq (g : 'a code gen) : ('a Bq.t) code =
 \jwc{Then show the running example, with }
 
 \begin{lstlisting}
-let int_pair_staged : ((int * int) code) gen =
-  bind (int .<0>. .<100>.) (fun cx ->
-    bind (int .<0> cx) (fun cy ->
-      return .<(.~cx,.~cy)>.
+let int_pair_staged : ((int * int) code) Gen.t =
+  Gen.bind (int .<0>. .<100>.) (fun cx ->
+    Gen.bind (int .<0> cx) (fun cy ->
+      Gen.return .<(.~cx,.~cy)>.
     )
   )
-let int_pair : (int * int) Bq.t code = to_bq int_pair_staged
+let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
 ====
 .<
   Bq.create (fun size random ->
@@ -536,7 +599,7 @@ let int_pair : (int * int) Bq.t code = to_bq int_pair_staged
 .>
 \end{lstlisting}
 
-\jwc{So if you write with the \texttt{gen} combinators and then only call \texttt{to\_bq} at the end, you get something that includes no creates/generates!}
+\jwc{So if you write with the \texttt{Gen} combinators and then only call \texttt{to\_bq} at the end, you get something that includes no creates/generates!}
 
 \jwc{Show benchmark difference between these two generators.}
 
@@ -697,6 +760,8 @@ And this has the desired effect that
 \subsection{Staged Type-Derived Generators}
 
 \jwc{Todo: Thia}
+
+\jwc{This is 3-stage metaprogramming! There's PPX-time, compile time, and run-time.}
 
 \subsection{Faster Random Number Generators}
 
