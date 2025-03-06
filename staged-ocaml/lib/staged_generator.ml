@@ -289,6 +289,11 @@ let int_log_uniform ~(lo : int code) ~(hi : int code) : int code t = {
     (* ) *)
 
 
+  let if_z cx gz gsucc =
+    bind (split_int cx) ~f:(function
+    | `Z -> gz
+    | `S _ -> gsucc
+    )
 
   let to_bq sg =
     .<
