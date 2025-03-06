@@ -1,5 +1,6 @@
 open! Import
 open! Fast_gen;;
+open Base;;
 
 let compound_generator ~loc ~make_compound_expr generator_list =
     let rec go gs acc =

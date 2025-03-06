@@ -4,21 +4,23 @@ open Ppx_staged
 open Fast_gen;;
 open Ppx_staged_expander;;
 module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
+module G_BQ = Fast_gen.Bq_generator
 open Sexplib;;
 open Sexplib0.Sexp_conv;;
-
-
-type t =
-| Leaf of int
-| Node of int * t * int [@@deriving wh]
-
+open Int;;
+open Base_quickcheck;;
 
 let () =
-  let generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_tree_generator.quickcheck_generator) in
-  let () = G_SR.print (My_tree_generator.quickcheck_generator) in  
-  let random = Splittable_random.State.of_int 1000 in
-  let size = 1000 in
-  for _ = 1 to 1000 do
-    let value = Base_quickcheck.Generator.generate generator ~size ~random in
-    printf "%s\n" (Sexp.to_string_hum (My_tree_generator.sexp_of_t value))
+  let generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_tree_generator.staged_quickcheck_generator) in
+  let () = G_SR.print (My_tree_generator.staged_quickcheck_generator) in  
+  let random = Splittable_random.State.of_int 11 in
+  let size = 3 in
+  for _ = 1 to 2 do
+    printf "\n";
+    let value1 = Base_quickcheck.Generator.generate My_tree.quickcheck_generator ~size ~random in
+    let value2 = Base_quickcheck.Generator.generate generator ~size ~random in
+    printf "========== My_tree.quickcheck_generator ==========\n";
+    printf "%s\n" (Sexp.to_string_hum (My_tree_generator.sexp_of_t value1));
+    printf "========== Staged generator ==========\n";
+    printf "%s\n" (Sexp.to_string_hum (My_tree_generator.sexp_of_t value2))
   done
