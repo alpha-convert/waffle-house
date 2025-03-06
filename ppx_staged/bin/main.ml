@@ -4,11 +4,10 @@ open Ppx_staged
 open Fast_gen;;
 open Ppx_staged_expander;;
 module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
-
 (*
 type t =
 | Empty
-| Cons of int * t [@@deriving sexp]
+| Cons of int * t [@@deriving wh]
 *)
 
 let () =
