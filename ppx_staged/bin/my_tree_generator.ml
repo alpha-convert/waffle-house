@@ -22,9 +22,9 @@ let staged_quickcheck_generator =
                         (G_SR.bind
                            (G_SR.recurse go (G_SR.C.lift ()))
                            ~f:(fun _x__006_ ->
-                                 G_SR.bind G_SR.bool
+                                 G_SR.bind G_SR.int
                                    ~f:(fun _x__007_ ->
-                                         G_SR.bind G_SR.bool
+                                         G_SR.bind G_SR.int
                                            ~f:(fun _x__008_ ->
                                                  G_SR.bind
                                                    (G_SR.recurse
@@ -49,16 +49,16 @@ let staged_quickcheck_generator =
            ~f:(fun x -> G_SR.if_z x _gen__002_ _gen__003_))
 
 let rec sexp_of_t =
-  (function
-    | E -> Sexplib0.Sexp.Atom "E"
-    | T (arg0__025_, arg1__026_, arg2__027_, arg3__028_) ->
-        let res0__029_ = sexp_of_t arg0__025_
-        and res1__030_ = sexp_of_bool arg1__026_
-        and res2__031_ = sexp_of_bool arg2__027_
-        and res3__032_ = sexp_of_t arg3__028_ in
-        Sexplib0.Sexp.List
-          [Sexplib0.Sexp.Atom "T";
-          res0__029_;
-          res1__030_;
-          res2__031_;
-          res3__032_] : t -> Sexplib0.Sexp.t)
+      (function
+       | E -> Sexplib0.Sexp.Atom "E"
+       | T (arg0__025_, arg1__026_, arg2__027_, arg3__028_) ->
+           let res0__029_ = sexp_of_t arg0__025_
+           and res1__030_ = sexp_of_int arg1__026_
+           and res2__031_ = sexp_of_int arg2__027_
+           and res3__032_ = sexp_of_t arg3__028_ in
+           Sexplib0.Sexp.List
+             [Sexplib0.Sexp.Atom "T";
+             res0__029_;
+             res1__030_;
+             res2__031_;
+             res3__032_] : t -> Sexplib0.Sexp.t)

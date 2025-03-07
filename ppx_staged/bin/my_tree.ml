@@ -9,7 +9,7 @@ open Splittable_random;;
 
 type t =
 | E
-| T of t * bool * bool * t [@@deriving quickcheck, sexp]
+| T of t * int * int * t [@@deriving quickcheck, sexp]
 
 let quickcheck_generator = quickcheck_generator
 
