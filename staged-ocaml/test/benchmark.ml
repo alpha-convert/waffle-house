@@ -7,5 +7,7 @@ let bm ~bench_name ~named_gens ~sizes ~num_calls = Bench.bench
   List.map named_gens ~f:(fun (gen_name,g) ->
     Bench.Test.create_indexed ~name:(bench_name ^ "_" ^ gen_name) ~args:sizes @@
       fun n ->
-        Staged.stage @@ fun () -> Base_quickcheck.Generator.generate g ~size:n ~random:(Splittable_random.State.of_int 5)
+        let u = Random.State.make_self_init () in
+        let s = Splittable_random.State.of_int (Random.State.int u Int.max_value) in
+        Staged.stage @@ fun () -> Base_quickcheck.Generator.generate g ~size:n ~random:s
   )
