@@ -300,13 +300,20 @@ let () =
       
       (* stlc_test; *)
     ];
+    "RNG Bool Equivalence", [
+      (let open MakeDiffTest(BoolTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
+      (let open MakeDiffTest(BoolTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C");
+      (let open MakeDiffTest(BoolTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR");
+    ];
     "RNG Int Equivalence", [
-      (let open MakeDiffTest(IntTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "Bq/Staged_SR");
+      (let open MakeDiffTest(IntTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
+      (let open MakeDiffTest(IntTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C");
+      (* (let open MakeDiffTest(IntTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR"); *)
     ];
     "RNG Int Uniform Equivalence", [
-      (* (let open MakeDiffTest(IntUniformTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR"); *)
-      (let open MakeDiffTest(IntUniformTC)(G_Bq)(G_C) in alco ~config:({qc_cfg with test_count = 1}) "C");
-      (* (let open MakeDiffTest(IntUniformTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR"); *)
+      (let open MakeDiffTest(IntUniformTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
+      (let open MakeDiffTest(IntUniformTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C");
+      (let open MakeDiffTest(IntUniformTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR");
     ];
     "RNG Int Uniform Inclusive Equivalence", [
       (let open MakeDiffTest(IntUniformInclusiveTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
@@ -316,7 +323,9 @@ let () =
     ]
     ;
     "RNG Int Inclusive Equivalence", [
-      (let open MakeDiffTest(IntInclusiveTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "Bq/Staged_SR");
+      (let open MakeDiffTest(IntInclusiveTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
+      (let open MakeDiffTest(IntInclusiveTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C");
+      (let open MakeDiffTest(IntInclusiveTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR");
     ]
     ;
     (* "RNG Equivalence",[
