@@ -7,14 +7,9 @@ open Base;;
 open Base_quickcheck;;
 open Splittable_random;;
 
-let quickcheck_generator_bounded_int =
-  Base_quickcheck.Generator.int_uniform_inclusive 0 100
-
-type bounded_int = int [@@deriving quickcheck, sexp]
-
 type t =
 | E
-| T of t * bounded_int * bounded_int * t [@@deriving quickcheck, sexp]
+| T of t * int * int * t [@@deriving quickcheck, sexp]
 
 let quickcheck_generator = quickcheck_generator
 
