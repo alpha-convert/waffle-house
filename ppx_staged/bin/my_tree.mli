@@ -3,9 +3,10 @@ open Fast_gen;;
 open Ppx_staged_expander;;
 open Base_quickcheck;;
 open Sexplib;;
+
 type t =
 | E
-| T of t * int * int * t
+| T of t * bool * bool * t [@@deriving quickcheck, sexp]
 
 val quickcheck_generator : t Generator.t
 

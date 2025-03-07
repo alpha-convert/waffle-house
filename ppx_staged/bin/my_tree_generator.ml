@@ -22,19 +22,9 @@ let staged_quickcheck_generator =
                         (G_SR.bind
                            (G_SR.recurse go (G_SR.C.lift ()))
                            ~f:(fun _x__006_ ->
-                                 G_SR.bind
-                                   (G_SR.int
-                                      ~lo:(G_SR.C.lift
-                                             Int.min_value)
-                                      ~hi:(G_SR.C.lift
-                                             Int.max_value))
+                                 G_SR.bind G_SR.bool
                                    ~f:(fun _x__007_ ->
-                                         G_SR.bind
-                                           (G_SR.int
-                                              ~lo:(G_SR.C.lift
-                                                     Int.min_value)
-                                              ~hi:(G_SR.C.lift
-                                                     Int.max_value))
+                                         G_SR.bind G_SR.bool
                                            ~f:(fun _x__008_ ->
                                                  G_SR.bind
                                                    (G_SR.recurse
@@ -47,10 +37,10 @@ let staged_quickcheck_generator =
                                                         G_SR.return
                                                         (.<
                                                         T
-                                                        ((.~_x__006_),
-                                                        (.~_x__007_),
+                                                        ((.~_x__009_),
                                                         (.~_x__008_),
-                                                        (.~_x__009_)) 
+                                                        (.~_x__007_),
+                                                        (.~_x__006_)) 
                                                         >.))))))))) in
          let _gen__002_ = G_SR.weighted_union [_pair__004_]
          and _gen__003_ =
@@ -60,11 +50,11 @@ let staged_quickcheck_generator =
 
 let rec sexp_of_t =
   (function
-    | My_tree.E -> Sexplib0.Sexp.Atom "E"
-    | My_tree.T (arg0__025_, arg1__026_, arg2__027_, arg3__028_) ->
+    | E -> Sexplib0.Sexp.Atom "E"
+    | T (arg0__025_, arg1__026_, arg2__027_, arg3__028_) ->
         let res0__029_ = sexp_of_t arg0__025_
-        and res1__030_ = sexp_of_int arg1__026_
-        and res2__031_ = sexp_of_int arg2__027_
+        and res1__030_ = sexp_of_bool arg1__026_
+        and res2__031_ = sexp_of_bool arg2__027_
         and res3__032_ = sexp_of_t arg3__028_ in
         Sexplib0.Sexp.List
           [Sexplib0.Sexp.Atom "T";

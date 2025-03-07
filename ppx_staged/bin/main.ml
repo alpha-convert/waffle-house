@@ -27,11 +27,7 @@ let () =
   done
 *)
 
-let quickcheck_generator_int =
-  Base_quickcheck.Generator.int_uniform_inclusive (-4611686018427387904) 4611686018427387903
-
-type t = bool * bool * bool [@@deriving wh, quickcheck, sexp]
-
+(*
 let () =
   let st_generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] staged_quickcheck_generator in
   let int_gen = quickcheck_generator_int in
@@ -49,8 +45,8 @@ let () =
     printf "========== Staged generator ==========\n";
     printf "%s\n" (Sexp.to_string_hum (sexp_of_t st))
   done
+*)
 
-(*
 let () =
   let generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_tree_generator.staged_quickcheck_generator) in
   let () = G_SR.print (My_tree_generator.staged_quickcheck_generator) in  
@@ -67,4 +63,3 @@ let () =
     printf "========= Staged generator ==========\n";
     printf "%s\n" (Sexp.to_string_hum (My_tree_generator.sexp_of_t staged_values))
   done
-  *)
