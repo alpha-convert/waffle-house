@@ -3,15 +3,15 @@ open! Fast_gen;;
 open Base;;
 
 let compound_generator ~loc ~make_compound_expr generator_list =
-    let rec go gs acc =
-      match gs with
-      | [] -> [%expr G_SR.return [%e make_compound_expr ~loc (List.rev acc)]]
-      | g::gs -> 
-        let x_pat, x_expr = gensym "x" loc in
-        [%expr 
-          G_SR.bind [%e g] ~f:(fun [%p x_pat] -> [%e go gs (x_expr :: acc)])
-          ] 
-        in go generator_list []
+  let rec go gs acc =
+    match gs with
+    | [] -> [%expr G_SR.return [%e make_compound_expr ~loc acc]]
+    | g::gs -> 
+      let x_pat, x_expr = gensym "x" loc in
+      [%expr 
+        G_SR.bind [%e g] ~f:(fun [%p x_pat] -> [%e go gs (x_expr :: acc)])
+      ] 
+  in go (List.rev generator_list) []
 
 let compound
       (type field)
