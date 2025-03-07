@@ -154,7 +154,7 @@ let rec generator_of_core_type core_type ~gen_env ~obs_env =
   let gen_of_type ty =
     match ty.ptyp_desc with
     | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> Some [%expr G_SR.bool]
-    | Ptyp_constr ({ txt = Lident "int"; _ }, _) -> Some [%expr (G_SR.int ~lo:(G_SR.C.lift 0) ~hi:(G_SR.C.lift 0))]
+    | Ptyp_constr ({ txt = Lident "int"; _ }, _) -> Some [%expr (G_SR.int ~lo:(G_SR.C.lift 0) ~hi:(G_SR.C.lift 10))]
     | Ptyp_constr ({ txt = Lident "float"; _ }, _) -> Some [%expr G_SR.float ~lo:(G_SR.C.lift 0.0) ~hi:(G_SR.C.lift 1.0)]
     | _ -> None
   in

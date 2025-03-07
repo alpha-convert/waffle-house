@@ -11,8 +11,7 @@ open Int;;
 open Base_quickcheck;;
 
 let quickcheck_generator_int =
-  Base_quickcheck.Generator.create (fun ~size:_ ~random ->
-    Splittable_random.int random ~lo:0 ~hi:10)
+    Base_quickcheck.Generator.int_uniform_inclusive 0 10
 
 type t = int [@@deriving wh, quickcheck, sexp]
 
@@ -21,12 +20,13 @@ let () =
   let int_gen = quickcheck_generator_int in
   let bq_generator = quickcheck_generator in
   let () = G_SR.print staged_quickcheck_generator in 
-  let random = Splittable_random.State.of_int 11 in
+  let random_a = Splittable_random.State.of_int 11 in
+  let random_b = Splittable_random.State.of_int 11 in
   let size = 3 in
   for _ = 1 to 10 do 
     printf "\n";
-    let st = Base_quickcheck.Generator.generate st_generator ~size ~random in
-    let bq = Base_quickcheck.Generator.generate bq_generator ~size ~random in
+    let st = Base_quickcheck.Generator.generate st_generator ~size ~random:random_a in
+    let bq = Base_quickcheck.Generator.generate bq_generator ~size ~random:random_b in
     printf "========== Quickcheck generator ==========\n";
     printf "%s\n" (Sexp.to_string_hum (sexp_of_t bq));
     printf "========== Staged generator ==========\n";
