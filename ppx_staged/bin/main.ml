@@ -10,11 +10,7 @@ open Sexplib0.Sexp_conv;;
 open Int;;
 open Base_quickcheck;;
 
-let quickcheck_generator_int =
-    Base_quickcheck.Generator.int_uniform_inclusive 0 10
-
-type t = int [@@deriving wh, quickcheck, sexp]
-
+(*
 let () =
   let st_generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] staged_quickcheck_generator in
   let int_gen = quickcheck_generator_int in
@@ -32,19 +28,26 @@ let () =
     printf "========== Staged generator ==========\n";
     printf "%s\n" (Sexp.to_string_hum (sexp_of_t st))
   done
-(*
+*)
+
+type t =
+| E
+| T of t * int * int * t [@@deriving wh, sexp]
+
+
 let () =
   let generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_tree_generator.staged_quickcheck_generator) in
   let () = G_SR.print (My_tree_generator.staged_quickcheck_generator) in  
-  let random = Splittable_random.State.of_int 11 in
-  let size = 3 in
-  for _ = 1 to 2 do
+  let random_a = Splittable_random.State.of_int 0 in
+  let random_b = Splittable_random.State.of_int 0 in
+  let size = 10 in
+  for _ = 1 to 10 do
     printf "\n";
-    let value1 = Base_quickcheck.Generator.generate My_tree.quickcheck_generator ~size ~random in
-    let value2 = Base_quickcheck.Generator.generate generator ~size ~random in
-    printf "========== My_tree.quickcheck_generator ==========\n";
-    printf "%s\n" (Sexp.to_string_hum (My_tree_generator.sexp_of_t value1));
+    printf "\n";
+    let quickc_values = Base_quickcheck.Generator.generate My_tree.quickcheck_generator ~size ~random:random_a in
+    let staged_values = Base_quickcheck.Generator.generate generator ~size ~random:random_b in
+    printf "========== quickcheck_generator ==========\n";
+    printf "%s\n" (Sexp.to_string_hum (My_tree_generator.sexp_of_t quickc_values));
     printf "========== Staged generator ==========\n";
-    printf "%s\n" (Sexp.to_string_hum (My_tree_generator.sexp_of_t value2))
+    printf "%s\n" (Sexp.to_string_hum (My_tree_generator.sexp_of_t staged_values))
   done
-*)

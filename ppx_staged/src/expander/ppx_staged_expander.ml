@@ -68,7 +68,7 @@ let variant
       (List.map (Clause.core_type_list clause) ~f:(fun typ -> match typ.ptyp_desc with
       | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> [%expr G_SR.bool]
       | Ptyp_constr ({ txt = Lident "float"; _}, _) -> [%expr G_SR.float ~lo:(G_SR.C.lift 0.0) ~hi:(G_SR.C.lift 1.0)]
-      | Ptyp_constr ({ txt = Lident "int"; _}, _) -> [%expr (G_SR.int ~lo:(G_SR.C.lift 0) ~hi:(G_SR.C.lift 10))]
+      | Ptyp_constr ({ txt = Lident "int"; _}, _) -> [%expr (G_SR.int ~lo:(G_SR.C.lift Int.min_value) ~hi:(G_SR.C.lift Int.max_value))]
       | _ -> [%expr G_SR.recurse go (G_SR.C.lift ())]
       ))
   in
@@ -126,17 +126,17 @@ let variant
         let body =
           [%expr
             let [%p nonrec_pat] =
-              [%e [%expr G_SR.weighted_union
-                [%e elist ~loc nonrec_exprs]]]
+              G_SR.weighted_union
+                [%e elist ~loc nonrec_exprs]
             and [%p rec_pat] =
-              [%e [%expr G_SR.weighted_union
-                [%e elist ~loc (nonrec_exprs @ rec_exprs)]]]
+              G_SR.weighted_union
+                [%e elist ~loc (nonrec_exprs @ rec_exprs)]
             in
             [%e
             [%expr
               G_SR.bind
                 G_SR.size
-                ~f:(fun x -> G_SR.if_z [%e [%expr x]] [%e nonrec_expr] [%e rec_expr])]]]
+                ~f:(fun x -> G_SR.if_z x [%e nonrec_expr] [%e rec_expr])]]]
         in
         [%expr G_SR.recursive ((G_SR.C.lift ())) (fun go _ -> [%e pexp_let ~loc Nonrecursive bindings body])]
 ;;
@@ -154,7 +154,7 @@ let rec generator_of_core_type core_type ~gen_env ~obs_env =
   let gen_of_type ty =
     match ty.ptyp_desc with
     | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> Some [%expr G_SR.bool]
-    | Ptyp_constr ({ txt = Lident "int"; _ }, _) -> Some [%expr (G_SR.int ~lo:(G_SR.C.lift 0) ~hi:(G_SR.C.lift 10))]
+    | Ptyp_constr ({ txt = Lident "int"; _ }, _) -> Some [%expr (G_SR.int ~lo:(G_SR.C.lift Int.min_value) ~hi:(G_SR.C.lift Int.max_value))]
     | Ptyp_constr ({ txt = Lident "float"; _ }, _) -> Some [%expr G_SR.float ~lo:(G_SR.C.lift 0.0) ~hi:(G_SR.C.lift 1.0)]
     | _ -> None
   in

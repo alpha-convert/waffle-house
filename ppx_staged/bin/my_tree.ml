@@ -7,6 +7,9 @@ open Base;;
 open Base_quickcheck;;
 open Splittable_random;;
 
+let quickcheck_generator_int =
+  Base_quickcheck.Generator.int_uniform_inclusive (-4611686018427387904) 4611686018427387903
+
 type t =
 | E
 | T of t * int * int * t [@@deriving quickcheck, sexp]
