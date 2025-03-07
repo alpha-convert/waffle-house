@@ -4,9 +4,25 @@ open Ppx_staged_expander;;
 open Sexplib;;
 open Sexplib0.Sexp_conv;;
 open Core
+open Core_bench;;
 
 module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 module G_BQ = Fast_gen.Bq_generator
+
+let () =
+  let qc_generator = My_tree.quickcheck_generator in
+  let st_generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_tree_generator.staged_quickcheck_generator) in
+  Bench.bench
+    ~run_config:(Bench.Run_config.create ~quota:(Bench.Quota.Num_calls 5000) ())
+    [
+      Bench.Test.create_indexed ~name:"quickcheck" ~args:[10; 50; 100; 1000; 10000] (
+        fun n -> Staged.stage @@ fun () -> Quickcheck.random_value ~seed:`Nondeterministic ~size:n qc_generator
+      );
+      Bench.Test.create_indexed ~name:"staged" ~args:[10; 50; 100; 1000; 10000] (
+        fun n -> Staged.stage @@ fun () -> Quickcheck.random_value ~seed:`Nondeterministic ~size:n st_generator
+      );
+    ]
+
 (*
 let () =
   let st_generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] Variant_generator.quickcheck_generator in
@@ -46,7 +62,7 @@ let () =
     printf "%s\n" (Sexp.to_string_hum (sexp_of_t st))
   done
 *)
-
+(*
 let () =
   let generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_tree_generator.staged_quickcheck_generator) in
   let () = G_SR.print (My_tree_generator.staged_quickcheck_generator) in  
@@ -63,3 +79,4 @@ let () =
     printf "========= Staged generator ==========\n";
     printf "%s\n" (Sexp.to_string_hum (My_tree_generator.sexp_of_t staged_values))
   done
+*)
