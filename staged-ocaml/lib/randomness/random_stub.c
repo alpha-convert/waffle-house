@@ -138,8 +138,8 @@ CAMLprim value int_c_unchecked(value state_val, value lo_val, value hi_val) {
   CAMLparam3(state_val,lo_val,hi_val);
   state_t st = State_val(state_val);
 
-  int64_t lo = (int64_t) Int_val(lo_val);
-  int64_t hi = (int64_t) Int_val(hi_val);
+  int64_t lo = (int64_t) Long_val(lo_val);
+  int64_t hi = (int64_t) Long_val(hi_val);
 
   int64_t result = next_int(&st,lo,hi);
   CAMLreturn(Val_int(result));
@@ -191,8 +191,8 @@ CAMLprim value int_c_log_uniform(value state_val, value lo_val, value hi_val) {
   CAMLparam3(state_val,lo_val,hi_val);
   state_t st = State_val(state_val);
 
-  int64_t lo = (int64_t) Int_val(lo_val);
-  int64_t hi = (int64_t) Int_val(hi_val);
+  int64_t lo = (int64_t) Long_val(lo_val);
+  int64_t hi = (int64_t) Long_val(hi_val);
 
   int64_t result = next_int_log_uniform(&st,lo,hi);
   CAMLreturn(Val_int(result));

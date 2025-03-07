@@ -117,8 +117,8 @@ CAMLprim value int_c_sr_unchecked(value sr_state_val, value lo_val, value hi_val
   state_t* st = (state_t*) alloca(sizeof(state_t));
   fill_from_value(sr_state_val,st);
 
-  int64_t lo = (int64_t) Int_val(lo_val);
-  int64_t hi = (int64_t) Int_val(hi_val);
+  int64_t lo = (int64_t) Long_val(lo_val);
+  int64_t hi = (int64_t) Long_val(hi_val);
 
   int64_t result = next_int_sr(st,lo,hi);
   CAMLreturn(Val_int(result));
