@@ -6,4 +6,4 @@ open Ppx_staged_expander;;
 
 type t =
 | Empty
-| Cons of int * t
+| Cons of bool * t [@@deriving quickcheck, sexp]

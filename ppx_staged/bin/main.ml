@@ -8,10 +8,28 @@ open Core_bench;;
 
 module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 module G_BQ = Fast_gen.Bq_generator
+(*
+let () =
+  let generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_list_generator.staged_quickcheck_generator) in
+  let () = G_SR.print (My_list_generator.staged_quickcheck_generator) in  
+  let random_a = Splittable_random.State.of_int 0 in
+  let random_b = Splittable_random.State.of_int 0 in
+  let size = 10 in
+  for _ = 1 to 10 do
+    printf "\n";
+    printf "\n";
+    let quickc_values = Base_quickcheck.Generator.generate My_list.quickcheck_generator ~size ~random:random_a in
+    let staged_values = Base_quickcheck.Generator.generate generator ~size ~random:random_b in
+    printf "========== quickcheck_generator ==========\n";
+    printf "%s\n" (Sexp.to_string_hum (My_list.sexp_of_t quickc_values));
+    printf "========= Staged generator ==========\n";
+    printf "%s\n" (Sexp.to_string_hum (My_list.sexp_of_t staged_values))
+  done
+*)
 
 let () =
-  let qc_generator = My_tree.quickcheck_generator in
-  let st_generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_tree_generator.staged_quickcheck_generator) in
+  let qc_generator = My_list.quickcheck_generator in
+  let st_generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_list_generator.staged_quickcheck_generator) in
   Bench.bench
     ~run_config:(Bench.Run_config.create ~quota:(Bench.Quota.Num_calls 5000) ())
     [
