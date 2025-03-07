@@ -19,10 +19,17 @@ module type S = sig
 
   val jit : ?extra_cmi_paths:string list -> 'a c t -> 'a Base_quickcheck.Generator.t
 
-  val int : lo:(int c) -> hi:(int c) -> int c t
-  val int_log_uniform : lo:(int c) -> hi:(int c) -> int c t
-  val float : lo:(float c) -> hi:(float c) -> float c t
   val bool : bool c t
+
+  val int : int c t
+
+  val int_uniform : int c t
+  val int_inclusive : lo:(int c) -> hi:(int c) -> int c t
+  val int_uniform_inclusive : lo:(int c) -> hi:(int c) -> int c t
+  val int_log_uniform_inclusive : lo:(int c) -> hi:(int c) -> int c t
+  val int_log_inclusive : lo:(int c) -> hi:(int c) -> int c t
+
+  val float : lo:(float c) -> hi:(float c) -> float c t
 
   val weighted_union : (float c * 'a c t) list -> 'a c t
   val union : 'a t list -> 'a t

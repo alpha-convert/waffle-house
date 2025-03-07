@@ -119,17 +119,7 @@ let split_int cn = {
         Codecps.let_insert (R.bool random_c)
   }
 
-  let int ~(lo : int code) ~(hi : int code) : int code t = {
-    rand_gen =
-      fun ~size_c:_ ~random_c ->
-        Codecps.let_insert (R.int random_c ~lo:lo ~hi:hi)
-  }
-
-let int_log_uniform ~(lo : int code) ~(hi : int code) : int code t = {
-    rand_gen =
-      fun ~size_c:_ ~random_c ->
-        Codecps.let_insert (R.Log_uniform.int random_c ~lo:lo ~hi:hi)
-  }
+  
 
   let float ~(lo : float code) ~(hi : float code) : float code t = {
     rand_gen =
@@ -188,6 +178,40 @@ let int_log_uniform ~(lo : int code) ~(hi : int code) : int code t = {
         (genpick n ws').rand_gen ~size_c ~random_c
     }
 
+let int_uniform_inclusive ~(lo : int code) ~(hi : int code) : int code t = {
+    rand_gen =
+      fun ~size_c:_ ~random_c ->
+        Codecps.let_insert (R.int random_c ~lo:lo ~hi:hi)
+  }
+
+  let int_log_uniform_inclusive ~(lo : int code) ~(hi : int code) : int code t = {
+    rand_gen =
+      fun ~size_c:_ ~random_c ->
+        Codecps.let_insert (R.Log_uniform.int random_c ~lo:lo ~hi:hi)
+  }
+
+  let non_uniform f ~lo ~hi =
+    weighted_union [ .< 0.05 >., return lo; .<0.05>., return hi; .<0.9>., f ~lo ~hi ]
+  
+  let int_inclusive = non_uniform int_uniform_inclusive
+  let int_log_inclusive = non_uniform int_log_uniform_inclusive
+  let uniform_all = int_uniform_inclusive ~lo:.<Int.min_int>. ~hi:.<Int.max_int>.
+
+  let int_uniform = uniform_all
+
+  let int =
+    bind bool ~f:(fun negative ->
+        bind (int_log_inclusive ~lo:.<0>. ~hi:.<Int.max_int>.) ~f:(fun magnitude ->
+          bind (split_bool negative) ~f:(fun b ->
+            if b then return .<lnot .~magnitude>. else return magnitude
+          )
+        )
+    )
+    (* let all =
+      [%map
+        let negative = bool
+        and magnitude = log_inclusive Integer.zero Integer.max_value in
+        if negative then Integer.bit_not magnitude else magnitude] *)
 
   let of_list (xs : 'a list) : 'a t =
     let n = List.length xs - 1 in
@@ -202,7 +226,7 @@ let int_log_uniform ~(lo : int code) ~(hi : int code) : int code t = {
               (go i_pred xs).rand_gen ~size_c ~random_c
         }
     in
-    bind (int ~lo:.<0>. ~hi:.<n>.) ~f:(fun i ->
+    bind (int_uniform_inclusive ~lo:.<0>. ~hi:.<n>.) ~f:(fun i ->
       go i xs
     )
 
@@ -223,7 +247,7 @@ let int_log_uniform ~(lo : int code) ~(hi : int code) : int code t = {
     rand_gen = fun ~size_c ~random_c ->
       Codecps.bind (Codecps.let_insert cxs) @@ fun cxs ->
       Codecps.bind (Codecps.let_insert .<List.length .~cxs - 1>.) @@ fun n ->
-      Codecps.bind ((int ~lo:.<0>. ~hi:.<.~n>.).rand_gen ~size_c ~random_c) @@ fun i ->
+      Codecps.bind ((int_uniform_inclusive ~lo:.<0>. ~hi:.<.~n>.).rand_gen ~size_c ~random_c) @@ fun i ->
       Codecps.return .<
         if .~n < 0 then failwith "of_list_dn passed empty list" else .~of_list_dyn_loop .~cxs .~i
       >.
@@ -265,17 +289,9 @@ let int_log_uniform ~(lo : int code) ~(hi : int code) : int code t = {
           >.
     }
     in
-      (* permute the array so that no index is favored over another
-      for i = 0 to max_index - 1 do
-        let j = Splittable_random.int random ~lo:i ~hi:max_index in
-        Array.swap sizes i j
-      done;
-      assert (Array.sum (module Int) sizes ~f:Fn.id + (len - min_length) = size);
-      Array.to_list sizes)) *)
-
 
     bind size ~f:(fun sz ->
-      bind (int_log_uniform ~lo:.<0>. ~hi:sz) ~f:(fun len -> 
+      bind (int_log_uniform_inclusive ~lo:.<0>. ~hi:sz) ~f:(fun len -> 
         bind (split_int len) ~f:(fun slen ->
           match slen with
           | `Z -> return .<[]>.
@@ -283,11 +299,6 @@ let int_log_uniform ~(lo : int code) ~(hi : int code) : int code t = {
         )
       )
     )
-    (* pick a length, weighted low so that most of the size is spent on elements *)
-    (* bind (return .<[1;2;3]>.) ~f:(fun sizes -> *)
-      (* all ( *)
-    (* ) *)
-
 
   let if_z cx gz gsucc =
     bind (split_int cx) ~f:(function

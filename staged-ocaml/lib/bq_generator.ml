@@ -51,8 +51,14 @@ let jit ?extra_cmi_paths:_ g = g
 let union = Base_quickcheck.Generator.union
 let of_list = Base_quickcheck.Generator.of_list
 let of_list_dyn = Base_quickcheck.Generator.of_list
-let int ~lo ~hi = Base_quickcheck.Generator.int_uniform_inclusive lo hi
-let int_log_uniform ~lo ~hi = Base_quickcheck.Generator.int_log_uniform_inclusive lo hi
+let int = Base_quickcheck.Generator.int
+let int_uniform = Base_quickcheck.Generator.int_uniform
+let int_inclusive ~lo ~hi = Base_quickcheck.Generator.int_inclusive lo hi
+let int_uniform_inclusive ~lo ~hi = Base_quickcheck.Generator.int_uniform_inclusive lo hi
+let int_log_uniform_inclusive ~lo ~hi = Base_quickcheck.Generator.int_log_uniform_inclusive lo hi
+let int_log_inclusive ~lo ~hi = Base_quickcheck.Generator.int_log_inclusive lo hi
+
+
 let float ~lo ~hi = Base_quickcheck.Generator.float_uniform_exclusive lo hi
 (* let float ~lo ~hi = Base_quickcheck.Generator.float_uniform_exclusive lo hi *)
 let bool = Base_quickcheck.Generator.bool
