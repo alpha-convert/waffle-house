@@ -133,6 +133,27 @@ module IntList : TestCase = struct
   end
 end
 
+module IntUIList : TestCase = struct
+  type t = int list [@@deriving eq, show]
+  module F (G : Generator_intf.S) = struct
+    open G
+    open G.Let_syntax
+    open C
+    let gen = 
+      recursive (lift ()) (fun go _ ->
+        let%bind cs = size in
+          weighted_union [
+            (lift 1., return (lift []));
+            (i2f cs ,
+              let%bind x = int_uniform_inclusive ~lo:(lift 0) ~hi:(lift 100) in
+              let%bind xs =  with_size ~size_c:(pred cs) @@ recurse go (lift ()) in
+              return (cons x xs)
+            );
+          ]
+      )
+  end
+end
+
 module BoolList : TestCase = struct
   type t = bool list [@@deriving eq, show]
   module F (G : Generator_intf.S) = struct
@@ -291,13 +312,35 @@ module G_C_SR = Staged_generator.MakeStaged(C_sr_dropin_random)
 module Bm = Benchmark
 
 let () =
-  let module TC = IntRange in
+  let module TC = IntList in
+  let module M1 = TC.F(G_Bq) in
+  let module M2 = TC.F(G_C) in
+  let module M3 = TC.F(G_SR) in
+  let g1 = M1.gen in
+  let g2 = G_C.jit M2.gen in
+  let g3 = G_SR.jit M3.gen in
+  Benchmark.bm ~bench_name:"Int list (uniform inclusive)" ~named_gens:["BQ",g1; "Staged C",g2; "Staged SR", g3] ~sizes:[10;50;100;1000] ~num_calls:5000
+
+
+let () =
+  let module TC = IntUIList in
   let module M1 = TC.F(G_Bq) in
   let module M2 = TC.F(G_SR) in
   let g1 = M1.gen in
   let g2 = G_SR.jit M2.gen in
   let () = G_SR.print M2.gen in
-  Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged",g2] ~sizes:[15] ~num_calls:5000
+  Benchmark.bm ~bench_name:"Int list (uniform inclusive)" ~named_gens:["BQ",g1; "Staged SR",g2] ~sizes:[10;50;100;1000] ~num_calls:5000
+
+let () =
+  let module TC = IntTC in
+  let module M1 = TC.F(G_Bq) in
+  let module M2 = TC.F(G_C) in
+  let g1 = M1.gen in
+  let g2 = G_C.jit M2.gen in
+  let () = G_C.print M2.gen in
+  Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged C",g2] ~sizes:[10;50;100;1000] ~num_calls:5000
+
+
 
 let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/"
 
