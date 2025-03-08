@@ -1,7 +1,17 @@
 (test
 (preprocess (pps ppx_jane ppx_deriving.eq ppx_deriving.show))
  (libraries fast_gen alcotest core core_bench)
+<<<<<<< HEAD
  (name test_fast_gen)
  (link_flags -linkall)
  )
 (include_subdirs unqualified)
+=======
+ (name test_fast_gen))
+(include_subdirs unqualified)
+
+(env
+ (dev
+  (flags
+   (:standard -g -w "-26-27-32-33-34-37-39"))))
+>>>>>>> 8cbd58f (blah)

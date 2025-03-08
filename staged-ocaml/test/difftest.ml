@@ -1,5 +1,6 @@
 open Fast_gen;;
 open Core;;
+open Core_bench;;
 
 module type TestCase = sig
   type t [@@deriving eq, show]
