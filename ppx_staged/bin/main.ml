@@ -8,6 +8,28 @@ open Core_bench;;
 
 module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 module G_BQ = Fast_gen.Bq_generator
+
+let quickcheck_generator_int_new = Base_quickcheck.Generator.int_uniform_inclusive Int.min_value Int.max_value
+
+type t = (int [@quickcheck.generator quickcheck_generator_int_new]) * (int [@quickcheck.generator quickcheck_generator_int_new]) [@@deriving wh, quickcheck, sexp]
+
+let () =
+  let generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (staged_quickcheck_generator) in
+  let () = G_SR.print staged_quickcheck_generator in  
+  let random_a = Splittable_random.State.of_int 0 in
+  let random_b = Splittable_random.State.of_int 0 in
+  let size = 10 in
+  for _ = 1 to 10 do
+    printf "\n";
+    printf "\n";
+    let quickc_values = Base_quickcheck.Generator.generate quickcheck_generator ~size ~random:random_a in
+    let staged_values = Base_quickcheck.Generator.generate generator ~size ~random:random_b in
+    printf "========== quickcheck_generator ==========\n";
+    printf "%s\n" (Sexp.to_string_hum (sexp_of_t quickc_values));
+    printf "========= Staged generator ==========\n";
+    printf "%s\n" (Sexp.to_string_hum (sexp_of_t staged_values))
+  done
+
 (*
 let () =
   let generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_list_generator.staged_quickcheck_generator) in
@@ -26,21 +48,21 @@ let () =
     printf "%s\n" (Sexp.to_string_hum (My_list.sexp_of_t staged_values))
   done
 *)
-
+(*
 let () =
   let qc_generator = My_list.quickcheck_generator in
   let st_generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_list_generator.staged_quickcheck_generator) in
   Bench.bench
-    ~run_config:(Bench.Run_config.create ~quota:(Bench.Quota.Num_calls 5000) ())
+    ~run_config:(Bench.Run_config.create ~quota:(Bench.Quota.Num_calls 10000) ())
     [
-      Bench.Test.create_indexed ~name:"quickcheck" ~args:[10; 50; 100; 1000; 10000] (
-        fun n -> Staged.stage @@ fun () -> Quickcheck.random_value ~seed:`Nondeterministic ~size:n qc_generator
+      Bench.Test.create_indexed ~name:"quickcheck" ~args:[10000] (
+        fun n -> Staged.stage @@ fun () -> Quickcheck.random_value ~seed:(`Deterministic "a") ~size:n qc_generator
       );
-      Bench.Test.create_indexed ~name:"staged" ~args:[10; 50; 100; 1000; 10000] (
-        fun n -> Staged.stage @@ fun () -> Quickcheck.random_value ~seed:`Nondeterministic ~size:n st_generator
+      Bench.Test.create_indexed ~name:"staged" ~args:[10000] (
+        fun n -> Staged.stage @@ fun () -> Quickcheck.random_value ~seed:(`Deterministic "a")  ~size:n st_generator
       );
     ]
-
+*)
 (*
 let () =
   let st_generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] Variant_generator.quickcheck_generator in

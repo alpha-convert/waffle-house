@@ -3,9 +3,10 @@ open Fast_gen;;
 open Ppx_staged_expander;;
 open My_tree;;
 open Sexplib;;
-module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 open Sexplib0.Sexp_conv;;
 open Base;;
+
+module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 
 let staged_quickcheck_generator =
   G_SR.recursive (G_SR.C.lift ())

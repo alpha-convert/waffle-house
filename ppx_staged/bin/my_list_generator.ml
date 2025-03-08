@@ -1,6 +1,5 @@
 open Stdio
 open Fast_gen;;
-open Ppx_staged_expander;;
 open My_list;;
 module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 
@@ -11,7 +10,7 @@ let staged_quickcheck_generator =
          let _pair__004_ =
            ((.< 1.  >.), (G_SR.return (.< Empty  >.)))
          and _pair__005_ =
-           ((.< 1.  >.),
+           ((.< 10000.  >.),
              (G_SR.bind G_SR.size
                 ~f:(fun _size__001_ ->
                       G_SR.with_size
