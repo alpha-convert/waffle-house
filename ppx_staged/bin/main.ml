@@ -8,7 +8,7 @@ open Core_bench;;
 
 module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 module G_BQ = Fast_gen.Bq_generator
-
+(*
 let quickcheck_generator_int_new = Base_quickcheck.Generator.int_uniform_inclusive Int.min_value Int.max_value
 
 type t = (int [@quickcheck.generator quickcheck_generator_int_new]) * (int [@quickcheck.generator quickcheck_generator_int_new]) [@@deriving wh, quickcheck, sexp]
@@ -29,7 +29,12 @@ let () =
     printf "========= Staged generator ==========\n";
     printf "%s\n" (Sexp.to_string_hum (sexp_of_t staged_values))
   done
-
+*)
+(*
+type t =
+| E
+| T of t * int * int * t [@@deriving wh, quickcheck, sexp]
+*)
 (*
 let () =
   let generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_list_generator.staged_quickcheck_generator) in
@@ -102,14 +107,14 @@ let () =
     printf "%s\n" (Sexp.to_string_hum (sexp_of_t st))
   done
 *)
-(*
+
 let () =
   let generator = G_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_tree_generator.staged_quickcheck_generator) in
   let () = G_SR.print (My_tree_generator.staged_quickcheck_generator) in  
   let random_a = Splittable_random.State.of_int 0 in
   let random_b = Splittable_random.State.of_int 0 in
   let size = 10 in
-  for _ = 1 to 10 do
+  for _ = 1 to 1 do
     printf "\n";
     printf "\n";
     let quickc_values = Base_quickcheck.Generator.generate My_tree.quickcheck_generator ~size ~random:random_a in
@@ -119,4 +124,3 @@ let () =
     printf "========= Staged generator ==========\n";
     printf "%s\n" (Sexp.to_string_hum (My_tree_generator.sexp_of_t staged_values))
   done
-*)

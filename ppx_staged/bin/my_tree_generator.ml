@@ -15,7 +15,7 @@ let staged_quickcheck_generator =
          let _pair__004_ =
            ((.< 1.  >.), (G_SR.return (.< E  >.)))
          and _pair__005_ =
-           ((.< 1.  >.),
+           ((.< 2.  >.),
              (G_SR.bind G_SR.size
                 ~f:(fun _size__001_ ->
                       G_SR.with_size
@@ -23,9 +23,19 @@ let staged_quickcheck_generator =
                         (G_SR.bind
                            (G_SR.recurse go (G_SR.C.lift ()))
                            ~f:(fun _x__006_ ->
-                                 G_SR.bind G_SR.int
+                                 G_SR.bind
+                                   (G_SR.int_uniform_inclusive
+                                      ~lo:(G_SR.C.lift
+                                             Int.min_value)
+                                      ~hi:(G_SR.C.lift
+                                             Int.max_value))
                                    ~f:(fun _x__007_ ->
-                                         G_SR.bind G_SR.int
+                                         G_SR.bind
+                                           (G_SR.int_uniform_inclusive
+                                              ~lo:(G_SR.C.lift
+                                                     Int.min_value)
+                                              ~hi:(G_SR.C.lift
+                                                     Int.max_value))
                                            ~f:(fun _x__008_ ->
                                                  G_SR.bind
                                                    (G_SR.recurse
