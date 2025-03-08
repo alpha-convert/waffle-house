@@ -6,5 +6,5 @@ open Ppx_staged_expander;;
 open Base_quickcheck;;
 
 type t =
-| Empty
-| Cons of bool * t [@@deriving quickcheck, sexp]
+| Empty [@quickcheck.weight 1.]
+| Cons of bool * t [@quickcheck.weight 10000.] [@@deriving quickcheck, sexp]
