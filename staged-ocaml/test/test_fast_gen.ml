@@ -133,6 +133,48 @@ module IntList : TestCase = struct
   end
 end
 
+module IntUIList : TestCase = struct
+  type t = int list [@@deriving eq, show]
+  module F (G : Generator_intf.S) = struct
+    open G
+    open G.Let_syntax
+    open C
+    let gen = 
+      recursive (lift ()) (fun go _ ->
+        let%bind cs = size in
+          weighted_union [
+            (lift 1., return (lift []));
+            (i2f cs ,
+              let%bind x = int_uniform_inclusive ~lo:(lift 0) ~hi:(lift 100) in
+              let%bind xs =  with_size ~size_c:(pred cs) @@ recurse go (lift ()) in
+              return (cons x xs)
+            );
+          ]
+      )
+  end
+end
+
+module BoolList : TestCase = struct
+  type t = bool list [@@deriving eq, show]
+  module F (G : Generator_intf.S) = struct
+    open G
+    open G.Let_syntax
+    open C
+    let gen = 
+      recursive (lift ()) (fun go _ ->
+        let%bind cs = size in
+          weighted_union [
+            (lift 1., return (lift []));
+            (i2f cs ,
+              let%bind x = bool in
+              let%bind xs =  with_size ~size_c:(pred cs) @@ recurse go (lift ()) in
+              return (cons x xs)
+            );
+          ]
+      )
+  end
+end
+
 module ConstFalseListCombinator : TestCase = struct
   type t = bool list [@@deriving eq, show]
   module F (G : Generator_intf.S) = struct
@@ -267,20 +309,145 @@ module G_SR = Staged_generator.MakeStaged(Sr_random)
 module G_C = Staged_generator.MakeStaged(C_random)
 module G_C_SR = Staged_generator.MakeStaged(C_sr_dropin_random)
 
+module Bm = Benchmark
+
+let () =
+  let module TC = IntList in
+  let module M1 = TC.F(G_Bq) in
+  let module M2 = TC.F(G_C) in
+  let module M3 = TC.F(G_SR) in
+  let g1 = M1.gen in
+  let g2 = G_C.jit M2.gen in
+  let g3 = G_SR.jit M3.gen in
+  Benchmark.bm ~bench_name:"Int list" ~named_gens:["BQ",g1; "Staged C",g2; "Staged SR", g3] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000
+
+
+let () =
+  let module TC = IntUIList in
+  let module M1 = TC.F(G_Bq) in
+  let module M2 = TC.F(G_SR) in
+  let module M3 = TC.F(G_C_SR) in
+  let module M4 = TC.F(G_C) in
+  let g1 = M1.gen in
+  let g2 = G_SR.jit M2.gen in
+  let g3 = G_C_SR.jit M3.gen in
+  let g4 = G_C.jit M4.gen in
+  Benchmark.bm ~bench_name:"Int list (uniform inclusive)" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged CSR",g3; "Staged C", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000
+
+let () =
+  let module TC = IntTC in
+  let module M1 = TC.F(G_Bq) in
+  let module M2 = TC.F(G_C) in
+  let module M3 = TC.F(G_SR) in
+  let g1 = M1.gen in
+  let g2 = G_C.jit M2.gen in
+  let g3 = G_SR.jit M3.gen in
+  Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged C",g2; "Staged SR", g3] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:100000
+
+
+
 let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/"
 
-let stlc_test =
+(* let stlc_test =
   let g1 = Stlc_gen_bq.genExpr in
   let g2 = G_SR.jit ~extra_cmi_paths:[path] Stlc_gen_st.genExpr in
   Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ Expr.show v1 ^ "\nST: " ^ Expr.show v2 ^"\n") Expr.equal g1 g2
 
+let g1 = Base_quickcheck.Generator.create
+(fun ~size:size_26 ->
+   fun ~random:random_27 ->
+     let t_28 = Obj.magic 0 in
+     let t_50 =
+       let rec go_29 x_30 ~size:size_31  ~random:random_32  =
+         if size_31 = 0
+         then
+           let t_44 = 0. +. 1. in
+           let t_45 = Base.Float.one_ulp `Up 0. in
+           let t_46 = Base.Float.one_ulp `Down t_44 in
+           let t_47 = Splittable_random.float random_32 ~lo:t_45 ~hi:t_46 in
+           let t_48 = (Stdlib.Float.compare t_47 1.) <= 0 in
+           (if t_48
+            then []
+            else
+              (let t_49 = t_47 -. 1. in
+               Stdlib.failwith "Fell of the end of pick list"))
+         else
+           (let t_33 = 0. +. 1. in
+            let t_34 = t_33 +. 100. in
+            let t_35 = Base.Float.one_ulp `Up 0. in
+            let t_36 = Base.Float.one_ulp `Down t_34 in
+            let t_37 = Splittable_random.float random_32 ~lo:t_35 ~hi:t_36 in
+            let t_38 = (Stdlib.Float.compare t_37 1.) <= 0 in
+            if t_38
+            then []
+            else
+              (let t_39 = t_37 -. 1. in
+               let t_40 = (Stdlib.Float.compare t_39 100.) <= 0 in
+               if t_40
+               then
+                 let t_42 =
+                   go_29 (Obj.magic 0) ~size:(size_31 - 1)
+                     ~random:random_32 in
+                 let t_43 = Splittable_random.bool random_32 in
+                 (t_43 :: t_42)
+               else
+                 (let t_41 = t_39 -. 100. in
+                  Stdlib.failwith "Fell of the end of pick list"))) in
+       go_29 t_28 ~size:size_26 ~random:random_27 in
+     t_50)
 
-  module M = BoolListCombinator.F(G_SR)
-  let () = G_SR.print M.gen
+let g2 =
+      let rec quikckcheck_generator =
+        lazy
+          (let quickcheck_generator =
+             Ppx_quickcheck_runtime.Base_quickcheck.Generator.of_lazy
+               quickcheck_generator in
+           ignore quickcheck_generator;
+           (let _pair__011_ =
+              (1.,
+                (Ppx_quickcheck_runtime.Base_quickcheck.Generator.create
+                   (fun ~size:_size__015_ ->
+                      fun ~random:_random__016_ -> [])))
+            and _pair__012_ =
+              (100.,
+                (Ppx_quickcheck_runtime.Base_quickcheck.Generator.bind
+                   Ppx_quickcheck_runtime.Base_quickcheck.Generator.size
+                   ~f:(fun _size__008_ ->
+                         Ppx_quickcheck_runtime.Base_quickcheck.Generator.with_size
+                           ~size:(Ppx_quickcheck_runtime.Base.Int.pred
+                                    _size__008_)
+                           (Ppx_quickcheck_runtime.Base_quickcheck.Generator.create
+                              (fun ~size:_size__013_ ->
+                                 fun ~random:_random__014_ ->
+                                   
+                                     ((Ppx_quickcheck_runtime.Base_quickcheck.Generator.generate
+                                        Base_quickcheck.quickcheck_generator_bool
+                                         ~size:_size__013_
+                                         ~random:_random__014_) ::
+                                       (Ppx_quickcheck_runtime.Base_quickcheck.Generator.generate
+                                          quickcheck_generator
+                                          ~size:_size__013_
+                                          ~random:_random__014_))))))) in
+            let _gen__009_ =
+              Ppx_quickcheck_runtime.Base_quickcheck.Generator.weighted_union
+                [_pair__011_]
+            and _gen__010_ =
+              Ppx_quickcheck_runtime.Base_quickcheck.Generator.weighted_union
+                [_pair__011_; _pair__012_] in
+            Ppx_quickcheck_runtime.Base_quickcheck.Generator.bind
+              Ppx_quickcheck_runtime.Base_quickcheck.Generator.size
+              ~f:(function | 0 -> _gen__009_ | _ -> _gen__010_))) in
+      Ppx_quickcheck_runtime.Base_quickcheck.Generator.of_lazy
+        quickcheck_generator
 
+let bl2s xs = "[" ^ (String.concat "," (List.map Bool.to_string xs)) ^ "]"
+
+let derived_testcase = Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ bl2s v1 ^ "\nST: " ^ bl2s v2 ^"\n") (List.equal Bool.equal) g1 g2 *)
+(* 
 let () =
   let open Alcotest in
   run "Staged Generators" [
+    (* "Derived", [derived_testcase] *)
     "Effect Ordering", [
       (let open MakeDiffTest(BindOrder)(G_Bq)(G_SR) in alco ~config:qc_cfg "Bind Ordering Staging");
       (let open MakeDiffTest(ChooseTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "Choose Correctness");
@@ -297,8 +464,7 @@ let () =
       (let open MakeDiffTest(BoolListListCombinator)(G_Bq)(G_SR) in alco ~config:qc_cfg "Bool List List Combinator Generator");
       (let open MakeDiffTest(AA)(G_Bq)(G_SR) in alco ~config:qc_cfg "Swing generator");
       (let open MakeDiffTest(BB)(G_Bq)(G_SR) in alco ~config:qc_cfg "Unused bind-to-union");
-      
-      (* stlc_test; *)
+            (* stlc_test; *)
     ];
     "RNG Bool Equivalence", [
       (let open MakeDiffTest(BoolTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
@@ -351,4 +517,4 @@ let () =
       (let open MakeDiffTest(FloatTC)(G_C_SR)(G_SR) in alco ~config:qc_cfg "Float Simple -- Staged_C_SR/Staged_SR");
       (* (let open MakeDiffTest(BB)(G_SR)(G_C) in alco ~config:qc_cfg "Union -- BQ/Staged_C"); *)
     ] *)
-  ]
+  ] *)
