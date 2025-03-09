@@ -39,3 +39,29 @@ let take_snapshot_with_time_and_arg tsc i =
 ;;
 
 let take_snapshot () = take_snapshot_with_arg 0
+
+open Core_bench
+
+let wait_for_enter () =
+  Printf.printf "Press Enter to continue when MT attached...";
+  Out_channel.flush stdout;
+  let _ = In_channel.input_line In_channel.stdin in
+  ()
+
+let under_bm ~name ~gen ~size ~num_calls ~seed ~min_dur_to_trigger =
+  wait_for_enter ();
+  Bench.bench
+  ~run_config:(Bench.Run_config.create ~quota:(Bench.Quota.Num_calls num_calls) ())
+  @@
+  [
+    let random = Splittable_random.State.of_int seed in
+    Bench.Test.create ~name @@ fun () ->
+      mark_start();
+      ignore (Base_quickcheck.Generator.generate gen ~size:size ~random:random);
+      if Min_duration.over min_dur_to_trigger then take_snapshot ()
+
+    ]
+    (* Bench.Test.create_parameterised ~name:(bench_name ^ "_" ^ gen_name) ~args:(List.map ~f:(fun (sz,sd) -> ("n=" ^ Int.to_string sz ^ ",r=" ^ Int.to_string sd,(sz,sd))) @@ cartesian sizes seeds) @@ *)
+      (* fun (size,seed) -> *)
+        (* Staged.stage @@ fun () -> *)
+          (* ignore (Base_quickcheck.Generator.generate g ~size:size ~random:random); *)

@@ -321,6 +321,11 @@ let () =
   let g3 = G_SR.jit M3.gen in
   Benchmark.bm ~bench_name:"Int list" ~named_gens:["BQ",g1; "Staged C",g2; "Staged SR", g3] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000
 
+let () =
+  let module TC = IntUIList in
+  let module M2 = TC.F(G_C_SR) in
+  let g = G_C_SR.jit M2.gen in
+  Magic_trace.under_bm ~name:"Int UI List Staged CSR MT" ~gen:g ~size:1000 ~seed:100 ~num_calls:10000 ~min_dur_to_trigger:(Magic_trace.Min_duration.of_ns 40_000)
 
 let () =
   let module TC = IntUIList in

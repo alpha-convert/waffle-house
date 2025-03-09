@@ -55,3 +55,5 @@ The MT library is not importable with MetaOcaml
     module Private : sig
       val stop_symbol : string
     end
+
+    val under_bm : name:string -> gen:('a Base_quickcheck.Generator.t) -> size:int -> num_calls:int -> seed:int -> min_dur_to_trigger:Min_duration.t -> unit
