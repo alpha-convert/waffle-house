@@ -8,7 +8,25 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "common.h"
+static inline int64_t mix_bits(int64_t z, int64_t n) {
+  return z ^ ((uint64_t) z >> n);
+}
+
+static inline int64_t mix64(int64_t z) {
+  z = mix_bits(z,33) * 0xff51afd7ed558ccdL;
+  z = mix_bits(z,33) * 0xc4ceb9fe1a85ec53L;
+  return mix_bits(z, 33);
+}
+
+static inline bool remainder_is_unbiased(int64_t draw, int64_t remainder, int64_t draw_max, int64_t remainder_max){
+  return (draw - remainder <= draw_max - remainder_max);
+}
+
+static inline double unit_float_from_int64(int64_t n){
+  return ((uint64_t) n >> 11) * pow(2,-53);
+}
+
+
 
 
 /*
@@ -102,14 +120,21 @@ CAMLprim value bool_c_sr(value sr_state_val) {
   CAMLreturn(Val_bool(next_bool_sr(st)));
 }
 
-CAMLprim value float_c_sr_unchecked(value sr_state_val, value lo_val, value hi_val){
+
+
+CAMLprim double float_c_sr_unchecked_unboxed(value sr_state_val, value lo_val, value hi_val){
   CAMLparam3(sr_state_val,lo_val,hi_val);
   state_t* st = (state_t*) alloca(sizeof(state_t));
   fill_from_value(sr_state_val,st);
   double lo = Double_val(lo_val);
   double hi = Double_val(hi_val);
   double result = next_float_sr(st,lo,hi);
-  CAMLreturn(caml_copy_double(result));
+  CAMLreturn(result);
+}
+
+CAMLprim value float_c_sr_unchecked(value sr_state_val, value lo_val, value hi_val){
+  CAMLparam3(sr_state_val,lo_val,hi_val);
+  CAMLreturn(caml_copy_double(float_c_sr_unchecked_unboxed(sr_state_val,lo_val,hi_val)));
 }
 
 CAMLprim value int_c_sr_unchecked(value sr_state_val, value lo_val, value hi_val) {

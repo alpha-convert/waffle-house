@@ -322,11 +322,10 @@ module Bm = Benchmark
   Benchmark.bm ~bench_name:"Int list" ~named_gens:["BQ",g1; "Staged C",g2; "Staged SR", g3] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000
 *)
 
-
-let () =
+(* let () =
   let module TC = IntUIList in
   let module M2 = TC.F(G_C_SR) in
-  let g_c_sr = Base_quickcheck.Generator.create
+  let g = Base_quickcheck.Generator.create
   (fun ~size:size_22 ->
      fun ~random:random_23 ->
        let t_24 = Obj.magic 0 in
@@ -371,9 +370,10 @@ let () =
                 (let t_39 = t_37 -. t_30 in
                  Stdlib.failwith "Fell of the end of pick list")) in
          go_25 t_24 ~size:size_22 ~random:random_23 in
-       t_42) in
-  Magic_trace.under_bm ~name:"Int UI List Staged CSR MT" ~gen:g ~size:1000 ~seed:100 ~num_calls:10000 ~min_dur_to_trigger:(Magic_trace.Min_duration.of_ns 10000000000)
-(* 
+       t_42)
+              in
+  Magic_trace.under_bm ~name:"Int UI List Staged SR MT" ~gen:g ~size:1000 ~seed:100 ~num_calls:10000 ~min_dur_to_trigger:(Magic_trace.Min_duration.of_ns 10000000000) *)
+
 let () =
   let module TC = IntUIList in
   let module M1 = TC.F(G_Bq) in
@@ -385,7 +385,7 @@ let () =
   let g3 = G_C_SR.jit M3.gen in
   let g4 = G_C.jit M4.gen in
   Benchmark.bm ~bench_name:"Int list (uniform inclusive)" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged CSR",g3; "Staged C", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000
- *)
+
 (* let () =
   let module TC = IntTC in
   let module M1 = TC.F(G_Bq) in
