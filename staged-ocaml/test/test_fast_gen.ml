@@ -386,7 +386,7 @@ let () =
   let g4 = G_C.jit M4.gen in
   Benchmark.bm ~bench_name:"Int list (uniform inclusive)" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged CSR",g3; "Staged C", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000
 
-(* let () =
+let () =
   let module TC = IntTC in
   let module M1 = TC.F(G_Bq) in
   let module M2 = TC.F(G_C) in
@@ -394,7 +394,7 @@ let () =
   let g1 = M1.gen in
   let g2 = G_C.jit M2.gen in
   let g3 = G_SR.jit M3.gen in
-  Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged C",g2; "Staged SR", g3] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:100000 *)
+  Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged C",g2; "Staged SR", g3] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:100000
 
 
 

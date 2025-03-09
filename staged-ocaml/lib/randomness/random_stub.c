@@ -141,13 +141,18 @@ CAMLprim value bool_c(value state_val) {
   CAMLreturn(Val_bool(next_bool(&st)));
 }
 
-CAMLprim value float_c_unchecked(value state_val, value lo_val, value hi_val){
+CAMLprim double float_c_unchecked_unboxed(value state_val, value lo_val, value hi_val){
   CAMLparam3(state_val,lo_val,hi_val);
   state_t st = State_val(state_val);
   double lo = Double_val(lo_val);
   double hi = Double_val(hi_val);
   double result = next_float(&st,lo,hi);
-  CAMLreturn(caml_copy_double(result));
+  CAMLreturn(result);
+}
+
+CAMLprim value float_c_unchecked(value state_val, value lo_val, value hi_val){
+  CAMLparam3(state_val,lo_val,hi_val);
+  CAMLreturn(caml_copy_double(float_c_unchecked_unboxed(state_val,lo_val,hi_val)));
 }
 
 CAMLprim value int_c_unchecked(value state_val, value lo_val, value hi_val) {
