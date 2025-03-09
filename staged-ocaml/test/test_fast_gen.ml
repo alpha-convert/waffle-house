@@ -311,7 +311,7 @@ module G_C_SR = Staged_generator.MakeStaged(C_sr_dropin_random)
 
 module Bm = Benchmark
 
-let () =
+(* let () =
   let module TC = IntList in
   let module M1 = TC.F(G_Bq) in
   let module M2 = TC.F(G_C) in
@@ -320,13 +320,60 @@ let () =
   let g2 = G_C.jit M2.gen in
   let g3 = G_SR.jit M3.gen in
   Benchmark.bm ~bench_name:"Int list" ~named_gens:["BQ",g1; "Staged C",g2; "Staged SR", g3] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000
+*)
+
 
 let () =
   let module TC = IntUIList in
   let module M2 = TC.F(G_C_SR) in
-  let g = G_C_SR.jit M2.gen in
-  Magic_trace.under_bm ~name:"Int UI List Staged CSR MT" ~gen:g ~size:1000 ~seed:100 ~num_calls:10000 ~min_dur_to_trigger:(Magic_trace.Min_duration.of_ns 40_000)
-
+  let g_c_sr = Base_quickcheck.Generator.create
+  (fun ~size:size_22 ->
+     fun ~random:random_23 ->
+       let t_24 = Obj.magic 0 in
+       let t_42 =
+         let rec go_25 x_26 ~size:size_27  ~random:random_28  =
+           let t_29 = Obj.magic 1. in
+           let t_30 = Stdlib.Float.of_int size_27 in
+           let t_31 = 0. +. t_29 in
+           let t_32 = t_31 +. t_30 in
+           let t_33 = Base.Float.one_ulp `Up 0. in
+           let t_34 = Base.Float.one_ulp `Down t_32 in
+           let t_35 =
+             if t_33 > t_34
+             then Stdlib.failwith "Crossed bounds!"
+             else
+               if
+                 Stdlib.not
+                   ((Stdlib.Float.is_finite t_33) &&
+                      (Stdlib.Float.is_finite t_34))
+               then Stdlib.failwith "Infite floats"
+               else
+                 Fast_gen.C_sr_dropin_random_runtime.float_c_unchecked
+                   random_28 t_33 t_34 in
+           let t_36 = (Stdlib.Float.compare t_35 t_29) <= 0 in
+           if t_36
+           then Obj.magic 0
+           else
+             (let t_37 = t_35 -. t_29 in
+              let t_38 = (Stdlib.Float.compare t_37 t_30) <= 0 in
+              if t_38
+              then
+                let t_40 =
+                  if (Obj.magic 0) > (Obj.magic 100)
+                  then Stdlib.failwith "Crossed bounds!"
+                  else
+                    Fast_gen.C_sr_dropin_random_runtime.int_c_unchecked
+                      random_28 (Obj.magic 0) (Obj.magic 100) in
+                let t_41 =
+                  go_25 (Obj.magic 0) ~size:(size_27 - 1) ~random:random_28 in
+                t_40 :: t_41
+              else
+                (let t_39 = t_37 -. t_30 in
+                 Stdlib.failwith "Fell of the end of pick list")) in
+         go_25 t_24 ~size:size_22 ~random:random_23 in
+       t_42) in
+  Magic_trace.under_bm ~name:"Int UI List Staged CSR MT" ~gen:g ~size:1000 ~seed:100 ~num_calls:10000 ~min_dur_to_trigger:(Magic_trace.Min_duration.of_ns 10000000000)
+(* 
 let () =
   let module TC = IntUIList in
   let module M1 = TC.F(G_Bq) in
@@ -338,8 +385,8 @@ let () =
   let g3 = G_C_SR.jit M3.gen in
   let g4 = G_C.jit M4.gen in
   Benchmark.bm ~bench_name:"Int list (uniform inclusive)" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged CSR",g3; "Staged C", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000
-
-let () =
+ *)
+(* let () =
   let module TC = IntTC in
   let module M1 = TC.F(G_Bq) in
   let module M2 = TC.F(G_C) in
@@ -347,7 +394,7 @@ let () =
   let g1 = M1.gen in
   let g2 = G_C.jit M2.gen in
   let g3 = G_SR.jit M3.gen in
-  Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged C",g2; "Staged SR", g3] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:100000
+  Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged C",g2; "Staged SR", g3] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:100000 *)
 
 
 
