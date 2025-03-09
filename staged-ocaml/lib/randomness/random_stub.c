@@ -145,6 +145,7 @@ CAMLprim double float_c_unchecked_unboxed(value state_val, double lo, double hi)
   CAMLparam1(state_val);
   state_t st = State_val(state_val);
   double result = next_float(&st,lo,hi);
+  printf("RESULT: %f\n",result);
   CAMLreturn(result);
 }
 
@@ -224,21 +225,33 @@ CAMLprim value print(value state_val) {
   CAMLreturn(Val_unit);
 }
 
+static inline double bitcast_int64_to_double(int64_t value) {
+  double result;
+  memcpy(&result, &value, sizeof(double));
+  return result;
+}
+
+static inline int64_t bitcast_double_to_int64(double value) {
+  int64_t result;
+  memcpy(&result, &value, sizeof(int64_t));
+  return result;
+}
+
 static inline int64_t to_int64_preserve_order(double t){
   if(t == 0.0) {
     return 0L;
   } else if(t > 0.0){
-    return ((int64_t) t);
+    return (bitcast_double_to_int64(t));
   } else {
-    return (- ((int64_t) (-t)));
+    return (- (bitcast_double_to_int64(-t)));
   }
 }
 
-static inline double of_int64_preserve_order(double x){
+static inline double of_int64_preserve_order(int64_t x){
   if(x >= 0L){
-    return ((double) x);
+    return (bitcast_int64_to_double(x));
   } else {
-    return -((double) (-x));
+    return -(bitcast_int64_to_double(-x));
   }
 }
 
