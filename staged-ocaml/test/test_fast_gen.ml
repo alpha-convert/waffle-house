@@ -324,55 +324,59 @@ module Bm = Benchmark
 
 (* let () =
   let module TC = IntUIList in
-  let module M2 = TC.F(G_C_SR) in
+  let module M2 = TC.F(G_C) in
   let g = Base_quickcheck.Generator.create
-  (fun ~size:size_22 ->
-     fun ~random:random_23 ->
-       let t_24 = Obj.magic 0 in
-       let t_42 =
-         let rec go_25 x_26 ~size:size_27  ~random:random_28  =
-           let t_29 = Obj.magic 1. in
-           let t_30 = Stdlib.Float.of_int size_27 in
-           let t_31 = 0. +. t_29 in
-           let t_32 = t_31 +. t_30 in
-           let t_33 = Base.Float.one_ulp `Up 0. in
-           let t_34 = Base.Float.one_ulp `Down t_32 in
-           let t_35 =
-             if t_33 > t_34
+  (fun ~size:size_26 ->
+     fun ~random:random_27 ->
+       let t_31 =
+         let o_28 = Stdlib.Obj.repr random_27 in
+         let seed_29 = Stdlib.Obj.obj (Stdlib.Obj.field o_28 0) in
+         let odd_gamma_30 = Stdlib.Obj.obj (Stdlib.Obj.field o_28 1) in
+         Fast_gen.C_random_runtime.create seed_29 odd_gamma_30 in
+       let t_32 = Obj.magic 0 in
+       let t_50 =
+         let rec go_33 x_34 ~size:size_35  ~random:random_36  =
+           let t_37 = Obj.magic 1. in
+           let t_38 = Stdlib.Float.of_int size_35 in
+           let t_39 = 0. +. t_37 in
+           let t_40 = t_39 +. t_38 in
+           let t_41 = Base.Float.one_ulp `Up 0. in
+           let t_42 = Base.Float.one_ulp `Down t_40 in
+           let t_43 =
+             if t_41 > t_42
              then Stdlib.failwith "Crossed bounds!"
              else
                if
                  Stdlib.not
-                   ((Stdlib.Float.is_finite t_33) &&
-                      (Stdlib.Float.is_finite t_34))
+                   ((Stdlib.Float.is_finite t_41) &&
+                      (Stdlib.Float.is_finite t_42))
                then Stdlib.failwith "Infite floats"
                else
-                 Fast_gen.C_sr_dropin_random_runtime.float_c_unchecked
-                   random_28 t_33 t_34 in
-           let t_36 = (Stdlib.Float.compare t_35 t_29) <= 0 in
-           if t_36
+                 Fast_gen.C_random_runtime.float_c_unchecked random_36 t_41
+                   t_42 in
+           let t_44 = (Stdlib.Float.compare t_43 t_37) <= 0 in
+           if t_44
            then Obj.magic 0
            else
-             (let t_37 = t_35 -. t_29 in
-              let t_38 = (Stdlib.Float.compare t_37 t_30) <= 0 in
-              if t_38
+             (let t_45 = t_43 -. t_37 in
+              let t_46 = (Stdlib.Float.compare t_45 t_38) <= 0 in
+              if t_46
               then
-                let t_40 =
+                let t_48 =
                   if (Obj.magic 0) > (Obj.magic 100)
                   then Stdlib.failwith "Crossed bounds!"
                   else
-                    Fast_gen.C_sr_dropin_random_runtime.int_c_unchecked
-                      random_28 (Obj.magic 0) (Obj.magic 100) in
-                let t_41 =
-                  go_25 (Obj.magic 0) ~size:(size_27 - 1) ~random:random_28 in
-                t_40 :: t_41
+                    Fast_gen.C_random_runtime.int_c_unchecked random_36
+                      (Obj.magic 0) (Obj.magic 100) in
+                let t_49 =
+                  go_33 (Obj.magic 0) ~size:(size_35 - 1) ~random:random_36 in
+                t_48 :: t_49
               else
-                (let t_39 = t_37 -. t_30 in
+                (let t_47 = t_45 -. t_38 in
                  Stdlib.failwith "Fell of the end of pick list")) in
-         go_25 t_24 ~size:size_22 ~random:random_23 in
-       t_42)
-              in
-  Magic_trace.under_bm ~name:"Int UI List Staged SR MT" ~gen:g ~size:1000 ~seed:100 ~num_calls:10000 ~min_dur_to_trigger:(Magic_trace.Min_duration.of_ns 10000000000) *)
+         go_33 t_32 ~size:size_26 ~random:t_31 in
+       t_50) in
+  Magic_trace.under_bm ~name:"Int UI List Staged C MT" ~gen:g ~size:1000 ~seed:100 ~num_calls:10000 ~min_dur_to_trigger:(Magic_trace.Min_duration.of_ns 10000000000) *)
 
 let () =
   let module TC = IntUIList in

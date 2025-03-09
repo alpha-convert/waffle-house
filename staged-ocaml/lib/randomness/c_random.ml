@@ -1,7 +1,7 @@
 type t = C_random_runtime.t
 
 
-let int st ~lo ~hi = .< if .~lo > .~ hi then failwith "Crossed bounds!" else C_random_runtime.int_c_unchecked .~st .~lo .~hi >.
+let int st ~lo ~hi = .< if Int.compare .~lo .~hi > 0 then failwith "Crossed bounds!" else C_random_runtime.int_c_unchecked .~st .~lo .~hi >.
 let bool st = .< C_random_runtime.bool_c .~st >.
 
 let float st ~(lo : float Codelib.code) ~hi = .<
