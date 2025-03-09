@@ -121,18 +121,11 @@ let split_int cn = {
 
   
 
-  let float ~(lo : float code) ~(hi : float code) : float code t = {
+  let float_uniform_exclusive ~(lo : float code) ~(hi : float code) : float code t = {
     rand_gen =
       fun ~size_c:_ ~random_c ->
-        (* if lower_inclusive > upper_inclusive
-          then
-            raise_s
-              [%message
-                "Float.uniform_exclusive: requested range is empty"
-                  (lower_bound : float)
-                  (upper_bound : float)]; *)
-        Codecps.bind (Codecps.let_insert .<Base.Float.one_ulp `Up .~lo >.) @@ fun lo_incl ->
-        Codecps.bind (Codecps.let_insert .<Base.Float.one_ulp `Down .~hi>.) @@ fun hi_incl ->
+        Codecps.bind (Codecps.let_insert (R.one_ulp ~dir:`Up lo)) @@ fun lo_incl ->
+        Codecps.bind (Codecps.let_insert (R.one_ulp ~dir:`Down hi)) @@ fun hi_incl ->
         Codecps.let_insert (R.float random_c ~lo:lo_incl ~hi:hi_incl)
   }
 
@@ -171,7 +164,8 @@ let split_int cn = {
         (* let%bind ws' =  in *)
         Codecps.bind (sum ws') @@ fun sum ->
         (* let%bind sum = sum ws' in *)
-        Codecps.bind ((float ~lo:.<0.>. ~hi:(v2c sum)).rand_gen ~size_c ~random_c) @@ fun n ->
+        (* Codecps.bind ((float ~lo:.<0.>. ~hi:(v2c sum)).rand_gen ~size_c ~random_c) @@ fun n -> *)
+        let n = (R.float random_c ~lo:.<0.>. ~hi:(v2c sum)) in
         (* let%bind n =  in *)
         Codecps.bind (Codecps.let_insertv n) @@ fun n ->
         (* let%bind n = Codecps.let_insert n in *)

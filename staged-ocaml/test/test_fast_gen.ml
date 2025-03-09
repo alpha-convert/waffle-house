@@ -41,7 +41,7 @@ end
 module FloatTC : TestCase = struct
   type t = float [@@deriving eq,show]
   module F (G : Generator_intf.S) = struct
-    let gen = G.float ~lo:(G.C.lift 0.0) ~hi:(G.C.lift 1.0)
+    let gen = G.float_uniform_exclusive ~lo:(G.C.lift 0.0) ~hi:(G.C.lift 1.0)
   end
 end
 
@@ -324,61 +324,44 @@ module Bm = Benchmark
 
 (* let () =
   let module TC = IntUIList in
-  let module M2 = TC.F(G_C) in
+  let module M2 = TC.F(G_SR) in
   let g = Base_quickcheck.Generator.create
-  (fun ~size:size_26 ->
-     fun ~random:random_27 ->
-       let t_31 =
-         let o_28 = Stdlib.Obj.repr random_27 in
-         let seed_29 = Stdlib.Obj.obj (Stdlib.Obj.field o_28 0) in
-         let odd_gamma_30 = Stdlib.Obj.obj (Stdlib.Obj.field o_28 1) in
-         Fast_gen.C_random_runtime.create seed_29 odd_gamma_30 in
-       let t_32 = Obj.magic 0 in
-       let t_50 =
-         let rec go_33 x_34 ~size:size_35  ~random:random_36  =
-           let t_37 = Obj.magic 1. in
-           let t_38 = Stdlib.Float.of_int size_35 in
-           let t_39 = 0. +. t_37 in
-           let t_40 = t_39 +. t_38 in
-           let t_41 = Base.Float.one_ulp `Up 0. in
-           let t_42 = Base.Float.one_ulp `Down t_40 in
-           let t_43 =
-             if t_41 > t_42
-             then Stdlib.failwith "Crossed bounds!"
-             else
-               if
-                 Stdlib.not
-                   ((Stdlib.Float.is_finite t_41) &&
-                      (Stdlib.Float.is_finite t_42))
-               then Stdlib.failwith "Infite floats"
-               else
-                 Fast_gen.C_random_runtime.float_c_unchecked random_36 t_41
-                   t_42 in
-           let t_44 = (Stdlib.Float.compare t_43 t_37) <= 0 in
-           if t_44
+  (fun ~size:size_1 ->
+     fun ~random:random_2 ->
+       let t_3 = Obj.magic 0 in
+       let t_21 =
+         let rec go_4 x_5 ~size:size_6  ~random:random_7  =
+           let t_8 = Obj.magic 1. in
+           let t_9 = Stdlib.Float.of_int size_6 in
+           let t_10 = 0. +. t_8 in
+           let t_11 = t_10 +. t_9 in
+           let t_12 = Base.Float.one_ulp `Up 0. in
+           let t_13 = Base.Float.one_ulp `Down t_11 in
+           let t_14 = Splittable_random.float random_7 ~lo:t_12 ~hi:t_13 in
+           let t_15 = (Stdlib.Float.compare t_14 t_8) <= 0 in
+           if t_15
            then Obj.magic 0
            else
-             (let t_45 = t_43 -. t_37 in
-              let t_46 = (Stdlib.Float.compare t_45 t_38) <= 0 in
-              if t_46
+             (let t_16 = t_14 -. t_8 in
+              let t_17 = (Stdlib.Float.compare t_16 t_9) <= 0 in
+              if t_17
               then
-                let t_48 =
-                  if (Obj.magic 0) > (Obj.magic 100)
-                  then Stdlib.failwith "Crossed bounds!"
-                  else
-                    Fast_gen.C_random_runtime.int_c_unchecked random_36
-                      (Obj.magic 0) (Obj.magic 100) in
-                let t_49 =
-                  go_33 (Obj.magic 0) ~size:(size_35 - 1) ~random:random_36 in
-                t_48 :: t_49
+                let t_19 =
+                  Splittable_random.int random_7 ~lo:(Obj.magic 0)
+                    ~hi:(Obj.magic 100) in
+                let t_20 =
+                  go_4 (Obj.magic 0) ~size:(size_6 - 1) ~random:random_7 in
+                t_19 :: t_20
               else
-                (let t_47 = t_45 -. t_38 in
+                (let t_18 = t_16 -. t_9 in
                  Stdlib.failwith "Fell of the end of pick list")) in
-         go_33 t_32 ~size:size_26 ~random:t_31 in
-       t_50) in
+         go_4 t_3 ~size:size_1 ~random:random_2 in
+       t_21)
+ in
   Magic_trace.under_bm ~name:"Int UI List Staged C MT" ~gen:g ~size:1000 ~seed:100 ~num_calls:10000 ~min_dur_to_trigger:(Magic_trace.Min_duration.of_ns 10000000000) *)
 
-let () =
+
+(* let () =
   let module TC = IntUIList in
   let module M1 = TC.F(G_Bq) in
   let module M2 = TC.F(G_SR) in
@@ -388,9 +371,9 @@ let () =
   let g2 = G_SR.jit M2.gen in
   let g3 = G_C_SR.jit M3.gen in
   let g4 = G_C.jit M4.gen in
-  Benchmark.bm ~bench_name:"Int list (uniform inclusive)" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged CSR",g3; "Staged C", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000
+  Benchmark.bm ~bench_name:"Int list (uniform inclusive)" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged CSR",g3; "Staged C", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000 *)
 
-let () =
+(* let () =
   let module TC = IntTC in
   let module M1 = TC.F(G_Bq) in
   let module M2 = TC.F(G_SR) in
@@ -400,8 +383,7 @@ let () =
   let g2 = G_SR.jit M2.gen in
   let g3 = G_C.jit M3.gen in
   let g4 = G_C_SR.jit M4.gen in
-  Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged C", g3; "Staged CSR", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:100000
-
+  Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged C", g3; "Staged CSR", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:100000 *)
 
 
 let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/"
@@ -501,7 +483,7 @@ let g2 =
 let bl2s xs = "[" ^ (String.concat "," (List.map Bool.to_string xs)) ^ "]"
 
 let derived_testcase = Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ bl2s v1 ^ "\nST: " ^ bl2s v2 ^"\n") (List.equal Bool.equal) g1 g2 *)
-(* 
+
 let () =
   let open Alcotest in
   run "Staged Generators" [
@@ -552,6 +534,12 @@ let () =
       (let open MakeDiffTest(IntInclusiveTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR");
     ]
     ;
+    "RNG Float Exclusive Equivalence", [
+      (let open MakeDiffTest(FloatTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
+      (let open MakeDiffTest(FloatTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C");
+      (let open MakeDiffTest(FloatTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR");
+    ]
+    ;
     (* "RNG Equivalence",[
       (let open MakeDiffTest(BoolTC)(G_Bq)(G_C) in alco ~config:qc_cfg "Bool Simple -- Bq/Staged_C");
       (let open MakeDiffTest(BoolTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "Bool Simple -- Bq/Staged_SR");
@@ -575,4 +563,4 @@ let () =
       (let open MakeDiffTest(FloatTC)(G_C_SR)(G_SR) in alco ~config:qc_cfg "Float Simple -- Staged_C_SR/Staged_SR");
       (* (let open MakeDiffTest(BB)(G_SR)(G_C) in alco ~config:qc_cfg "Union -- BQ/Staged_C"); *)
     ] *)
-  ] *)
+  ]

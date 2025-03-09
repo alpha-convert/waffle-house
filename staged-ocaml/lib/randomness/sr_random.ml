@@ -7,6 +7,8 @@ let int st ~lo ~hi = .< int .~st ~lo:.~lo ~hi:.~hi >.
 let bool st = .< bool .~st >.
 let float st ~lo ~hi = .< float .~st ~lo:.~lo ~hi:.~hi >.
 
+let one_ulp ~dir x = .< Base.Float.one_ulp dir .~x >.
+
 module Log_uniform = struct
   let int st ~lo ~hi = .< Log_uniform.int .~st ~lo:.~lo ~hi:.~hi >.
 end

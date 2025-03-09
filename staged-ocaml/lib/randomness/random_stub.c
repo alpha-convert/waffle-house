@@ -8,21 +8,21 @@
 #include <stdio.h>
 #include <math.h>
 
-static inline int64_t mix_bits(int64_t z, int64_t n) {
+int64_t mix_bits(int64_t z, int64_t n) {
   return z ^ ((uint64_t) z >> n);
 }
 
-static inline int64_t mix64(int64_t z) {
+int64_t mix64(int64_t z) {
   z = mix_bits(z,33) * 0xff51afd7ed558ccdL;
   z = mix_bits(z,33) * 0xc4ceb9fe1a85ec53L;
   return mix_bits(z, 33);
 }
 
-static inline bool remainder_is_unbiased(int64_t draw, int64_t remainder, int64_t draw_max, int64_t remainder_max){
+bool remainder_is_unbiased(int64_t draw, int64_t remainder, int64_t draw_max, int64_t remainder_max){
   return (draw - remainder <= draw_max - remainder_max);
 }
 
-static inline double unit_float_from_int64(int64_t n){
+double unit_float_from_int64(int64_t n){
   return ((uint64_t) n >> 11) * pow(2,-53);
 }
 
@@ -222,4 +222,54 @@ CAMLprim value print(value state_val) {
   state_t st = State_val(state_val);
   printf("C-Seed: %ld\n", st.seed);
   CAMLreturn(Val_unit);
+}
+
+static inline int64_t to_int64_preserve_order(double t){
+  if(t == 0.0) {
+    return 0L;
+  } else if(t > 0.0){
+    return ((int64_t) t);
+  } else {
+    return (- ((int64_t) (-t)));
+  }
+}
+
+static inline double of_int64_preserve_order(double x){
+  if(x >= 0L){
+    return ((double) x);
+  } else {
+    return -((double) (-x));
+  }
+}
+
+CAMLprim double one_ulp_up_c_unboxed(double x){
+  CAMLparam0();
+  double res;
+  if(isnan(x)){
+    res = NAN;
+  } else {
+    res = of_int64_preserve_order(to_int64_preserve_order(x) + 1L);
+  }
+  return res;
+}
+
+CAMLprim value one_ulp_up_c(value x_val){
+  CAMLparam1(x_val);
+  CAMLreturn(caml_copy_double(one_ulp_up_c_unboxed(Double_val(x_val))));
+}
+
+CAMLprim double one_ulp_down_c_unboxed(double x){
+  CAMLparam0();
+  double res;
+  if(isnan(x)){
+    res = NAN;
+  } else {
+    res = of_int64_preserve_order(to_int64_preserve_order(x) - 1L);
+  }
+  return res;
+}
+
+CAMLprim value one_ulp_down_c(value x_val){
+  CAMLparam1(x_val);
+  CAMLreturn(caml_copy_double(one_ulp_down_c_unboxed(Double_val(x_val))));
 }

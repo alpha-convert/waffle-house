@@ -209,3 +209,53 @@ CAMLprim value int_c_sr_log_uniform(value sr_state_val, value lo_val, value hi_v
 //   printf("C-Seed: %ld\n", st.seed);
 //   CAMLreturn(Val_unit);
 // }
+
+static inline int64_t to_int64_preserve_order(double t){
+  if(t == 0.0) {
+    return 0L;
+  } else if(t > 0.0){
+    return ((int64_t) t);
+  } else {
+    return (- ((int64_t) (-t)));
+  }
+}
+
+static inline double of_int64_preserve_order(double x){
+  if(x >= 0L){
+    return ((double) x);
+  } else {
+    return -((double) (-x));
+  }
+}
+
+CAMLprim double one_ulp_up_c_sr_unboxed(double x){
+  CAMLparam0();
+  double res;
+  if(isnan(x)){
+    res = NAN;
+  } else {
+    res = of_int64_preserve_order(to_int64_preserve_order(x) + 1L);
+  }
+  return res;
+}
+
+CAMLprim value one_ulp_up_c_sr(value x_val){
+  CAMLparam1(x_val);
+  CAMLreturn(caml_copy_double(one_ulp_up_c_sr_unboxed(Double_val(x_val))));
+}
+
+CAMLprim double one_ulp_down_c_sr_unboxed(double x){
+  CAMLparam0();
+  double res;
+  if(isnan(x)){
+    res = NAN;
+  } else {
+    res = of_int64_preserve_order(to_int64_preserve_order(x) - 1L);
+  }
+  return res;
+}
+
+CAMLprim value one_ulp_down_c_sr(value x_val){
+  CAMLparam1(x_val);
+  CAMLreturn(caml_copy_double(one_ulp_down_c_sr_unboxed(Double_val(x_val))));
+}
