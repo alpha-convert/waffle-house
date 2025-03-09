@@ -122,19 +122,19 @@ CAMLprim value bool_c_sr(value sr_state_val) {
 
 
 
-CAMLprim double float_c_sr_unchecked_unboxed(value sr_state_val, value lo_val, value hi_val){
-  CAMLparam3(sr_state_val,lo_val,hi_val);
+CAMLprim double float_c_sr_unchecked_unboxed(value sr_state_val, double lo, double hi){
+  CAMLparam1(sr_state_val);
   state_t* st = (state_t*) alloca(sizeof(state_t));
   fill_from_value(sr_state_val,st);
-  double lo = Double_val(lo_val);
-  double hi = Double_val(hi_val);
+  // double lo = Double_val(lo_val);
+  // double hi = Double_val(hi_val);
   double result = next_float_sr(st,lo,hi);
   CAMLreturn(result);
 }
 
 CAMLprim value float_c_sr_unchecked(value sr_state_val, value lo_val, value hi_val){
   CAMLparam3(sr_state_val,lo_val,hi_val);
-  CAMLreturn(caml_copy_double(float_c_sr_unchecked_unboxed(sr_state_val,lo_val,hi_val)));
+  CAMLreturn(caml_copy_double(float_c_sr_unchecked_unboxed(sr_state_val,Double_val(lo_val),Double_val(hi_val))));
 }
 
 CAMLprim value int_c_sr_unchecked(value sr_state_val, value lo_val, value hi_val) {
@@ -146,6 +146,60 @@ CAMLprim value int_c_sr_unchecked(value sr_state_val, value lo_val, value hi_val
   int64_t hi = (int64_t) Long_val(hi_val);
 
   int64_t result = next_int_sr(st,lo,hi);
+  CAMLreturn(Val_int(result));
+}
+
+
+static inline int64_t min_represented_by_n_bits(int64_t n) {
+  if (n == 0) {
+      return 0;
+  } else {
+      return 1LL << (n - 1);
+  }
+}
+
+static inline int64_t max_represented_by_n_bits(int64_t bits) {
+  return (1LL << bits) - 1;
+}
+
+
+static inline int64_t max(int64_t a, int64_t b) {
+  return (a > b) ? a : b;
+}
+
+static inline int64_t min(int64_t a, int64_t b) {
+  return (a < b) ? a : b;
+}
+
+static uint64_t bits_to_represent(int64_t t) {
+  uint64_t n = 0;
+  
+  while (t > 0) {
+      t >>= 1;
+      n++;
+  }
+  
+  return n;
+}
+
+static int64_t next_int_log_uniform(state_t *st, int64_t lo, int64_t hi) {
+  uint64_t min_bits = bits_to_represent(lo);
+  uint64_t max_bits = bits_to_represent(hi);
+  int64_t bits = next_int_sr(st,min_bits,max_bits);
+  lo = max(lo,min_represented_by_n_bits(bits));
+  hi = min(hi,max_represented_by_n_bits(bits));
+  return next_int_sr(st,lo,hi);
+}
+
+CAMLprim value int_c_sr_log_uniform(value sr_state_val, value lo_val, value hi_val) {
+  CAMLparam3(sr_state_val,lo_val,hi_val);
+  state_t* st = (state_t*) alloca(sizeof(state_t));
+  fill_from_value(sr_state_val,st);
+
+  int64_t lo = (int64_t) Long_val(lo_val);
+  int64_t hi = (int64_t) Long_val(hi_val);
+
+  int64_t result = next_int_log_uniform(st,lo,hi);
   CAMLreturn(Val_int(result));
 }
 

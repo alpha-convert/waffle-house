@@ -141,18 +141,16 @@ CAMLprim value bool_c(value state_val) {
   CAMLreturn(Val_bool(next_bool(&st)));
 }
 
-CAMLprim double float_c_unchecked_unboxed(value state_val, value lo_val, value hi_val){
-  CAMLparam3(state_val,lo_val,hi_val);
+CAMLprim double float_c_unchecked_unboxed(value state_val, double lo, double hi){
+  CAMLparam1(state_val);
   state_t st = State_val(state_val);
-  double lo = Double_val(lo_val);
-  double hi = Double_val(hi_val);
   double result = next_float(&st,lo,hi);
   CAMLreturn(result);
 }
 
 CAMLprim value float_c_unchecked(value state_val, value lo_val, value hi_val){
   CAMLparam3(state_val,lo_val,hi_val);
-  CAMLreturn(caml_copy_double(float_c_unchecked_unboxed(state_val,lo_val,hi_val)));
+  CAMLreturn(caml_copy_double(float_c_unchecked_unboxed(state_val,Double_val(lo_val),Double_val(hi_val))));
 }
 
 CAMLprim value int_c_unchecked(value state_val, value lo_val, value hi_val) {
@@ -167,7 +165,7 @@ CAMLprim value int_c_unchecked(value state_val, value lo_val, value hi_val) {
 }
 
 
-int64_t min_represented_by_n_bits(int64_t n) {
+static inline int64_t min_represented_by_n_bits(int64_t n) {
   if (n == 0) {
       return 0;
   } else {
@@ -175,20 +173,20 @@ int64_t min_represented_by_n_bits(int64_t n) {
   }
 }
 
-int64_t max_represented_by_n_bits(int64_t bits) {
+static inline int64_t max_represented_by_n_bits(int64_t bits) {
   return (1LL << bits) - 1;
 }
 
 
-int64_t max(int64_t a, int64_t b) {
+static inline int64_t max(int64_t a, int64_t b) {
   return (a > b) ? a : b;
 }
 
-int64_t min(int64_t a, int64_t b) {
+static inline int64_t min(int64_t a, int64_t b) {
   return (a < b) ? a : b;
 }
 
-uint64_t bits_to_represent(int64_t t) {
+static uint64_t bits_to_represent(int64_t t) {
   uint64_t n = 0;
   
   while (t > 0) {

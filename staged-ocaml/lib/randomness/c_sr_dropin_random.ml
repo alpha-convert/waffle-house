@@ -10,7 +10,7 @@ let float st ~(lo : float Codelib.code) ~hi = .<
 >.
 
 module Log_uniform = struct
-  let int st ~lo ~hi = (ignore lo; ignore hi; ignore st; failwith "Log Uniform sampling not yet implemented for C-SR-Dropin-Random")
+  let int st ~lo ~hi = .< C_sr_dropin_random_runtime.int_c_log_uniform .~st .~lo .~hi >.
 end
 
 (* THIS IS A HACK!

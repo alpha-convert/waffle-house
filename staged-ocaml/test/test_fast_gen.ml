@@ -389,12 +389,14 @@ let () =
 let () =
   let module TC = IntTC in
   let module M1 = TC.F(G_Bq) in
-  let module M2 = TC.F(G_C) in
-  let module M3 = TC.F(G_SR) in
+  let module M2 = TC.F(G_SR) in
+  let module M3 = TC.F(G_C) in
+  let module M4 = TC.F(G_C_SR) in
   let g1 = M1.gen in
-  let g2 = G_C.jit M2.gen in
-  let g3 = G_SR.jit M3.gen in
-  Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged C",g2; "Staged SR", g3] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:100000
+  let g2 = G_SR.jit M2.gen in
+  let g3 = G_C.jit M3.gen in
+  let g4 = G_C_SR.jit M4.gen in
+  Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged C", g3; "Staged CSR", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:100000
 
 
 
