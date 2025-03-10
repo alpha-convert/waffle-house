@@ -137,7 +137,7 @@ let split_int cn = {
 
   let rec genpick n ws =
     match ws with
-    | [] -> { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return .< failwith "Fell of the end of pick list" >. }
+    | [] -> { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.error .<"Fell of the end of pick list">. }
     | (k,g) :: ws' ->
           { rand_gen = 
             fun ~size_c ~random_c ->
