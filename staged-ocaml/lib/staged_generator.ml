@@ -137,7 +137,7 @@ let split_int cn = {
 
   let rec genpick n ws =
     match ws with
-    | [] -> { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.error .<"Fell of the end of pick list">. }
+    | [] -> { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.error "Fell of the end of pick list" }
     | (k,g) :: ws' ->
           { rand_gen = 
             fun ~size_c ~random_c ->
@@ -152,23 +152,21 @@ let split_int cn = {
           }
 
     
-  let sum (ws : (float val_code * 'a t) list) : (float val_code) Codecps.t =
-      let rec go (ws : (float val_code * 'a t) list) (acc : float val_code) : (float val_code) Codecps.t =
+  let sum (ws : (float val_code * 'a t) list) : (float code) Codecps.t =
+      let rec go (ws : (float val_code * 'a t) list) (acc : float code) : (float code) Codecps.t =
         match ws with
         | [] -> Codecps.return acc
         | (cn,_) :: ws' ->
-            Codecps.bind (Codecps.let_insertv .< .~(v2c acc) +. .~(v2c cn) >.) @@ fun acc' ->
-            (* let%bind acc' =  in *)
-            go ws' acc'
+            go ws' .< .~acc +. .~(v2c cn) >.
         in
-      Codecps.bind (let_insertv .< 0. >.) @@ fun zero ->
-      go ws zero
+      go ws .<0.>.
 
   let weighted_union ws : 'a t =
     { rand_gen = fun ~size_c ~random_c ->
         Codecps.bind (Codecps.all @@ List.map (fun (cn,g) -> Codecps.bind (Codecps.let_insertv cn) @@ fun cvn -> Codecps.return (cvn,g)) ws) @@ fun ws' ->
         Codecps.bind (sum ws') @@ fun sum ->
-        let n = (R.float random_c ~lo:.<0.>. ~hi:(v2c sum)) in
+        Codecps.bind (Codecps.let_insertv sum) @@ fun sum' ->
+        let n = (R.float random_c ~lo:.<0.>. ~hi:(v2c sum')) in
         Codecps.bind (Codecps.let_insertv n) @@ fun n ->
         (genpick n ws').rand_gen ~size_c ~random_c
     }

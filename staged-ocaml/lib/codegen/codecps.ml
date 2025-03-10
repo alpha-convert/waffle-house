@@ -3,7 +3,7 @@ open Codelib;;
 (* This is stolen from andras kovacs *)
 type 'a t = {code_gen : 'z. (('a -> 'z code) -> 'z code)}
 
-let error s = {code_gen = fun _ -> .< failwith .~s >.}
+let error s = {code_gen = fun _ -> .< failwith s >.}
 
 let v2c (vc : 'a val_code) = (vc : 'a val_code :> 'a code)
 
