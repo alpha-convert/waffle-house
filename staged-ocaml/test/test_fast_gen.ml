@@ -322,6 +322,57 @@ module G_Bq = Bq_generator
 module G_SR = Staged_generator.MakeStaged(Sr_random)
 module G_C = Staged_generator.MakeStaged(C_random)
 module G_C_SR = Staged_generator.MakeStaged(C_sr_dropin_random)
+(* 
+let () =
+  let module TC = IntTC in
+  let module M = TC.F(G_C_SR) in
+  let g =Base_quickcheck.Generator.create
+  (fun ~size:size_15 ->
+     fun ~random:random_16 ->
+       let t_17 = Fast_gen.C_sr_dropin_random_runtime.bool_c random_16 in
+       let t_18 = 0. +. 0.05 in
+       let t_19 = t_18 +. 0.05 in
+       let t_20 = t_19 +. 0.9 in
+       let t_21 =
+         if (Base.Float.compare 0. t_20) > 0
+         then Stdlib.failwith "Crossed bounds!"
+         else
+           if
+             Stdlib.not
+               ((Stdlib.Float.is_finite 0.) && (Stdlib.Float.is_finite t_20))
+           then Stdlib.failwith "Infite floats"
+           else
+             Fast_gen.C_sr_dropin_random_runtime.float_c_unchecked random_16
+               0. t_20 in
+       let t_22 = (Stdlib.Float.compare t_21 0.05) <= 0 in
+       if t_22
+       then (if t_17 then Stdlib.lnot 0 else 0)
+       else
+         (let t_23 = t_21 -. 0.05 in
+          let t_24 = (Stdlib.Float.compare t_23 0.05) <= 0 in
+          if t_24
+          then
+            (if t_17
+             then Stdlib.lnot 4611686018427387903
+             else 4611686018427387903)
+          else
+            (let t_25 = t_23 -. 0.05 in
+             let t_26 = (Stdlib.Float.compare t_25 0.9) <= 0 in
+             if t_26
+             then
+               let t_28 =
+                 Fast_gen.C_sr_dropin_random_runtime.int_c_log_uniform
+                   random_16 0 4611686018427387903 in
+               (if t_17 then Stdlib.lnot t_28 else t_28)
+             else
+               (let t_27 = t_25 -. 0.9 in
+                if t_17
+                then
+                  Stdlib.lnot
+                    (Stdlib.failwith "Fell of the end of pick list")
+                else Stdlib.failwith "Fell of the end of pick list")))) 
+              in
+  Magic_trace.under_bm ~name:"Int UI List Staged C MT" ~gen:g ~size:1000 ~seed:100 ~num_calls:10000000 ~min_dur_to_trigger:(Magic_trace.Min_duration.of_ns 10000000000) *)
 
 module Bm = Benchmark
 
@@ -336,44 +387,6 @@ let () =
   let g3 = G_C.jit M3.gen in
   let g4 = G_C_SR.jit M4.gen in
   Benchmark.bm ~bench_name:"Int list" ~named_gens:["BQ",g1; "SR",g2; "C", g3; "CSR", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000
-
-(* let () =
-  let module TC = IntUIList in
-  let module M2 = TC.F(G_SR) in
-  let g = Base_quickcheck.Generator.create
-  (fun ~size:size_1 ->
-     fun ~random:random_2 ->
-       let t_3 = Obj.magic 0 in
-       let t_21 =
-         let rec go_4 x_5 ~size:size_6  ~random:random_7  =
-           let t_8 = Obj.magic 1. in
-           let t_9 = Stdlib.Float.of_int size_6 in
-           let t_10 = 0. +. t_8 in
-           let t_11 = t_10 +. t_9 in
-           let t_12 = Base.Float.one_ulp `Up 0. in
-           let t_13 = Base.Float.one_ulp `Down t_11 in
-           let t_14 = Splittable_random.float random_7 ~lo:t_12 ~hi:t_13 in
-           let t_15 = (Stdlib.Float.compare t_14 t_8) <= 0 in
-           if t_15
-           then Obj.magic 0
-           else
-             (let t_16 = t_14 -. t_8 in
-              let t_17 = (Stdlib.Float.compare t_16 t_9) <= 0 in
-              if t_17
-              then
-                let t_19 =
-                  Splittable_random.int random_7 ~lo:(Obj.magic 0)
-                    ~hi:(Obj.magic 100) in
-                let t_20 =
-                  go_4 (Obj.magic 0) ~size:(size_6 - 1) ~random:random_7 in
-                t_19 :: t_20
-              else
-                (let t_18 = t_16 -. t_9 in
-                 Stdlib.failwith "Fell of the end of pick list")) in
-         go_4 t_3 ~size:size_1 ~random:random_2 in
-       t_21)
- in
-  Magic_trace.under_bm ~name:"Int UI List Staged C MT" ~gen:g ~size:1000 ~seed:100 ~num_calls:10000 ~min_dur_to_trigger:(Magic_trace.Min_duration.of_ns 10000000000) *)
 
 let () =
   let module TC = IntUIList in
@@ -399,107 +412,7 @@ let () =
   let g4 = G_C_SR.jit M4.gen in
   Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged C", g3; "Staged CSR", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:100000
 
-
-let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/"
-
-(* let stlc_test =
-  let g1 = Stlc_gen_bq.genExpr in
-  let g2 = G_SR.jit ~extra_cmi_paths:[path] Stlc_gen_st.genExpr in
-  Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ Expr.show v1 ^ "\nST: " ^ Expr.show v2 ^"\n") Expr.equal g1 g2
-
-let g1 = Base_quickcheck.Generator.create
-(fun ~size:size_26 ->
-   fun ~random:random_27 ->
-     let t_28 = Obj.magic 0 in
-     let t_50 =
-       let rec go_29 x_30 ~size:size_31  ~random:random_32  =
-         if size_31 = 0
-         then
-           let t_44 = 0. +. 1. in
-           let t_45 = Base.Float.one_ulp `Up 0. in
-           let t_46 = Base.Float.one_ulp `Down t_44 in
-           let t_47 = Splittable_random.float random_32 ~lo:t_45 ~hi:t_46 in
-           let t_48 = (Stdlib.Float.compare t_47 1.) <= 0 in
-           (if t_48
-            then []
-            else
-              (let t_49 = t_47 -. 1. in
-               Stdlib.failwith "Fell of the end of pick list"))
-         else
-           (let t_33 = 0. +. 1. in
-            let t_34 = t_33 +. 100. in
-            let t_35 = Base.Float.one_ulp `Up 0. in
-            let t_36 = Base.Float.one_ulp `Down t_34 in
-            let t_37 = Splittable_random.float random_32 ~lo:t_35 ~hi:t_36 in
-            let t_38 = (Stdlib.Float.compare t_37 1.) <= 0 in
-            if t_38
-            then []
-            else
-              (let t_39 = t_37 -. 1. in
-               let t_40 = (Stdlib.Float.compare t_39 100.) <= 0 in
-               if t_40
-               then
-                 let t_42 =
-                   go_29 (Obj.magic 0) ~size:(size_31 - 1)
-                     ~random:random_32 in
-                 let t_43 = Splittable_random.bool random_32 in
-                 (t_43 :: t_42)
-               else
-                 (let t_41 = t_39 -. 100. in
-                  Stdlib.failwith "Fell of the end of pick list"))) in
-       go_29 t_28 ~size:size_26 ~random:random_27 in
-     t_50)
-
-let g2 =
-      let rec quikckcheck_generator =
-        lazy
-          (let quickcheck_generator =
-             Ppx_quickcheck_runtime.Base_quickcheck.Generator.of_lazy
-               quickcheck_generator in
-           ignore quickcheck_generator;
-           (let _pair__011_ =
-              (1.,
-                (Ppx_quickcheck_runtime.Base_quickcheck.Generator.create
-                   (fun ~size:_size__015_ ->
-                      fun ~random:_random__016_ -> [])))
-            and _pair__012_ =
-              (100.,
-                (Ppx_quickcheck_runtime.Base_quickcheck.Generator.bind
-                   Ppx_quickcheck_runtime.Base_quickcheck.Generator.size
-                   ~f:(fun _size__008_ ->
-                         Ppx_quickcheck_runtime.Base_quickcheck.Generator.with_size
-                           ~size:(Ppx_quickcheck_runtime.Base.Int.pred
-                                    _size__008_)
-                           (Ppx_quickcheck_runtime.Base_quickcheck.Generator.create
-                              (fun ~size:_size__013_ ->
-                                 fun ~random:_random__014_ ->
-                                   
-                                     ((Ppx_quickcheck_runtime.Base_quickcheck.Generator.generate
-                                        Base_quickcheck.quickcheck_generator_bool
-                                         ~size:_size__013_
-                                         ~random:_random__014_) ::
-                                       (Ppx_quickcheck_runtime.Base_quickcheck.Generator.generate
-                                          quickcheck_generator
-                                          ~size:_size__013_
-                                          ~random:_random__014_))))))) in
-            let _gen__009_ =
-              Ppx_quickcheck_runtime.Base_quickcheck.Generator.weighted_union
-                [_pair__011_]
-            and _gen__010_ =
-              Ppx_quickcheck_runtime.Base_quickcheck.Generator.weighted_union
-                [_pair__011_; _pair__012_] in
-            Ppx_quickcheck_runtime.Base_quickcheck.Generator.bind
-              Ppx_quickcheck_runtime.Base_quickcheck.Generator.size
-              ~f:(function | 0 -> _gen__009_ | _ -> _gen__010_))) in
-      Ppx_quickcheck_runtime.Base_quickcheck.Generator.of_lazy
-        quickcheck_generator
-
-let bl2s xs = "[" ^ (String.concat "," (List.map Bool.to_string xs)) ^ "]"
-
-let derived_testcase = Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ bl2s v1 ^ "\nST: " ^ bl2s v2 ^"\n") (List.equal Bool.equal) g1 g2 *)
-
-
-let () =
+(* let () =
   let open Alcotest in
   run "Staged Generators" [
     (* "Derived", [derived_testcase] *)
@@ -596,4 +509,4 @@ let () =
       (let open MakeDiffTest(FloatTC)(G_C_SR)(G_SR) in alco ~config:qc_cfg "Float Simple -- Staged_C_SR/Staged_SR");
       (* (let open MakeDiffTest(BB)(G_SR)(G_C) in alco ~config:qc_cfg "Union -- BQ/Staged_C"); *)
     ] *)
-  ]
+  ] *)
