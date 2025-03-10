@@ -212,7 +212,7 @@ let int_uniform_inclusive ~(lo : int code) ~(hi : int code) : int code t = {
 
   let int =
     bind bool ~f:(fun negative ->
-        bind (int_log_inclusive ~lo:.<0>. ~hi:.<Int.max_int>.) ~f:(fun magnitude ->
+        bind (int_log_inclusive ~lo:.<0>. ~hi:.<1000>.) ~f:(fun magnitude ->
           return .<.~magnitude lxor (- Base.Bool.to_int .~negative)>.
           )
     )
