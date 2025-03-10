@@ -5,11 +5,11 @@ open Base;;
 let compound_generator ~loc ~make_compound_expr generator_list =
   let rec go gs acc =
     match gs with
-    | [] -> [%expr G_SR.return [%e make_compound_expr ~loc acc]]
+    | [] -> [%expr C_SR.return [%e make_compound_expr ~loc acc]]
     | g::gs -> 
       let x_pat, x_expr = gensym "x" loc in
       [%expr 
-        G_SR.bind [%e g] ~f:(fun [%p x_pat] -> [%e go gs (x_expr :: acc)])
+        C_SR.bind [%e g] ~f:(fun [%p x_pat] -> [%e go gs (x_expr :: acc)])
       ] 
   in go (List.rev generator_list) []
 
@@ -51,14 +51,18 @@ let clause_is_recursive
     (does_refer_to rec_names)#core_type ty false)
 ;;
 
+let generator_for_type ~loc type_name =
+  let generator_name = Printf.sprintf "staged_quickcheck_generator_%s" type_name in
+  [%expr generator_name]
+
 let variant
-      (type clause)
-      ~generator_of_core_type
-      ~loc
-      ~variant_type
-      ~clauses
-      ~rec_names
-      (module Clause : Clause_syntax.S with type ast = clause)
+  (type clause)
+  ~generator_of_core_type
+  ~loc
+  ~variant_type
+  ~clauses
+  ~rec_names
+  (module Clause : Clause_syntax.S with type ast = clause)
   =
   let clauses = Clause.create_list clauses in
   let make_generator clause =
@@ -66,10 +70,25 @@ let variant
       ~loc:(Clause.location clause)
       ~make_compound_expr:(Clause.expression clause variant_type)
       (List.map (Clause.core_type_list clause) ~f:(fun typ -> match typ.ptyp_desc with
-      | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> [%expr G_SR.bool]
-      | Ptyp_constr ({ txt = Lident "float"; _}, _) -> [%expr G_SR.float ~lo:(G_SR.C.lift 0.0) ~hi:(G_SR.C.lift 1.0)]
-      | Ptyp_constr ({ txt = Lident "int"; _}, _) -> [%expr G_SR.int_uniform_inclusive ~lo:(G_SR.C.lift Int.min_value) ~hi:(G_SR.C.lift Int.max_value)]
-      | _ -> [%expr G_SR.recurse go (G_SR.C.lift ())]
+        | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> [%expr C_SR.bool]
+        | Ptyp_constr ({ txt = Lident "float"; _}, _) -> [%expr C_SR.float ~lo:(C_SR.C.lift 0.0) ~hi:(C_SR.C.lift 1.0)]
+        | Ptyp_constr ({ txt = Lident "int"; _}, _) -> [%expr C_SR.int]
+        | Ptyp_constr ({ txt = id; _ }, _) ->
+            (* Extract the last component of the longident for comparison *)
+            let rec last_component = function
+              | Longident.Lident s -> s
+              | Longident.Ldot (_, s) -> s
+              | Longident.Lapply (_, lid) -> last_component lid
+            in
+            let type_name = last_component id in
+            
+            (* Check if this is a recursive type reference *)
+            if Set.mem rec_names type_name then
+              [%expr C_SR.recurse go (C_SR.C.lift ())]
+            else
+              (* Call the appropriate generator for this non-recursive type *)
+              Ast_helper.Exp.ident ~loc { loc = Location.none; txt = Longident.Lident ("staged_quickcheck_generator_" ^ type_name) }
+              | _ -> [%expr C_SR.recurse go (C_SR.C.lift ())]
       ))
   in
   let make_pair clause =
@@ -79,7 +98,7 @@ let variant
         [ weight; make_generator clause ])
   in
   (* We filter out clauses with weight None now. If we don't, then we can get code in
-     [body] below that relies on bindings that don't get generated. *)
+   [body] below that relies on bindings that don't get generated. *)
   let clauses =
     List.filter clauses ~f:(fun clause -> Option.is_some (Clause.weight clause))
   in
@@ -89,56 +108,56 @@ let variant
   with
   | [], [] -> invalid ~loc "variant had no (generated) cases"
   | clauses, [] | [], clauses ->
-    let pairs = List.filter_map clauses ~f:make_pair in
-    [%expr
-      G_SR.weighted_union
-        [%e elist ~loc pairs]]
+      let pairs = List.filter_map clauses ~f:make_pair in
+      [%expr
+        C_SR.weighted_union
+          [%e elist ~loc pairs]]
   | recursive_clauses, nonrecursive_clauses ->
-        let size_pat, size_expr = gensym "size" loc in
-        let nonrec_pat, nonrec_expr = gensym "gen" loc in
-        let rec_pat, rec_expr = gensym "gen" loc in
-        let nonrec_pats, nonrec_exprs =
-          gensyms "pair" (List.map nonrecursive_clauses ~f:Clause.location)
-        in
-        let rec_pats, rec_exprs =
-          gensyms "pair" (List.map recursive_clauses ~f:Clause.location)
-        in
-        let bindings =
-          List.filter_opt
-            (List.map2_exn nonrec_pats nonrecursive_clauses ~f:(fun pat clause ->
+      let size_pat, size_expr = gensym "size" loc in
+      let nonrec_pat, nonrec_expr = gensym "gen" loc in
+      let rec_pat, rec_expr = gensym "gen" loc in
+      let nonrec_pats, nonrec_exprs =
+        gensyms "pair" (List.map nonrecursive_clauses ~f:Clause.location)
+      in
+      let rec_pats, rec_exprs =
+        gensyms "pair" (List.map recursive_clauses ~f:Clause.location)
+      in
+      let bindings =
+        List.filter_opt
+          (List.map2_exn nonrec_pats nonrecursive_clauses ~f:(fun pat clause ->
+            let loc = { (Clause.location clause) with loc_ghost = true } in
+            Option.map (make_pair clause) ~f:(fun expr -> value_binding ~loc ~pat ~expr))
+          @ List.map2_exn rec_pats recursive_clauses ~f:(fun pat clause ->
+            Option.map (Clause.weight clause) ~f:(fun weight_expr ->
               let loc = { (Clause.location clause) with loc_ghost = true } in
-              Option.map (make_pair clause) ~f:(fun expr -> value_binding ~loc ~pat ~expr))
-            @ List.map2_exn rec_pats recursive_clauses ~f:(fun pat clause ->
-              Option.map (Clause.weight clause) ~f:(fun weight_expr ->
-                let loc = { (Clause.location clause) with loc_ghost = true } in
-                let gen_expr =
-                  [%expr
-                    G_SR.bind
-                      G_SR.size
-                      ~f:(fun [%p size_pat] ->
-                        G_SR.with_size
-                          ~size_c:(G_SR.C.pred [%e size_expr])
-                          [%e make_generator clause])]
-                in
-                let expr = pexp_tuple ~loc [ weight_expr; gen_expr ] in
-                value_binding ~loc ~pat ~expr)))
-        in
-        let body =
-          [%expr
-            let [%p nonrec_pat] =
-              G_SR.weighted_union
-                [%e elist ~loc nonrec_exprs]
-            and [%p rec_pat] =
-              G_SR.weighted_union
-                [%e elist ~loc (nonrec_exprs @ rec_exprs)]
-            in
-            [%e
+              let gen_expr =
+                [%expr
+                  C_SR.bind
+                    C_SR.size
+                    ~f:(fun [%p size_pat] ->
+                      C_SR.with_size
+                        ~size_c:(C_SR.C.pred [%e size_expr])
+                        [%e make_generator clause])]
+              in
+              let expr = pexp_tuple ~loc [ weight_expr; gen_expr ] in
+              value_binding ~loc ~pat ~expr)))
+      in
+      let body =
+        [%expr
+          let [%p nonrec_pat] =
+            C_SR.weighted_union
+              [%e elist ~loc nonrec_exprs]
+          and [%p rec_pat] =
+            C_SR.weighted_union
+              [%e elist ~loc (nonrec_exprs @ rec_exprs)]
+          in
+          [%e
             [%expr
-              G_SR.bind
-                G_SR.size
-                ~f:(fun x -> G_SR.if_z x [%e nonrec_expr] [%e rec_expr])]]]
-        in
-        [%expr G_SR.recursive ((G_SR.C.lift ())) (fun go _ -> [%e pexp_let ~loc Nonrecursive bindings body])]
+              C_SR.bind
+                C_SR.size
+                ~f:(fun x -> C_SR.if_z x [%e nonrec_expr] [%e rec_expr])]]]
+      in
+      [%expr C_SR.recursive ((C_SR.C.lift ())) (fun go _ -> [%e pexp_let ~loc Nonrecursive bindings body])]
 ;;
 
 type impl =
@@ -153,9 +172,9 @@ let rec generator_of_core_type core_type ~gen_env ~obs_env =
   let loc = { core_type.ptyp_loc with loc_ghost = true } in
   let gen_of_type ty =
     match ty.ptyp_desc with
-    | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> Some [%expr G_SR.bool]
-    | Ptyp_constr ({ txt = Lident "int"; _ }, _) -> Some [%expr G_SR.int_uniform_inclusive ~lo:(G_SR.C.lift Int.min_value) ~hi:(G_SR.C.lift Int.max_value)]
-    | Ptyp_constr ({ txt = Lident "float"; _ }, _) -> Some [%expr G_SR.float ~lo:(G_SR.C.lift 0.0) ~hi:(G_SR.C.lift 1.0)]
+    | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> Some [%expr C_SR.bool]
+    | Ptyp_constr ({ txt = Lident "int"; _ }, _) -> Some [%expr C_SR.int]
+    | Ptyp_constr ({ txt = Lident "float"; _ }, _) -> Some [%expr C_SR.float ~lo:(C_SR.C.lift 0.0) ~hi:(C_SR.C.lift 1.0)]
     | _ -> None
   in
   match gen_of_type core_type with
@@ -197,7 +216,7 @@ let generator_impl type_decl ~rec_names =
   let loc = type_decl.ptype_loc in
   let typ =
     combinator_type_of_type_declaration type_decl ~f:(fun ~loc ty ->
-      [%type: [%t ty] G_SR.c G_SR.t])
+      [%type: [%t ty] C_SR.c C_SR.t])
   in
   let pat = pgenerator type_decl.ptype_name in
   let var = egenerator type_decl.ptype_name in

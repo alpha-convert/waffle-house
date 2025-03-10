@@ -1,3 +1,4 @@
+
 module MakeStaged(R : Random_intf.S) : sig
 
     include Generator_intf.S with type 'a C.t = 'a Codelib.code with module R = R

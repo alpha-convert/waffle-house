@@ -189,15 +189,11 @@ static inline int64_t min(int64_t a, int64_t b) {
 }
 
 static uint64_t bits_to_represent(int64_t t) {
-  uint64_t n = 0;
-  
-  while (t > 0) {
-      t >>= 1;
-      n++;
-  }
-  
-  return n;
+  if (t == 0) return 0;
+  return 64 - __builtin_clzll((uint64_t)t);
 }
+
+
 
 int64_t next_int_log_uniform(state_t *st, int64_t lo, int64_t hi) {
   uint64_t min_bits = bits_to_represent(lo);
