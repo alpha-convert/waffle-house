@@ -9,10 +9,10 @@ open Core_bench;;
 module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 module C_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.C_sr_dropin_random)
 module G_BQ = Fast_gen.Bq_generator
-
+(*
 let quickcheck_generator_int_new = Base_quickcheck.Generator.int_uniform_inclusive 0 1000
 
-type color = R | B [@@deriving sexp, quickcheck]
+type color = R | B [@@deriving wh, sexp, quickcheck]
 
 type tree = 
   | E 
@@ -21,8 +21,8 @@ type tree =
        * (int [@quickcheck.generator quickcheck_generator_int_new]) 
        * (int [@quickcheck.generator quickcheck_generator_int_new]) 
        * tree
-[@@deriving sexp, quickcheck, wh]
-
+[@@deriving wh, sexp, quickcheck]
+*)
 (*
 let quickcheck_generator_int_new = Base_quickcheck.Generator.int_uniform_inclusive 0 128
 
@@ -134,7 +134,7 @@ let () =
     printf "%s\n" (Sexp.to_string_hum (sexp_of_t st))
   done
 *)
-
+(*
 let () =
   let generator = C_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (My_tree_generator.staged_quickcheck_generator) in
   let () = C_SR.print (My_tree_generator.staged_quickcheck_generator) in  
@@ -150,4 +150,22 @@ let () =
     printf "%s\n" (Sexp.to_string_hum (My_tree.sexp_of_t quickc_values));
     printf "========= Staged generator ==========\n";
     printf "%s\n" (Sexp.to_string_hum (My_tree.sexp_of_t staged_values))
+  done
+*)
+
+let () =
+  let generator = C_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (Rbt_gen.staged_quickcheck_generator) in
+  let () = C_SR.print (Rbt_gen.staged_quickcheck_generator) in  
+  let random_a = Splittable_random.State.of_int 0 in
+  let random_b = Splittable_random.State.of_int 0 in
+  let size = 10 in
+  for _ = 1 to 1 do
+    printf "\n";
+    printf "\n";
+    let quickc_values = Base_quickcheck.Generator.generate Rbt.quickcheck_generator ~size ~random:random_a in
+    let staged_values = Base_quickcheck.Generator.generate generator ~size ~random:random_b in
+    printf "========== quickcheck_generator ==========\n";
+    printf "%s\n" (Sexp.to_string_hum (Rbt.sexp_of_t quickc_values));
+    printf "========= Staged generator ==========\n";
+    printf "%s\n" (Sexp.to_string_hum (Rbt.sexp_of_t staged_values))
   done

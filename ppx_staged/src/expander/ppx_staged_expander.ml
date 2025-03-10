@@ -72,7 +72,7 @@ let variant
       (List.map (Clause.core_type_list clause) ~f:(fun typ -> match typ.ptyp_desc with
         | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> [%expr C_SR.bool]
         | Ptyp_constr ({ txt = Lident "float"; _}, _) -> [%expr C_SR.float ~lo:(C_SR.C.lift 0.0) ~hi:(C_SR.C.lift 1.0)]
-        | Ptyp_constr ({ txt = Lident "int"; _}, _) -> [%expr C_SR.int_uniform_inclusive ~lo:(C_SR.C.lift 0) ~hi:(C_SR.C.lift 1000)]
+        | Ptyp_constr ({ txt = Lident "int"; _}, _) -> [%expr C_SR.int]
         | Ptyp_constr ({ txt = id; _ }, _) ->
             (* Extract the last component of the longident for comparison *)
             let rec last_component = function
@@ -173,7 +173,7 @@ let rec generator_of_core_type core_type ~gen_env ~obs_env =
   let gen_of_type ty =
     match ty.ptyp_desc with
     | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> Some [%expr C_SR.bool]
-    | Ptyp_constr ({ txt = Lident "int"; _ }, _) -> Some [%expr C_SR.int_uniform_inclusive ~lo:(C_SR.C.lift 0) ~hi:(C_SR.C.lift 1000)]
+    | Ptyp_constr ({ txt = Lident "int"; _ }, _) -> Some [%expr C_SR.int]
     | Ptyp_constr ({ txt = Lident "float"; _ }, _) -> Some [%expr C_SR.float ~lo:(C_SR.C.lift 0.0) ~hi:(C_SR.C.lift 1.0)]
     | _ -> None
   in
