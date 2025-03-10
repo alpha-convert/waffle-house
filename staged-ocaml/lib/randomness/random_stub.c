@@ -141,17 +141,17 @@ CAMLprim value bool_c(value state_val) {
   CAMLreturn(Val_bool(next_bool(&st)));
 }
 
-CAMLprim double float_c_unchecked_unboxed(value state_val, double lo, double hi){
-  CAMLparam1(state_val);
+double float_c_unchecked_unboxed(value state_val, double lo, double hi){
+  // CAMLparam1(state_val);
   state_t st = State_val(state_val);
   double result = next_float(&st,lo,hi);
-  printf("RESULT: %f\n",result);
-  CAMLreturn(result);
+  return result;
 }
 
 CAMLprim value float_c_unchecked(value state_val, value lo_val, value hi_val){
   CAMLparam3(state_val,lo_val,hi_val);
-  CAMLreturn(caml_copy_double(float_c_unchecked_unboxed(state_val,Double_val(lo_val),Double_val(hi_val))));
+  value v = caml_copy_double(float_c_unchecked_unboxed(state_val,Double_val(lo_val),Double_val(hi_val)));
+  CAMLreturn(v);
 }
 
 CAMLprim value int_c_unchecked(value state_val, value lo_val, value hi_val) {
@@ -226,15 +226,17 @@ CAMLprim value print(value state_val) {
 }
 
 static inline double bitcast_int64_to_double(int64_t value) {
-  double result;
-  memcpy(&result, &value, sizeof(double));
-  return result;
+  return *(double*)&value;
+  // double result;
+  // memcpy(&result, &value, sizeof(double));
+  // return result;
 }
 
 static inline int64_t bitcast_double_to_int64(double value) {
-  int64_t result;
-  memcpy(&result, &value, sizeof(int64_t));
-  return result;
+  return *(int64_t*)&value;
+  // int64_t result;
+  // memcpy(&result, &value, sizeof(int64_t));
+  // return result;
 }
 
 static inline int64_t to_int64_preserve_order(double t){
@@ -255,8 +257,7 @@ static inline double of_int64_preserve_order(int64_t x){
   }
 }
 
-CAMLprim double one_ulp_up_c_unboxed(double x){
-  CAMLparam0();
+double one_ulp_up_c_unboxed(double x){
   double res;
   if(isnan(x)){
     res = NAN;
@@ -271,8 +272,7 @@ CAMLprim value one_ulp_up_c(value x_val){
   CAMLreturn(caml_copy_double(one_ulp_up_c_unboxed(Double_val(x_val))));
 }
 
-CAMLprim double one_ulp_down_c_unboxed(double x){
-  CAMLparam0();
+double one_ulp_down_c_unboxed(double x){
   double res;
   if(isnan(x)){
     res = NAN;

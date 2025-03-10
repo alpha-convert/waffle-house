@@ -122,14 +122,13 @@ CAMLprim value bool_c_sr(value sr_state_val) {
 
 
 
-CAMLprim double float_c_sr_unchecked_unboxed(value sr_state_val, double lo, double hi){
-  CAMLparam1(sr_state_val);
+double float_c_sr_unchecked_unboxed(value sr_state_val, double lo, double hi){
   state_t* st = (state_t*) alloca(sizeof(state_t));
   fill_from_value(sr_state_val,st);
   // double lo = Double_val(lo_val);
   // double hi = Double_val(hi_val);
   double result = next_float_sr(st,lo,hi);
-  CAMLreturn(result);
+  return result;
 }
 
 CAMLprim value float_c_sr_unchecked(value sr_state_val, value lo_val, value hi_val){
@@ -211,15 +210,11 @@ CAMLprim value int_c_sr_log_uniform(value sr_state_val, value lo_val, value hi_v
 // }
 
 static inline double bitcast_int64_to_double(int64_t value) {
-  double result;
-  memcpy(&result, &value, sizeof(double));
-  return result;
+  return *(double*)&value;
 }
 
 static inline int64_t bitcast_double_to_int64(double value) {
-  int64_t result;
-  memcpy(&result, &value, sizeof(int64_t));
-  return result;
+  return *(int64_t*)&value;
 }
 
 static inline int64_t to_int64_preserve_order(double t){
@@ -240,8 +235,7 @@ static inline double of_int64_preserve_order(int64_t x){
   }
 }
 
-CAMLprim double one_ulp_up_c_sr_unboxed(double x){
-  CAMLparam0();
+double one_ulp_up_c_sr_unboxed(double x){
   double res;
   if(isnan(x)){
     res = NAN;
@@ -256,8 +250,7 @@ CAMLprim value one_ulp_up_c_sr(value x_val){
   CAMLreturn(caml_copy_double(one_ulp_up_c_sr_unboxed(Double_val(x_val))));
 }
 
-CAMLprim double one_ulp_down_c_sr_unboxed(double x){
-  CAMLparam0();
+double one_ulp_down_c_sr_unboxed(double x){
   double res;
   if(isnan(x)){
     res = NAN;

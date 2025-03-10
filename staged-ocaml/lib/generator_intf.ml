@@ -30,6 +30,7 @@ module type S = sig
   val int_log_inclusive : lo:(int c) -> hi:(int c) -> int c t
 
   val float_uniform_exclusive : lo:(float c) -> hi:(float c) -> float c t
+  val float_uniform_inclusive : lo:(float c) -> hi:(float c) -> float c t
 
   val weighted_union : (float c * 'a c t) list -> 'a c t
   val union : 'a t list -> 'a t

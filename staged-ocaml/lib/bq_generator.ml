@@ -60,6 +60,7 @@ let int_log_inclusive ~lo ~hi = Base_quickcheck.Generator.int_log_inclusive lo h
 
 
 let float_uniform_exclusive ~lo ~hi = Base_quickcheck.Generator.float_uniform_exclusive lo hi
+let float_uniform_inclusive ~lo ~hi = Base_quickcheck.Generator.create (fun ~size:_ ~random -> Splittable_random.float random ~lo ~hi)
 (* let float ~lo ~hi = Base_quickcheck.Generator.float_uniform_exclusive lo hi *)
 let bool = Base_quickcheck.Generator.bool
 

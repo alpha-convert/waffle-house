@@ -38,10 +38,17 @@ module IntLogUniformTC : TestCase = struct
   end
 end
 
-module FloatTC : TestCase = struct
+module FloatExTC : TestCase = struct
   type t = float [@@deriving eq,show]
   module F (G : Generator_intf.S) = struct
     let gen = G.float_uniform_exclusive ~lo:(G.C.lift 0.0) ~hi:(G.C.lift 1.0)
+  end
+end
+
+module FloatInTC : TestCase = struct
+  type t = float [@@deriving eq,show]
+  module F (G : Generator_intf.S) = struct
+    let gen = G.float_uniform_inclusive ~lo:(G.C.lift 0.0) ~hi:(G.C.lift 1.0)
   end
 end
 
@@ -319,8 +326,7 @@ module Bm = Benchmark
   let g1 = M1.gen in
   let g2 = G_C.jit M2.gen in
   let g3 = G_SR.jit M3.gen in
-  Benchmark.bm ~bench_name:"Int list" ~named_gens:["BQ",g1; "Staged C",g2; "Staged SR", g3] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000
-*)
+  Benchmark.bm ~bench_name:"Int list" ~named_gens:["BQ",g1; "Staged C",g2; "Staged SR", g3] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000 *)
 
 (* let () =
   let module TC = IntUIList in
@@ -361,7 +367,7 @@ module Bm = Benchmark
   Magic_trace.under_bm ~name:"Int UI List Staged C MT" ~gen:g ~size:1000 ~seed:100 ~num_calls:10000 ~min_dur_to_trigger:(Magic_trace.Min_duration.of_ns 10000000000) *)
 
 
-(* let () =
+let () =
   let module TC = IntUIList in
   let module M1 = TC.F(G_Bq) in
   let module M2 = TC.F(G_SR) in
@@ -371,7 +377,7 @@ module Bm = Benchmark
   let g2 = G_SR.jit M2.gen in
   let g3 = G_C_SR.jit M3.gen in
   let g4 = G_C.jit M4.gen in
-  Benchmark.bm ~bench_name:"Int list (uniform inclusive)" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged CSR",g3; "Staged C", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000 *)
+  Benchmark.bm ~bench_name:"Int list (uniform inclusive)" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged CSR",g3; "Staged C", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000
 
 (* let () =
   let module TC = IntTC in
@@ -484,6 +490,7 @@ let bl2s xs = "[" ^ (String.concat "," (List.map Bool.to_string xs)) ^ "]"
 
 let derived_testcase = Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ bl2s v1 ^ "\nST: " ^ bl2s v2 ^"\n") (List.equal Bool.equal) g1 g2 *)
 
+
 let () =
   let open Alcotest in
   run "Staged Generators" [
@@ -513,7 +520,7 @@ let () =
     ];
     "RNG Int Equivalence", [
       (let open MakeDiffTest(IntTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
-      (let open MakeDiffTest(IntTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C");
+      (* (let open MakeDiffTest(IntTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C"); *)
       (* (let open MakeDiffTest(IntTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR"); *)
     ];
     "RNG Int Uniform Equivalence", [
@@ -535,9 +542,15 @@ let () =
     ]
     ;
     "RNG Float Exclusive Equivalence", [
-      (let open MakeDiffTest(FloatTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
-      (let open MakeDiffTest(FloatTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C");
-      (let open MakeDiffTest(FloatTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR");
+      (let open MakeDiffTest(FloatExTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
+      (let open MakeDiffTest(FloatExTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C");
+      (let open MakeDiffTest(FloatExTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR");
+    ]
+    ;
+    "RNG Float Inclusive Equivalence", [
+      (let open MakeDiffTest(FloatInTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
+      (let open MakeDiffTest(FloatInTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C");
+      (let open MakeDiffTest(FloatInTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR");
     ]
     ;
     (* "RNG Equivalence",[

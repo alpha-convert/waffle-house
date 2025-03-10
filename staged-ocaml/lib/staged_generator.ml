@@ -129,6 +129,12 @@ let split_int cn = {
         Codecps.let_insert (R.float random_c ~lo:lo_incl ~hi:hi_incl)
   }
 
+  let float_uniform_inclusive ~(lo : float code) ~(hi : float code) : float code t = {
+    rand_gen =
+      fun ~size_c:_ ~random_c ->
+        Codecps.let_insert (R.float random_c ~lo:lo ~hi:hi)
+  }
+
   let rec genpick n ws =
     match ws with
     | [] -> { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return .< failwith "Fell of the end of pick list" >. }
