@@ -152,10 +152,19 @@ let () =
     printf "%s\n" (Sexp.to_string_hum (My_tree.sexp_of_t staged_values))
   done
 *)
+open Core_unix
 
 let () =
   let generator = C_SR.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] (Rbt_gen.staged_quickcheck_generator) in
-  let () = C_SR.print (Rbt_gen.staged_quickcheck_generator) in  
+
+  let filename = "generator_output.txt" in
+  let fd = openfile filename ~mode:[O_WRONLY; O_CREAT; O_TRUNC] ~perm:0o644 in
+  let old_stdout = dup stdout in
+  dup2 ~src:fd ~dst:stdout ();
+  C_SR.print Rbt_gen.staged_quickcheck_generator;
+  dup2 ~src:old_stdout ~dst:stdout ();
+  close old_stdout;
+  close fd;
   let random_a = Splittable_random.State.of_int 0 in
   let random_b = Splittable_random.State.of_int 0 in
   let size = 10 in

@@ -7,7 +7,7 @@ open Base;;
 open Base_quickcheck;;
 open Splittable_random;;
 
-let quickcheck_generator_int_new = Base_quickcheck.Generator.int_uniform_inclusive 0 1000
+let quickcheck_generator_int_new = Base_quickcheck.Generator.int_uniform_inclusive Int.min_value Int.max_value
 
 type t =
 | E
