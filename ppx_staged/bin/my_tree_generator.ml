@@ -24,15 +24,10 @@ let staged_quickcheck_generator =
                            (C_SR.recurse go (C_SR.C.lift ()))
                            ~f:(fun _x__049_ ->
                                  C_SR.bind
-                                   (C_SR.int_uniform_inclusive
-                                      ~lo:(C_SR.C.lift 0)
-                                      ~hi:(C_SR.C.lift 1000))
+                                   C_SR.int
                                    ~f:(fun _x__050_ ->
                                          C_SR.bind
-                                           (C_SR.int_uniform_inclusive
-                                              ~lo:(C_SR.C.lift 0)
-                                              ~hi:(C_SR.C.lift
-                                                     1000))
+                                           C_SR.int
                                            ~f:(fun _x__051_ ->
                                                  C_SR.bind
                                                    (C_SR.recurse
