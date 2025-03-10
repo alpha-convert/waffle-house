@@ -1,11 +1,16 @@
 type t = Splittable_random.State.t
 
 let int st ~lo ~hi = .< if Base.Int.compare .~lo .~ hi > 0 then failwith "Crossed bounds!" else C_sr_dropin_random_runtime.int_c_unchecked .~st .~lo .~hi >.
+let int_unchecked st ~lo ~hi = .< C_sr_dropin_random_runtime.int_c_unchecked .~st .~lo .~hi >.
 let bool st = .< C_sr_dropin_random_runtime.bool_c .~st >.
 
 let float st ~(lo : float Codelib.code) ~hi = .<
   if Base.Float.compare .~lo .~ hi > 0 then failwith "Crossed bounds!" else
   if (not (Float.is_finite .~lo && Float.is_finite .~hi)) then failwith "Infite floats" else
+  C_sr_dropin_random_runtime.float_c_unchecked .~st .~lo .~hi
+>.
+
+let float_unchecked st ~(lo : float Codelib.code) ~hi = .<
   C_sr_dropin_random_runtime.float_c_unchecked .~st .~lo .~hi
 >.
 

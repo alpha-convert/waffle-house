@@ -325,7 +325,9 @@ module G_C_SR = Staged_generator.MakeStaged(C_sr_dropin_random)
 
 module Bm = Benchmark
 
-let () =
+let () = G_C_SR.print (G_C_SR.int)
+
+(* let () =
   let module TC = IntList in
   let module M1 = TC.F(G_Bq) in
   let module M2 = TC.F(G_SR) in
@@ -336,7 +338,7 @@ let () =
   let g3 = G_C.jit M3.gen in
   let g4 = G_C_SR.jit M4.gen in
   Benchmark.bm ~bench_name:"Int list" ~named_gens:["BQ",g1; "SR",g2; "C", g3; "CSR", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000
-
+ *)
 (* let () =
   let module TC = IntUIList in
   let module M2 = TC.F(G_SR) in
@@ -374,7 +376,7 @@ let () =
        t_21)
  in
   Magic_trace.under_bm ~name:"Int UI List Staged C MT" ~gen:g ~size:1000 ~seed:100 ~num_calls:10000 ~min_dur_to_trigger:(Magic_trace.Min_duration.of_ns 10000000000) *)
-
+(* 
 let () =
   let module TC = IntUIList in
   let module M1 = TC.F(G_Bq) in
@@ -400,7 +402,7 @@ let () =
   Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged C", g3; "Staged CSR", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:100000
 
 
-let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/"
+let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/" *)
 
 (* let stlc_test =
   let g1 = Stlc_gen_bq.genExpr in

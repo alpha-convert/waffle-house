@@ -3,9 +3,11 @@ type t = Splittable_random.State.t
 open Splittable_random
 
 
-let int st ~lo ~hi = .< int .~st ~lo:.~lo ~hi:.~hi >.
+let int st ~lo ~hi = .< Splittable_random.int .~st ~lo:.~lo ~hi:.~hi >.
+let int_unchecked st ~lo ~hi = .< Splittable_random.int .~st ~lo:.~lo ~hi:.~hi >.
 let bool st = .< bool .~st >.
-let float st ~lo ~hi = .< float .~st ~lo:.~lo ~hi:.~hi >.
+let float st ~lo ~hi = .< Splittable_random.float .~st ~lo:.~lo ~hi:.~hi >.
+let float_unchecked st ~lo ~hi = .< Splittable_random.float .~st ~lo:.~lo ~hi:.~hi >.
 
 let one_ulp ~dir x = .< Base.Float.one_ulp dir .~x >.
 

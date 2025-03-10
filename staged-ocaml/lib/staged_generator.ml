@@ -190,8 +190,45 @@ let int_uniform_inclusive ~(lo : int code) ~(hi : int code) : int code t = {
         Codecps.let_insert (R.Log_uniform.int random_c ~lo:lo ~hi:hi)
   }
 
+
+  (*
+  NON-uniform is literally just this:
+  >> weighted_union [ .< 0.05 >., return lo; .<0.05>., return hi; .<0.9>., f ~lo ~hi ]
+  but we specialize further to cut down on code size.
+  *)
   let non_uniform f ~lo ~hi =
-    weighted_union [ .< 0.05 >., return lo; .<0.05>., return hi; .<0.9>., f ~lo ~hi ]
+    { rand_gen = fun ~size_c ~random_c ->
+        let n = (R.float_unchecked random_c ~lo:.<0.>. ~hi:.<1.0>.) in
+        Codecps.bind (Codecps.let_insertv n) @@ fun n ->
+        (* (genpick n ws).rand_gen ~size_c ~random_c *)
+        Codecps.bind (Codecps.split_bool .< Float.compare .~(v2c n) 0.05 <= 0 >.) @@ fun leq_first ->
+          if leq_first then
+            Codecps.return lo
+          else
+            (* Codecps.bind (Codecps.let_insertv .< .~(v2c n) -. 0.005 >.) @@ fun n' -> *)
+            Codecps.bind (Codecps.split_bool .< Float.compare .~(v2c n) 0.1 <= 0 >.) @@ fun leq_second ->
+              if leq_second then
+                Codecps.return hi
+              else
+                (f ~lo ~hi).rand_gen ~size_c ~random_c
+    }
+
+(* 
+  let rec genpick n ws =
+    match ws with
+    | [] -> { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return .< failwith "Fell of the end of pick list" >. }
+    | (k,g) :: ws' ->
+          { rand_gen = 
+            fun ~size_c ~random_c ->
+              Codecps.bind (Codecps.split_bool .< Float.compare .~(v2c n) .~(v2c k) <= 0 >.) (fun leq ->
+                if leq then
+                  g.rand_gen ~size_c ~random_c
+                else
+                  Codecps.bind (Codecps.let_insertv .< .~(v2c n) -. .~(v2c k) >.) @@ fun n' ->
+                  (* let%bind n' =  in *)
+                  (genpick n' ws').rand_gen ~size_c ~random_c
+            )
+          } *)
   
   let int_inclusive = non_uniform int_uniform_inclusive
   let int_log_inclusive = non_uniform int_log_uniform_inclusive

@@ -5,7 +5,9 @@ module type S = sig
 
   val bool : t code -> bool code
   val int : t code -> lo:(int code) -> hi:(int code) -> int code
+  val int_unchecked : t code -> lo:(int code) -> hi:(int code) -> int code
   val float : t code -> lo:(float code) -> hi:(float code) -> float code
+  val float_unchecked : t code -> lo:(float code) -> hi:(float code) -> float code
 
   val one_ulp : dir:([`Up | `Down]) -> float code -> float code
 
