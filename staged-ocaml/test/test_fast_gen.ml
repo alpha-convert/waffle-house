@@ -31,10 +31,17 @@ module IntInclusiveTC : TestCase = struct
   end
 end
 
-module IntLogUniformTC : TestCase = struct
+module IntLogUniformInclusiveTC : TestCase = struct
   type t = int [@@deriving eq,show]
   module F (G : Generator_intf.S) = struct
     let gen = G.int_log_uniform_inclusive ~lo:(G.C.lift 0) ~hi:(G.C.lift 100)
+  end
+end
+
+module IntLogInclusiveTC : TestCase = struct
+  type t = int [@@deriving eq,show]
+  module F (G : Generator_intf.S) = struct
+    let gen = G.int_log_inclusive ~lo:(G.C.lift 0) ~hi:(G.C.lift 100)
   end
 end
 
@@ -520,8 +527,8 @@ let () =
     ];
     "RNG Int Equivalence", [
       (let open MakeDiffTest(IntTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
-      (* (let open MakeDiffTest(IntTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C"); *)
-      (* (let open MakeDiffTest(IntTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR"); *)
+      (let open MakeDiffTest(IntTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C");
+      (let open MakeDiffTest(IntTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR");
     ];
     "RNG Int Uniform Equivalence", [
       (let open MakeDiffTest(IntUniformTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
@@ -531,7 +538,6 @@ let () =
     "RNG Int Uniform Inclusive Equivalence", [
       (let open MakeDiffTest(IntUniformInclusiveTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
       (let open MakeDiffTest(IntUniformInclusiveTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C");
-      (let open MakeDiffTest(IntUniformInclusiveTC)(G_SR)(G_C) in alco ~config:qc_cfg "SR/C");
       (let open MakeDiffTest(IntUniformInclusiveTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR");
     ]
     ;
@@ -539,6 +545,18 @@ let () =
       (let open MakeDiffTest(IntInclusiveTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
       (let open MakeDiffTest(IntInclusiveTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C");
       (let open MakeDiffTest(IntInclusiveTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR");
+    ]
+    ;
+    "RNG Int Log Uniform Inclusive Equivalence", [
+      (let open MakeDiffTest(IntLogUniformInclusiveTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
+      (let open MakeDiffTest(IntLogUniformInclusiveTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C");
+      (let open MakeDiffTest(IntLogUniformInclusiveTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR");
+    ]
+    ;
+    "RNG Int Log Inclusive Equivalence", [
+      (let open MakeDiffTest(IntLogInclusiveTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
+      (let open MakeDiffTest(IntLogInclusiveTC)(G_Bq)(G_C) in alco ~config:qc_cfg "C");
+      (let open MakeDiffTest(IntLogInclusiveTC)(G_Bq)(G_C_SR) in alco ~config:qc_cfg "C_SR");
     ]
     ;
     "RNG Float Exclusive Equivalence", [
