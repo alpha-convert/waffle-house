@@ -167,14 +167,9 @@ let split_int cn = {
   let weighted_union ws : 'a t =
     { rand_gen = fun ~size_c ~random_c ->
         Codecps.bind (Codecps.all @@ List.map (fun (cn,g) -> Codecps.bind (Codecps.let_insertv cn) @@ fun cvn -> Codecps.return (cvn,g)) ws) @@ fun ws' ->
-        (* let%bind ws' =  in *)
         Codecps.bind (sum ws') @@ fun sum ->
-        (* let%bind sum = sum ws' in *)
-        (* Codecps.bind ((float ~lo:.<0.>. ~hi:(v2c sum)).rand_gen ~size_c ~random_c) @@ fun n -> *)
         let n = (R.float random_c ~lo:.<0.>. ~hi:(v2c sum)) in
-        (* let%bind n =  in *)
         Codecps.bind (Codecps.let_insertv n) @@ fun n ->
-        (* let%bind n = Codecps.let_insert n in *)
         (genpick n ws').rand_gen ~size_c ~random_c
     }
 
@@ -200,12 +195,10 @@ let int_uniform_inclusive ~(lo : int code) ~(hi : int code) : int code t = {
     { rand_gen = fun ~size_c ~random_c ->
         let n = (R.float_unchecked random_c ~lo:.<0.>. ~hi:.<1.0>.) in
         Codecps.bind (Codecps.let_insertv n) @@ fun n ->
-        (* (genpick n ws).rand_gen ~size_c ~random_c *)
         Codecps.bind (Codecps.split_bool .< Float.compare .~(v2c n) 0.05 <= 0 >.) @@ fun leq_first ->
           if leq_first then
             Codecps.return lo
           else
-            (* Codecps.bind (Codecps.let_insertv .< .~(v2c n) -. 0.005 >.) @@ fun n' -> *)
             Codecps.bind (Codecps.split_bool .< Float.compare .~(v2c n) 0.1 <= 0 >.) @@ fun leq_second ->
               if leq_second then
                 Codecps.return hi
@@ -213,23 +206,6 @@ let int_uniform_inclusive ~(lo : int code) ~(hi : int code) : int code t = {
                 (f ~lo ~hi).rand_gen ~size_c ~random_c
     }
 
-(* 
-  let rec genpick n ws =
-    match ws with
-    | [] -> { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return .< failwith "Fell of the end of pick list" >. }
-    | (k,g) :: ws' ->
-          { rand_gen = 
-            fun ~size_c ~random_c ->
-              Codecps.bind (Codecps.split_bool .< Float.compare .~(v2c n) .~(v2c k) <= 0 >.) (fun leq ->
-                if leq then
-                  g.rand_gen ~size_c ~random_c
-                else
-                  Codecps.bind (Codecps.let_insertv .< .~(v2c n) -. .~(v2c k) >.) @@ fun n' ->
-                  (* let%bind n' =  in *)
-                  (genpick n' ws').rand_gen ~size_c ~random_c
-            )
-          } *)
-  
   let int_inclusive = non_uniform int_uniform_inclusive
   let int_log_inclusive = non_uniform int_log_uniform_inclusive
   let uniform_all = int_uniform_inclusive ~lo:.<Int.min_int>. ~hi:.<Int.max_int>.
@@ -239,10 +215,8 @@ let int_uniform_inclusive ~(lo : int code) ~(hi : int code) : int code t = {
   let int =
     bind bool ~f:(fun negative ->
         bind (int_log_inclusive ~lo:.<0>. ~hi:.<Int.max_int>.) ~f:(fun magnitude ->
-          bind (split_bool negative) ~f:(fun b ->
-            if b then return .<lnot .~magnitude>. else return magnitude
+          return .<.~magnitude lxor (- Base.Bool.to_int .~negative)>.
           )
-        )
     )
     (* let all =
       [%map
