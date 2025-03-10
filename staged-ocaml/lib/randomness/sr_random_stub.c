@@ -145,6 +145,7 @@ CAMLprim value int_c_sr_unchecked(value sr_state_val, value lo_val, value hi_val
   int64_t hi = (int64_t) Long_val(hi_val);
 
   int64_t result = next_int_sr(st,lo,hi);
+
   CAMLreturn(Val_int(result));
 }
 

@@ -44,6 +44,7 @@ static struct custom_operations state_ops = {
 };
 
 #define State_val(v) (*((state_t *) Data_custom_val(v)))
+#define State_ptr(v) ((state_t *) Data_custom_val(v))
 
 /*
 NOTE: We could get around this single allocation (which will happen at the beginning of every generator call)
@@ -137,14 +138,14 @@ double next_float(state_t *st, double lo, double hi){
 
 CAMLprim value bool_c(value state_val) {
   CAMLparam1(state_val);
-  state_t st = State_val(state_val);
-  CAMLreturn(Val_bool(next_bool(&st)));
+  state_t *st = State_ptr(state_val);
+  CAMLreturn(Val_bool(next_bool(st)));
 }
 
 double float_c_unchecked_unboxed(value state_val, double lo, double hi){
   // CAMLparam1(state_val);
-  state_t st = State_val(state_val);
-  double result = next_float(&st,lo,hi);
+  state_t *st = State_ptr(state_val);
+  double result = next_float(st,lo,hi);
   return result;
 }
 
@@ -156,12 +157,12 @@ CAMLprim value float_c_unchecked(value state_val, value lo_val, value hi_val){
 
 CAMLprim value int_c_unchecked(value state_val, value lo_val, value hi_val) {
   CAMLparam3(state_val,lo_val,hi_val);
-  state_t st = State_val(state_val);
+  state_t *st = State_ptr(state_val);
 
   int64_t lo = (int64_t) Long_val(lo_val);
   int64_t hi = (int64_t) Long_val(hi_val);
 
-  int64_t result = next_int(&st,lo,hi);
+  int64_t result = next_int(st,lo,hi);
   CAMLreturn(Val_int(result));
 }
 
@@ -209,12 +210,12 @@ int64_t next_int_log_uniform(state_t *st, int64_t lo, int64_t hi) {
 
 CAMLprim value int_c_log_uniform(value state_val, value lo_val, value hi_val) {
   CAMLparam3(state_val,lo_val,hi_val);
-  state_t st = State_val(state_val);
+  state_t *st = State_ptr(state_val);
 
   int64_t lo = (int64_t) Long_val(lo_val);
   int64_t hi = (int64_t) Long_val(hi_val);
 
-  int64_t result = next_int_log_uniform(&st,lo,hi);
+  int64_t result = next_int_log_uniform(st,lo,hi);
   CAMLreturn(Val_int(result));
 }
 
