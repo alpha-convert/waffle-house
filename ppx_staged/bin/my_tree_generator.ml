@@ -6,70 +6,52 @@ open Sexplib;;
 open Sexplib0.Sexp_conv;;
 open Base;;
 
-module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
+module C_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.C_sr_dropin_random)
 
 let staged_quickcheck_generator =
-  G_SR.recursive (G_SR.C.lift ())
+  C_SR.recursive (C_SR.C.lift ())
     (fun go ->
        fun _ ->
-         let _pair__004_ =
-           ((.< 1.  >.), (G_SR.return (.< E  >.)))
-         and _pair__005_ =
-           ((.< 2.  >.),
-             (G_SR.bind G_SR.size
-                ~f:(fun _size__001_ ->
-                      G_SR.with_size
-                        ~size_c:(G_SR.C.pred _size__001_)
-                        (G_SR.bind
-                           (G_SR.recurse go (G_SR.C.lift ()))
-                           ~f:(fun _x__006_ ->
-                                 G_SR.bind
-                                   (G_SR.int_uniform_inclusive
-                                      ~lo:(G_SR.C.lift
-                                             Int.min_value)
-                                      ~hi:(G_SR.C.lift
-                                             Int.max_value))
-                                   ~f:(fun _x__007_ ->
-                                         G_SR.bind
-                                           (G_SR.int_uniform_inclusive
-                                              ~lo:(G_SR.C.lift
-                                                     Int.min_value)
-                                              ~hi:(G_SR.C.lift
-                                                     Int.max_value))
-                                           ~f:(fun _x__008_ ->
-                                                 G_SR.bind
-                                                   (G_SR.recurse
+         let _pair__047_ =
+           ((.< 1.  >.), (C_SR.return (.< E  >.)))
+         and _pair__048_ =
+           ((.< 1.  >.),
+             (C_SR.bind C_SR.size
+                ~f:(fun _size__044_ ->
+                      C_SR.with_size
+                        ~size_c:(C_SR.C.pred _size__044_)
+                        (C_SR.bind
+                           (C_SR.recurse go (C_SR.C.lift ()))
+                           ~f:(fun _x__049_ ->
+                                 C_SR.bind
+                                   (C_SR.int_uniform_inclusive
+                                      ~lo:(C_SR.C.lift 0)
+                                      ~hi:(C_SR.C.lift 1000))
+                                   ~f:(fun _x__050_ ->
+                                         C_SR.bind
+                                           (C_SR.int_uniform_inclusive
+                                              ~lo:(C_SR.C.lift 0)
+                                              ~hi:(C_SR.C.lift
+                                                     1000))
+                                           ~f:(fun _x__051_ ->
+                                                 C_SR.bind
+                                                   (C_SR.recurse
                                                       go
-                                                      (G_SR.C.lift
+                                                      (C_SR.C.lift
                                                         ()))
                                                    ~f:(fun
-                                                        _x__009_
+                                                        _x__052_
                                                         ->
-                                                        G_SR.return
+                                                        C_SR.return
                                                         (.<
                                                         T
-                                                        ((.~_x__009_),
-                                                        (.~_x__008_),
-                                                        (.~_x__007_),
-                                                        (.~_x__006_)) 
+                                                        ((.~_x__052_),
+                                                        (.~_x__051_),
+                                                        (.~_x__050_),
+                                                        (.~_x__049_)) 
                                                         >.))))))))) in
-         let _gen__002_ = G_SR.weighted_union [_pair__004_]
-         and _gen__003_ =
-           G_SR.weighted_union [_pair__004_; _pair__005_] in
-         G_SR.bind G_SR.size
-           ~f:(fun x -> G_SR.if_z x _gen__002_ _gen__003_))
-
-let rec sexp_of_t =
-      (function
-       | E -> Sexplib0.Sexp.Atom "E"
-       | T (arg0__025_, arg1__026_, arg2__027_, arg3__028_) ->
-           let res0__029_ = sexp_of_t arg0__025_
-           and res1__030_ = sexp_of_int arg1__026_
-           and res2__031_ = sexp_of_int arg2__027_
-           and res3__032_ = sexp_of_t arg3__028_ in
-           Sexplib0.Sexp.List
-             [Sexplib0.Sexp.Atom "T";
-             res0__029_;
-             res1__030_;
-             res2__031_;
-             res3__032_] : t -> Sexplib0.Sexp.t)
+         let _gen__045_ = C_SR.weighted_union [_pair__047_]
+         and _gen__046_ =
+           C_SR.weighted_union [_pair__047_; _pair__048_] in
+         C_SR.bind C_SR.size
+           ~f:(fun x -> C_SR.if_z x _gen__045_ _gen__046_))
