@@ -3,8 +3,6 @@ open Codelib;;
 open Codecps;;
 (* open Codecps.Let_syntax;; *)
 
-let times_jitted = ref 0
-
 module MakeStaged(R : Random_intf.S) = struct
 
   type 'a t = { rand_gen : size_c:(int code) -> random_c:(R.t code) -> 'a Codecps.t }
@@ -331,13 +329,26 @@ let int_uniform_inclusive ~(lo : int code) ~(hi : int code) : int code t = {
 
   let print sg = Codelib.print_code Format.std_formatter (to_bq sg)
 
+  let ensure_ocamlparam_has_optimization () =
+    let current_param = 
+      try Sys.getenv "OCAMLOPTLFAGS" 
+      with Not_found -> "" in
+    
+    let has_optimization = Base.String.is_substring current_param ~substring:"-O3" in
+    
+    if not has_optimization then
+      let new_param = 
+        if current_param = "" then "-O3"
+        else "-O3 " ^ current_param in
+      Unix.putenv "OCAMLOPTFLAGS" new_param;
+    ()
+
   let jit ?extra_cmi_paths cde =
-    print_endline @@ "Running jit: " ^ (String.concat "," (List.flatten @@ Option.to_list extra_cmi_paths)) ^ " for the " ^ (Int.to_string !times_jitted) ^ "th time";
-    incr times_jitted;
     List.iter Runnative.add_search_path (List.flatten (Option.to_list extra_cmi_paths));
     List.iter Runnative.add_search_path R.dep_paths;
     Runnative.add_search_path (Util.run_ocamlfind_query "base_quickcheck");
     Runnative.add_search_path (Util.run_ocamlfind_query "base");
+    ensure_ocamlparam_has_optimization ();
     Runnative.run_native (Codelib.close_code (to_bq cde))
 
 
