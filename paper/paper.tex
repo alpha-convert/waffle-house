@@ -220,6 +220,26 @@ Property-based testing (PBT) is a software testing approach that verifies a syst
 
 \jwc{This paper is about ``Strict functional languages like OCaml and Scala'', but we'll focus on OCaml for presentation.}
 
+\bcp{The current introduction says, roughly, ``We took a look at
+  base.quickcheck, noticed some inefficiencies, applied known
+  techniques from staged metaprogramming to eliminate them, and
+  observed that speed went up.''  I think we can make much stronger
+  claims, but I'm not sure about exactly how strong or what belongs in
+  the foreground...
+  \begin{itemize}
+  \item One of the first serious uses of staged metaprogramming in anger?
+  \item A use of staged metaprogramming that is novel / challenging in
+  itself, in some way?
+  \item An analysis of sources of inefficiency across a range of PBT
+  frameworks (and a solution that applies to many of them)?
+  \item A usable tool that addresses and overcomes some significant
+  implementation challenges?
+  \item Careful measurements showing where the sources of inefficiency
+  are in existing PBT tools, and which ones matter most?
+  \item (Your claim here...)?
+  \end{itemize}
+}
+
 
 Property-based testing (PBT) is a widely-used testing framework consisting of
 two key components: a set of \textit{properties} that a system must satisfy, and
@@ -577,7 +597,6 @@ A generator of \texttt{'a}s is then a (compile-time) function \texttt{int code -
 }
 
 \begin{lstlisting}
-
 module Gen = struct
   type 'a t = int code -> Random.t code -> 'a code
 
@@ -720,6 +739,9 @@ and random seed, they produce the same value.
 }
 
 \jwc{Note: tradeoff between maintaining the effect ordering and even more performance.}
+
+\bcp{How much faster could we go if we changed the effect ordering?
+  If it might be a lot, then should we measure this too?}
 
 \subsection{Size Parameters, A Real Monad Instance, CPS, and ``The Trick''}
 
