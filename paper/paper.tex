@@ -485,8 +485,6 @@ can ensure that any overhead of using them is eliminated by run time.
   \end{itemize}
 }
 
-\subsection{\bq}
-
 \section{Why is \bq\ slow, and how can we fix it?}
 
 \jwc{NOTE: We can simplify this further by getting rid of the size parameter. Make the story even cleaner, I think!}
@@ -633,21 +631,22 @@ should be engineered for performance.
 
 \section{\name: A Library for Staged Generators}
 
-\jwc{Usual introduction to this section, corresponding to how we talked about it in the intro}
-
-\jwc{
-  \begin{itemize}
-    \item To eliminate this runtime overhead and generate efficient code, we do a usual ``binding-time analysis''.
-    \item The crux of this binding-time analysis is that while generators are `just' values of type \texttt{'a t}, in practice they are always \emph{completely statically defined}: one never
-    computes a generator dynamically at test time.
-    \item The size and the random seed are only known at run-time (the later stage), but the code of the generator itself is known at compile time.
-    \item This means the generator type should be \texttt{int code -> SR.t code -> 'a code}: a statically known-function from dynamically-known int and seed to dynamically-determined result.
-  \end{itemize}
-}
+\jwc{Usual introduction to this section, corresponding to how we talked about it in the intro. ``We present a library that XYZ''.}
 
 \subsection{Basic Design}
 
-A generator of \texttt{'a}s is then a (compile-time) function \texttt{int code -> Random.t code -> 'a code}.
+Recall that staging a DSL requires carefully changing some of the types and
+combinators to transform \texttt{code}s.  Deciding which types \texttt{t} can
+instead be \texttt{t code} is an art known as ``binding-time analysis'' \cn:
+figuring out which parts of the DSL can be determined statically (and can be
+part of the compile-time stage), and which parts are only known dynamically (and
+hence must be \texttt{code}).
+
+The crux of our binding time analysis is that particular size random seed are
+only known at run-time (the later stage), but the code of the generator itself
+is known at compile time.  This means our library's generator type \texttt{'a
+Gen.t} should be \texttt{int code -> SR.t code -> 'a code}: a compile-time
+function from dynamically-known size and seed to dynamically-determined result.
 
 \jwc{Note that some of this is a lie, but it's a good first cut: point to the section on \emph{The Trick} to see the real version.}
 
@@ -710,8 +709,6 @@ let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
 
 \jwc{So if you write with the \texttt{Gen} combinators and then only call \texttt{to\_bq} at the end, you get something that inlines everything all the way down!}
 
-
-
 \subsection{Staging More Combinators}
 
 \jwc{Weighted unions: recall that we should not need to materialize}
@@ -735,7 +732,7 @@ let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
 \begin{lstlisting}
   let weighted_union (weighted_elts : (float code * 'a code) list) : 'a t =
     let sum_code = List.foldr _ in
-    let go (rc : int code) (weighted_elts : (float code * 'a code) list) : 'a code =
+    let pick (rc : int code) (weighted_elts : (float code * 'a code) list) : 'a code =
       match weighted_elts with
       | [] -> .< failwith "Error" >.
       | (wc,xc) :: elts' ->
@@ -750,7 +747,7 @@ let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
       .<
         let sum = .~sum_code in
         let r = SR.int .~random_c 0 sum in
-        .~(go .<r>. gwcs)
+        .~(pick .<r>. weighted_elts)
       >.
 \end{lstlisting}
 
@@ -810,10 +807,12 @@ and random seed, they produce the same value.
 \bcp{How much faster could we go if we changed the effect ordering?
   If it might be a lot, then should we measure this too?}
 
-\subsection{Size Parameters, A Real Monad Instance, CPS, and ``The Trick''}
+\subsection{Size Parameters, A Real Monad Instance, CPS, and Recursion}
 
+\subsubsection{Size Parameters}
 \jwc{Introduce the size parameter here. (if you deleted it beforehand.)}
 
+\subsubsection{CodeCPS and a Monad Instance}
 \jwc{
   \begin{itemize}
     \item Careful readers might note that the types of return and bind are not actually the right types.
@@ -869,7 +868,12 @@ And this has the desired effect that
 \texttt{fun size random -> let x = SR.int random 0 1 in (x,x)}
 }
 
+
+\subsubsection{Recursive Generators}
+\jwc{Describe recursion and recurisve handles}
+
 \subsubsection{The Trick}
+\jwc{Describe split --- this section is approximately experts-only, but you can just point at the Andras paper and the things it cites.}
 
 \subsection{Staged Type-Derived Generators}
 
