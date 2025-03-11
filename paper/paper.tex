@@ -429,38 +429,40 @@ let eta (f : 'a code -> 'b code) : ('a -> 'b) code = .<fun x -> .\~(f .<x>.)>.
 This program is known as ``the trick'' in the partial evaluation and multi-stage programming literature.
 \cn{} 
 % USE THIS: https://arxiv.org/pdf/2309.08207
+It returns a code for a function that takes an argument \texttt{x}, and then it splats in the result of calling \texttt{f} on just
+the quoted \texttt{x}.
+\jwc{Does this make any sense?}
 
-\jwc{words}
-
-As an example, consider
+The trick is best illustrated by an example. The following program reduces to \texttt{.< fun x -> (1 + x) mod 2 == 0 >}.
 \begin{lstlisting}
 let is_even x = .< .~x mod 2 == 0 >. in
 let succ x = .< 1 + .~x >. in
 eta (succ . is_even)
 \end{lstlisting}
-This is equal to \texttt{.< fun x -> (1 + x) mod 2 == 0 >.}: the functions have been fused together, and the overhead of calling them is not present at runtime.
+By composing the two code-transforming functions together at compile time, and only then turning them into a run-time function,
+the functions are fused together... \jwc{words}.
+This is the basis of how staging is used to eliminate the abstraction of DSLs
+(like a generator DSL). By writing DSL combinators as compile-time functions ---
+and only calling \texttt{eta} at the end on the completed DSL program ---  we
+can ensure that any overhead of using them is eliminated by run time.
 
-This ``trick'' is how we use metaprogramming
-
-
-
-\jwc{
-  \begin{itemize}
-    \item The \texttt{'a code} type, quote, escape or ``splice'', stage distinction.
-    \item MetaOCaml ensures correct scoping and hygene by preventing alpha-collision when you splice open terms.
-    \item The difference between \texttt{('a -> 'b) code} and \texttt{'a code -> 'b code}
-    \item We can convert one way, but not the other.
-    \item Functions \texttt{'a code -> 'b code} ``fuse''.
-    \begin{itemize}
-      \item Consider writing \texttt{even . succ}. This
-      \item Consider \texttt{even\_c : int code -> bool code = fun cx -> .<.~cx mod 2 == 0>.} and \texttt{succ\_c : int code -> int code = fun cx -> .< .~x + 1 >.}
-      \item If you do \texttt{to\_dyn (even\_c . succ\_c)}, you get \texttt{fun x -> (x + 1) mod 2 == 0}. Composing functions from code to code, and then \emph{only at the end} stamping out
-      a dynamic function value eliminates the function abstraction.
-    \end{itemize}
-    \item This is the basis of (WORD). By defining a library with functions with types like \texttt{'a code -> 'b code}, we can ensure that the
-    abstractions the library introduces are fully eliminated at compile time.
-  \end{itemize}
-}
+% \jwc{
+%   \begin{itemize}
+%     \item The \texttt{'a code} type, quote, escape or ``splice'', stage distinction.
+%     \item MetaOCaml ensures correct scoping and hygene by preventing alpha-collision when you splice open terms.
+%     \item The difference between \texttt{('a -> 'b) code} and \texttt{'a code -> 'b code}
+%     \item We can convert one way, but not the other.
+%     \item Functions \texttt{'a code -> 'b code} ``fuse''.
+%     \begin{itemize}
+%       \item Consider writing \texttt{even . succ}. This
+%       \item Consider \texttt{even\_c : int code -> bool code = fun cx -> .<.~cx mod 2 == 0>.} and \texttt{succ\_c : int code -> int code = fun cx -> .< .~x + 1 >.}
+%       \item If you do \texttt{to\_dyn (even\_c . succ\_c)}, you get \texttt{fun x -> (x + 1) mod 2 == 0}. Composing functions from code to code, and then \emph{only at the end} stamping out
+%       a dynamic function value eliminates the function abstraction.
+%     \end{itemize}
+%     \item This is the basis of (WORD). By defining a library with functions with types like \texttt{'a code -> 'b code}, we can ensure that the
+%     abstractions the library introduces are fully eliminated at compile time.
+%   \end{itemize}
+% }
 
 \subsection{Other Languages and Libraries}
 \label{subsection:other-langs}
