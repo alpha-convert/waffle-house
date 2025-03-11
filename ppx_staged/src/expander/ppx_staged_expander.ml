@@ -2,6 +2,25 @@ open! Import
 open! Fast_gen;;
 open Base;;
 
+let custom_extension ~loc tag payload =
+  match String.equal tag.txt "custom" with
+  | false -> unsupported ~loc "unknown extension: %s" tag.txt
+  | true ->
+    (match payload with
+     | PStr [ { pstr_desc = Pstr_eval (expr, attributes); _ } ] ->
+       assert_no_attributes attributes;
+       expr
+     | _ -> invalid ~loc "[%%custom] extension expects a single expression as its payload")
+;;
+
+let staged_generator_attribute =
+  Attribute.declare
+    "wh.staged_generator"
+    Attribute.Context.core_type
+    Ast_pattern.(pstr (pstr_eval __ nil ^:: nil))
+    (fun x -> x)
+;;
+
 let compound_generator ~loc ~make_compound_expr generator_list =
   let rec go gs acc =
     match gs with
@@ -55,6 +74,25 @@ let generator_for_type ~loc type_name =
   let generator_name = Printf.sprintf "staged_quickcheck_generator_%s" type_name in
   [%expr generator_name]
 
+let gen_of_ty ~rec_names ~loc ~typ =
+  match typ.ptyp_desc with
+  | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> Some [%expr G.bool]
+  | Ptyp_constr ({ txt = Lident "float"; _}, _) -> Some [%expr G.float ~lo:(G.C.lift 0.0) ~hi:(G.C.lift 1.0)]
+  | Ptyp_constr ({ txt = Lident "int"; _}, _) -> Some [%expr G.int]
+  | Ptyp_constr ({ txt = id; _ }, _) ->
+      (* Extract the last component of the longident for comparison *)
+      let rec last_component = function
+        | Longident.Lident s -> s
+        | Longident.Ldot (_, s) -> s
+        | Longident.Lapply (_, lid) -> last_component lid
+            in
+            let type_name = last_component id in
+            if Set.mem rec_names type_name then
+              Some ([%expr G.recurse go (G.C.lift ())])
+            else
+              Some (Ast_helper.Exp.ident ~loc { loc = Location.none; txt = Longident.Lident ("staged_quickcheck_generator_" ^ type_name) })
+        | _ -> None
+
 let variant
   (type clause)
   ~generator_of_core_type
@@ -69,28 +107,7 @@ let variant
     compound_generator
       ~loc:(Clause.location clause)
       ~make_compound_expr:(Clause.expression clause variant_type)
-      (List.map (Clause.core_type_list clause) ~f:(fun typ -> match typ.ptyp_desc with
-        | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> [%expr G.bool]
-        | Ptyp_constr ({ txt = Lident "float"; _}, _) -> [%expr G.float ~lo:(G.C.lift 0.0) ~hi:(G.C.lift 1.0)]
-        | Ptyp_constr ({ txt = Lident "int"; _}, _) -> let i_pat, i_expr = gensym "i" loc in
-          [%expr G.bind G.int ~f:(fun [%p i_pat] -> G.return (G.C.modulus [%e i_expr] 1000))]
-        | Ptyp_constr ({ txt = id; _ }, _) ->
-            (* Extract the last component of the longident for comparison *)
-            let rec last_component = function
-              | Longident.Lident s -> s
-              | Longident.Ldot (_, s) -> s
-              | Longident.Lapply (_, lid) -> last_component lid
-            in
-            let type_name = last_component id in
-            
-            (* Check if this is a recursive type reference *)
-            if Set.mem rec_names type_name then
-              [%expr G.recurse go (G.C.lift ())]
-            else
-              (* Call the appropriate generator for this non-recursive type *)
-              Ast_helper.Exp.ident ~loc { loc = Location.none; txt = Longident.Lident ("staged_quickcheck_generator_" ^ type_name) }
-              | _ -> [%expr G.recurse go (G.C.lift ())]
-      ))
+      (List.map (Clause.core_type_list clause) ~f:(fun typ -> Option.value (gen_of_ty ~rec_names ~loc ~typ) ~default:[%expr G.recurse go (G.C.lift ())]))
   in
   let make_pair clause =
     Option.map (Clause.weight clause) ~f:(fun weight ->
@@ -171,47 +188,43 @@ type impl =
 
 let rec generator_of_core_type core_type ~gen_env ~obs_env =
   let loc = { core_type.ptyp_loc with loc_ghost = true } in
-  let gen_of_type ty =
-    match ty.ptyp_desc with
-    | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> Some [%expr G.bool]
-    | Ptyp_constr ({ txt = Lident "int"; _ }, _) -> Some [%expr G.int]
-    | Ptyp_constr ({ txt = Lident "float"; _ }, _) -> Some [%expr G.float ~lo:(G.C.lift 0.0) ~hi:(G.C.lift 1.0)]
-    | _ -> None
-  in
-  match gen_of_type core_type with
-  | Some expr -> expr
-  | None ->
-    (match core_type.ptyp_desc with
-     | Ptyp_constr (constr, args) ->
-       type_constr_conv
-         ~loc
-         ~f:generator_name
-         constr
-         (List.map args ~f:(generator_of_core_type ~gen_env ~obs_env))
-     | Ptyp_var tyvar -> Environment.lookup gen_env ~loc ~tyvar
-     | Ptyp_arrow (arg_label, input_type, output_type) -> unsupported ~loc "Arrow types are not supported, %s" (short_string_of_core_type core_type)
-     | Ptyp_tuple labeled_fields ->
-          compound 
+  match Attribute.get staged_generator_attribute core_type with
+    |Some expr -> expr
+    | None -> 
+      (match gen_of_ty ~typ:core_type ~loc ~rec_names:(Set.empty (module String)) with
+      | Some expr -> expr
+      | None ->
+        (match core_type.ptyp_desc with
+        | Ptyp_constr (constr, args) ->
+          type_constr_conv
+            ~loc
+            ~f:generator_name
+            constr
+            (List.map args ~f:(generator_of_core_type ~gen_env ~obs_env))
+        | Ptyp_var tyvar -> Environment.lookup gen_env ~loc ~tyvar
+        | Ptyp_arrow (arg_label, input_type, output_type) -> unsupported ~loc "Arrow types are not supported, %s" (short_string_of_core_type core_type)
+        | Ptyp_tuple labeled_fields ->
+              compound 
+                ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
+                ~loc
+                ~fields:labeled_fields
+                (module Field_syntax.Tuple)
+        | Ptyp_variant (clauses, Closed, None) -> variant
             ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
             ~loc
-            ~fields:labeled_fields
-            (module Field_syntax.Tuple)
-     | Ptyp_variant (clauses, Closed, None) -> variant
-         ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
-         ~loc
-         ~variant_type:core_type
-         ~clauses
-         ~rec_names:(Set.empty (module String))
-         (module Clause_syntax.Polymorphic_variant)
-     | Ptyp_variant (_, Open, _) -> unsupported ~loc "polymorphic variant type with [>]"
-     | Ptyp_variant (_, _, Some _) -> unsupported ~loc "polymorphic variant type with [<]"
-     | Ptyp_extension (tag, payload) -> unsupported ~loc "No custom extensions allowed!"
-     | Ptyp_any
-     | Ptyp_object _
-     | Ptyp_class _
-     | Ptyp_alias _
-     | Ptyp_poly _
-     | Ptyp_package _ -> unsupported ~loc "%s" (short_string_of_core_type core_type))
+            ~variant_type:core_type
+            ~clauses
+            ~rec_names:(Set.empty (module String))
+            (module Clause_syntax.Polymorphic_variant)
+        | Ptyp_variant (_, Open, _) -> unsupported ~loc "polymorphic variant type with [>]"
+        | Ptyp_variant (_, _, Some _) -> unsupported ~loc "polymorphic variant type with [<]"
+        | Ptyp_extension (tag, payload) -> unsupported ~loc "No custom extensions allowed!"
+        | Ptyp_any
+        | Ptyp_object _
+        | Ptyp_class _
+        | Ptyp_alias _
+        | Ptyp_poly _
+        | Ptyp_package _ -> unsupported ~loc "%s" (short_string_of_core_type core_type)))
 
 let generator_impl type_decl ~rec_names =
   let loc = type_decl.ptype_loc in
@@ -250,8 +263,8 @@ let generator_impl type_decl ~rec_names =
         *)
       | Ptype_abstract ->
         (match type_decl.ptype_manifest with
-         | Some core_type -> generator_of_core_type core_type ~gen_env ~obs_env
-         | None -> unsupported ~loc "abstract type")
+        | Some core_type -> generator_of_core_type core_type ~gen_env ~obs_env
+        | None -> unsupported ~loc "abstract type")
     in
     List.fold_right pat_list ~init:body ~f:(fun pat body ->
       [%expr fun [%p pat] -> [%e body]])

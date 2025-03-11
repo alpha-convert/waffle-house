@@ -5,6 +5,43 @@ open Sexplib;;
 open Sexplib0.Sexp_conv;;
 open Core
 open Core_bench;;
+open Ppxlib;;
+open Codelib;;
+include Ast_builder.Default
+include Core;;
+(*
+module G = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
+
+let quickcheck_generator_nat_new = let open Base_quickcheck.Generator in
+bind int ~f:(fun i -> return (i mod 1000))
+
+let gensym prefix loc =
+  let loc = { loc with loc_ghost = true } in
+  let sym = gen_symbol ~prefix:("_" ^ prefix) () in
+  pvar ~loc sym, evar ~loc sym
+;;
+
+let quickcheck_generator_nat_staged =
+  let loc = { Location.none with loc_ghost = true } in
+  let i_pat, i_expr = gensym "i" loc in
+  [%expr G.bind G.int ~f:(fun [%p i_pat] -> G.return (G.C.modulus [%e i_expr] 1000))]
+
+type t = (int [@wh.staged_generator quickcheck_generator_nat_staged]) * (int [@wh.staged_generator quickcheck_generator_nat_staged]) [@@deriving wh, sexp]
+
+let () =
+  let generator = G.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/ppx_staged/_build/default/bin/.main.eobjs/byte"] staged_quickcheck_generator in
+  let () = G.print staged_quickcheck_generator in  
+  let random_a = Splittable_random.State.of_int 0 in
+  let random_b = Splittable_random.State.of_int 0 in
+  let size = 10 in
+  for _ = 1 to 10 do
+    printf "\n";
+    printf "\n";
+    let staged_values = Base_quickcheck.Generator.generate generator ~size ~random:random_b in
+    printf "========= Staged generator ==========\n";
+    printf "%s\n" (Sexp.to_string_hum (sexp_of_t staged_values))
+  done
+*)
 (*
 module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 module C_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.C_sr_dropin_random)

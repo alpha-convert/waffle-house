@@ -363,6 +363,4 @@ let int_uniform_inclusive ~(lo : int code) ~(hi : int code) : int code t = {
             go .~(v2c x0) ~size:.~size_c ~random:.~random_c
         >.
     }
-
-  
 end
