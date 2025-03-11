@@ -20,4 +20,6 @@ sed -i '21d' fast_gen.opam
 echo "Running 'opam pin .'..."
 opam pin .
 
+opam pin ../ppx_staged
+
 echo "All operations completed successfully."

@@ -3,6 +3,8 @@ open Codelib;;
 open Codecps;;
 (* open Codecps.Let_syntax;; *)
 
+let times_jitted = ref 0
+
 module MakeStaged(R : Random_intf.S) = struct
 
   type 'a t = { rand_gen : size_c:(int code) -> random_c:(R.t code) -> 'a Codecps.t }
@@ -15,7 +17,7 @@ module MakeStaged(R : Random_intf.S) = struct
     rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_bool cb
   }
 
-let split_int cn = {
+  let split_int cn = {
     rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.split_int cn
   }
 
@@ -50,6 +52,7 @@ let split_int cn = {
     let i2f x = .< Float.of_int .~x >.
     let pred n = .< .~n - 1 >.
     let cons x xs = .< .~x :: .~xs >.
+    let modulus x n = .< .~x mod n >.
   end
 
   type 'a c = 'a C.t
@@ -327,8 +330,10 @@ let int_uniform_inclusive ~(lo : int code) ~(hi : int code) : int code t = {
 
 
   let print sg = Codelib.print_code Format.std_formatter (to_bq sg)
-  
+
   let jit ?extra_cmi_paths cde =
+    print_endline @@ "Running jit: " ^ (String.concat "," (List.flatten @@ Option.to_list extra_cmi_paths)) ^ " for the " ^ (Int.to_string !times_jitted) ^ "th time";
+    incr times_jitted;
     List.iter Runnative.add_search_path (List.flatten (Option.to_list extra_cmi_paths));
     List.iter Runnative.add_search_path R.dep_paths;
     Runnative.add_search_path (Util.run_ocamlfind_query "base_quickcheck");

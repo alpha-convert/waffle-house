@@ -7,6 +7,7 @@ module C = struct
   let pair x y = (x,y)
   let pred n = n - 1
   let cons x xs = x :: xs
+  let modulus x n = x mod n
 end
 
 type 'a c = 'a C.t

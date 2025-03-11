@@ -5,7 +5,7 @@ open Sexplib;;
 open Sexplib0.Sexp_conv;;
 open Core
 open Core_bench;;
-
+(*
 module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 module C_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.C_sr_dropin_random)
 module G_BQ = Fast_gen.Bq_generator
@@ -19,7 +19,7 @@ type color = R | B [@@deriving sexp, quickcheck]
 
 type rbt = E | T of color * rbt * (int [@quickcheck.generator quickcheck_generator_int_new]) * (int [@quickcheck.generator quickcheck_generator_int_new]) * rbt
 [@@deriving sexp, quickcheck]
-
+*)
 (*
 let quickcheck_generator_int_new = Base_quickcheck.Generator.int_uniform_inclusive Int.min_value Int.max_value
 
@@ -137,6 +137,7 @@ let () =
     printf "%s\n" (Sexp.to_string_hum (My_tree.sexp_of_t staged_values))
   done
 *)
+(*
 open Core_unix
 
 let () =
@@ -155,3 +156,4 @@ let () =
     printf "========= Staged generator ==========\n";
     printf "%s\n" (Sexp.to_string_hum (Rbt.sexp_of_t staged_values))
   done
+*)
