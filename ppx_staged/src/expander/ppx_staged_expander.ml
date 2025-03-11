@@ -21,6 +21,14 @@ let staged_generator_attribute =
     (fun x -> x)
 ;;
 
+let randomness_attribute =
+  Attribute.declare
+    "wh.randomness"
+    Attribute.Context.core_type
+    Ast_pattern.(pstr (pstr_eval (estring __) nil ^:: nil))
+    (fun x -> x)
+;;
+
 let compound_generator ~loc ~make_compound_expr generator_list =
   let rec go gs acc =
     match gs with
@@ -70,28 +78,33 @@ let clause_is_recursive
     (does_refer_to rec_names)#core_type ty false)
 ;;
 
-let generator_for_type ~loc type_name =
-  let generator_name = Printf.sprintf "staged_quickcheck_generator_%s" type_name in
-  [%expr generator_name]
-
 let gen_of_ty ~rec_names ~loc ~typ =
+  let randomness_suffix =
+    match Attribute.get randomness_attribute typ with
+    | Some s -> "_" ^ s
+    | None -> ""
+  in
   match typ.ptyp_desc with
-  | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> Some [%expr G.bool]
-  | Ptyp_constr ({ txt = Lident "float"; _}, _) -> Some [%expr G.float ~lo:(G.C.lift 0.0) ~hi:(G.C.lift 1.0)]
-  | Ptyp_constr ({ txt = Lident "int"; _}, _) -> Some [%expr G.int]
   | Ptyp_constr ({ txt = id; _ }, _) ->
-      (* Extract the last component of the longident for comparison *)
-      let rec last_component = function
-        | Longident.Lident s -> s
-        | Longident.Ldot (_, s) -> s
-        | Longident.Lapply (_, lid) -> last_component lid
-            in
-            let type_name = last_component id in
-            if Set.mem rec_names type_name then
-              Some ([%expr G.recurse go (G.C.lift ())])
-            else
-              Some (Ast_helper.Exp.ident ~loc { loc = Location.none; txt = Longident.Lident ("staged_quickcheck_generator_" ^ type_name) })
-        | _ -> None
+    let rec last_component = function
+      | Longident.Lident s -> s
+      | Longident.Ldot (_, s) -> s
+      | Longident.Lapply (_, lid) -> last_component lid
+    in
+    let type_name_ref = last_component id in
+
+    (* Check if this is the primary type being defined in the module *)
+    if Set.mem rec_names type_name_ref then
+      Some [%expr G.recurse go (G.C.lift ())]
+    else
+      (* Determine whether to prefix with the module name *)
+      match id with
+      | Longident.Lident "t" ->
+        Some (Ast_helper.Exp.ident ~loc { loc = Location.none; txt = Longident.Lident "staged_quickcheck_generator" })
+      | Longident.Ldot (mod_name, "t") ->
+        Some (Ast_helper.Exp.ident ~loc { loc = Location.none; txt = Longident.Ldot (mod_name, "staged_quickcheck_generator" ^ randomness_suffix) })
+      | _ ->
+        Some (Ast_helper.Exp.ident ~loc { loc = Location.none; txt = Longident.Lident ("staged_quickcheck_generator_" ^ type_name_ref) })
 
 let variant
   (type clause)
@@ -107,7 +120,7 @@ let variant
     compound_generator
       ~loc:(Clause.location clause)
       ~make_compound_expr:(Clause.expression clause variant_type)
-      (List.map (Clause.core_type_list clause) ~f:(fun typ -> Option.value (gen_of_ty ~rec_names ~loc ~typ) ~default:[%expr G.recurse go (G.C.lift ())]))
+      (List.map (Clause.core_type_list clause) ~f:(fun typ -> Option.value (gen_of_ty ~rec_names ~loc ~typ) ~default:[%expr error]))
   in
   let make_pair clause =
     Option.map (Clause.weight clause) ~f:(fun weight ->
