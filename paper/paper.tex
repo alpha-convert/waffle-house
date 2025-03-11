@@ -335,8 +335,8 @@ by optimizing them for speed. In speicific, we make the following contributions:
 
 \section{Background}
 
-
-\jwc{In this paper, we'll use OCaml to illustrate the ideas, but the concepts are portable to other languages: see Section~\ref{subsection:other-langs}}
+\jwc{In this paper, we'll use OCaml to illustrate the ideas, but the concepts
+are portable to other languages: see Section~\ref{subsection:other-langs}}
 
 \subsection{Property-Based Testing}
 \jwc{Usual spiel about pbt and generators: here's the BQ generator library, it has return and bind, this is what they're for.}
@@ -381,21 +381,40 @@ let int_pair : (int * int) Bq.t =
 
 \subsection{Multi-Stage Programming}
 
-Muli-stage programming (also known more simply as staging) is \jwc{finish}
-
-\jwc{A good quick presentation of staged metaprogramming is here, in section 6.
-https://www.cl.cam.ac.uk/~jdy22/papers/a-typed-algebraic-approach-to-parsing.pdf
+\jwc{
+  \begin{itemize}
+    \item In Muli-stage programming (also known more simply as staging), programs execute over the course of multiple stages,
+with each stage producing the code to be run in the next.
+\item This is an old idea, with roots going back to quasiquotation in LISP, and picking up steam again in the 1990s with MetaML \cn{}.
+\item For the purposes of this paper, we will only consider two stages: compile time and run time. Staged programs thus execute twice: once at compile time,
+which produces more code, which is then compiled and run at run time.
+\item Staging has many applications, but chief among them is its use for \emph{optimization}. We can write programs such that during the compile time stage, they are partially evaluated to eliminate
+abstraction overhead. 
+\item Many languages have some degree of staging functionality, either provided as a library \cn or build directly into the language's implementation \cn.
+\item For this paper, we use MetaOCaml \cn for OCaml staging, but all of the staging concepts are portable to any other language with multi-stage programming functionality.
+  \end{itemize}
 }
 
-\jwc{Staging has a long history as a technique for eliminating the runtime overhead of abstractions,
-specializing programs at an earlier stage to run more efficiently at a later stage.}
+\jwc{This section is going to need work.}
 
-\jwc{For the purposes of this paper, we will only use two stages: compile time, and run time.}
+MetaOCaml's staging functionality is exposed through a type \texttt{'a code}. A
+value of type \texttt{t code} at compile time is a (potentially open) OCaml term
+of type \texttt{t}.
+
+Values of \texttt{code} type are introduced by \emph{quotes}, written \texttt{.<$\ldots$>.}. Brackets
+delay execution of a program until run time. For example, the program \texttt{.< 5 + 1 >.} has type \texttt{int code}.
+Note that this is not the same as \texttt{.< 6 >.}. Because brackets delay computation, the code is not \emph{executed}
+until the next stage (run time).
+
+Values of type \texttt{code} can be combined together using \emph{escape}, written \texttt{.\~{}($\ldots$)}.
+Escape lets you take a value of type \texttt{code}, and ``splice'' it directly into a quote.
+For example, this program \texttt{let x = .<1 * 5>. in .< .\~{}(x) + .\~{}(x) >.} evaluates to \texttt{.<(1 * 5) + (1 * 5)>.}.
 
 
 \jwc{
   \begin{itemize}
-    \item The \texttt{'a code} type, quote, splice, stage distinction.
+    \item The \texttt{'a code} type, quote, escape or ``splice'', stage distinction.
+    \item MetaOCaml ensures correct scoping and hygene by preventing alpha-collision when you splice open terms.
     \item The difference between \texttt{('a -> 'b) code} and \texttt{'a code -> 'b code}
     \item We can convert one way, but not the other.
     \item Functions \texttt{'a code -> 'b code} ``fuse''.
@@ -423,6 +442,7 @@ specializing programs at an earlier stage to run more efficiently at a later sta
   \begin{itemize}
     \item Scala. Functional abstractions like QC generators are known to be costly in Scala, that's why they have LMS (in Scala 2, and Macros in Scala 3). Example: parser combinators (``On Staged Parser Combinators for Efficient Data Processing''), functional data structures (\href{https://ppl.stanford.edu/papers/popl13_rompf.pdf}{Link}), web programming (``Efficient High-Level Abstractions for Web Programming'').
     Al of this should still work in scala. Could easily be incorporated into ScalaCheck, with minor modification: ScalaCheck uses a state monad to thread around the seed, instead of a stateful one (like BQ), or a splittable one (like Haskell). So you have to adapt to that. But same diff.
+    \item Python. Maybe could do it?? Hypothesis + MacroPy
     \item Haskell: GHC does a lot of these optimizations already, since the code is pure. Since QC generators are relatively small programs,
     GHC has little trouble specializing them. Of course, this is not guaranteed. A version of this idea can easily be ported to the original QC with template haskell, to guarantee
     the highest-performance generators.
