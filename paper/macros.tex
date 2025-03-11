@@ -1,0 +1,25 @@
+\definecolor{dkred}{rgb}{0.7,0,0}
+\definecolor{dkblue}{rgb}{0,0,0.7}
+\definecolor{notered}{rgb}{0.85,0,0}
+\definecolor{dkpurple}{HTML}{4e02eb}
+\definecolor{dkgreen}{HTML}{006329}
+\definecolor{teal}{HTML}{007982}
+\definecolor{fuchsia}{HTML}{8C368C}
+
+\newcommand{\comm}[3]{\ifdraft\textcolor{#1}{[#2: #3]}\fi}
+\newcommand{\cn}{\ifdraft{\color{blue} [CITE]}\fi}
+\newcommand{\hg}[1]{\comm{dkred}{HG}{#1}}
+\newcommand{\tr}[1]{\comm{dkblue}{TR}{#1}}
+\newcommand{\bcp}[1]{\comm{dkpurple}{BCP}{#1}}
+\newcommand{\jwc}[1]{\comm{dkgreen}{JWC}{#1}}
+\newcommand{\outline}[1]{\ifdraft{\color{teal} #1}\fi}
+
+\newcommand{\bq}{\texttt{base\_quickcheck}}
+\newcommand{\name}{\texttt{waffle\_house}}
+\newcommand{\tool}{Waffle House}
+
+\newcommand{\secref}[1]{\S\ref{#1}}
+
+\newcommand{\proposecut}[1]{\ifdraft{\color{teal} [#1]}\fi}
+\newcommand{\proposechange}[2]{\ifdraft{\color{teal} {#1}
+    $\rightarrow$ #2}\else #2\fi}
