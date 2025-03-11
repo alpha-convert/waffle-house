@@ -72,7 +72,8 @@ let variant
       (List.map (Clause.core_type_list clause) ~f:(fun typ -> match typ.ptyp_desc with
         | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> [%expr C_SR.bool]
         | Ptyp_constr ({ txt = Lident "float"; _}, _) -> [%expr C_SR.float ~lo:(C_SR.C.lift 0.0) ~hi:(C_SR.C.lift 1.0)]
-        | Ptyp_constr ({ txt = Lident "int"; _}, _) -> [%expr C_SR.int]
+        | Ptyp_constr ({ txt = Lident "int"; _}, _) -> let i_pat, i_expr = gensym "i" loc in
+          [%expr C_SR.bind C_SR.int ~f:(fun [%p i_pat] -> C_SR.return (C_SR.C.modulus [%e i_expr] 1000))]
         | Ptyp_constr ({ txt = id; _ }, _) ->
             (* Extract the last component of the longident for comparison *)
             let rec last_component = function
