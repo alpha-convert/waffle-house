@@ -227,8 +227,8 @@ Property-based testing (PBT) is a software testing approach that verifies a syst
   claims, but I'm not sure about exactly how strong or what belongs in
   the foreground...
   \begin{itemize}
-  \item One of the first serious uses of staged metaprogramming in anger?
-  \item A use of staged metaprogramming that is novel / challenging in
+  \item One of the first serious uses of staging in anger?
+  \item A use of staging that is novel / challenging in
   itself, in some way?
   \item An analysis of sources of inefficiency across a range of PBT
   frameworks (and a solution that applies to many of them)?
@@ -238,6 +238,16 @@ Property-based testing (PBT) is a software testing approach that verifies a syst
   are in existing PBT tools, and which ones matter most?
   \item (Your claim here...)?
   \end{itemize}
+}
+
+\jwc{Agree: I think something like the 3rd is the best reframing. Something
+like: ``We demonstrate that, across languages, monadic PBT generator DSLs can
+have a significant performance overhead, and present a cross-language technique
+for eliminating the overhead while preserving the idiomatic abstraction.
+''}
+
+\jwc{Another angle that I'd argue needs to come out more is that we demonstrate that
+engineering PBT libraries with performance in mind has significant impact on testing power.
 }
 
 
@@ -281,7 +291,7 @@ and explore potential strategies for more efficient generator implementations.
 
 Our solution is \name, a generator library that preserves
 \bq’s functionality while improving performance through
-\textit{staged metaprogramming} (staging). Staging is a lightweight,
+\textit{multi-stage programming} (staging). Staging is a lightweight,
 domain-specific compilation technique that allows us to completely eliminate the
 runtime overhead of many common generator abstractions. \jwc{This relies on the fact that the code of generators is known statically at compile time} For instance, in
 \name, monadic operations are zero-cost.
@@ -316,7 +326,7 @@ by optimizing them for speed. In speicific, we make the following contributions:
     \item An empirical analysis of the sources of inefficiency in PBT
     generators. \jwc{And an argument that PBT generator libraries should be engineered for performance}
     \item A library, \name, which offers efficient \jwc{performant?} generator \proposechange{functions}{combinators} through the
-    use of staged metaprogramming; this is the first known application of metaprogramming to PBT.
+    use of multi-stage programming; this is the first known application of staging to PBT.
     \item The insight that generators should be compared by program equality 
     \item An evaluation demonstrating the improved performance of generators constructed
     using our library in a controlled comparison.
@@ -369,13 +379,15 @@ let int_pair : (int * int) Bq.t =
 \end{lstlisting}
 
 
-\subsection{Staged Metaprogramming}
+\subsection{Multi-Stage Programming}
+
+Muli-stage programming (also known more simply as staging) is \jwc{finish}
 
 \jwc{A good quick presentation of staged metaprogramming is here, in section 6.
 https://www.cl.cam.ac.uk/~jdy22/papers/a-typed-algebraic-approach-to-parsing.pdf
 }
 
-\jwc{Staged metaprogramming has a long history as a technique for eliminating the runtime overhead of abstractions,
+\jwc{Staging has a long history as a technique for eliminating the runtime overhead of abstractions,
 specializing programs at an earlier stage to run more efficiently at a later stage.}
 
 \jwc{For the purposes of this paper, we will only use two stages: compile time, and run time.}
