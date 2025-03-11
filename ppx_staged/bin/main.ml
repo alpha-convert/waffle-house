@@ -9,32 +9,17 @@ open Core_bench;;
 module G_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 module C_SR = Fast_gen.Staged_generator.MakeStaged(Fast_gen.C_sr_dropin_random)
 module G_BQ = Fast_gen.Bq_generator
-(*
-let quickcheck_generator_int_new = Base_quickcheck.Generator.int_uniform_inclusive 0 1000
 
-type color = R | B [@@deriving wh, sexp, quickcheck]
+open Ppx_staged;;
 
-type tree = 
-  | E 
-  | T of color 
-       * tree
-       * (int [@quickcheck.generator quickcheck_generator_int_new]) 
-       * (int [@quickcheck.generator quickcheck_generator_int_new]) 
-       * tree
-[@@deriving wh, sexp, quickcheck]
-*)
-(*
-let quickcheck_generator_int_new = Base_quickcheck.Generator.int_uniform_inclusive 0 128
+let quickcheck_generator_int_new = let open Base_quickcheck.Generator in
+  bind int ~f:(fun i -> return (i mod 1000))
 
-type tree =
-  | E
-  | T of tree * (int [@quickcheck.generator quickcheck_generator_int_new]) * (int [@quickcheck.generator quickcheck_generator_int_new]) * tree
+type color = R | B [@@deriving sexp, quickcheck]
+
+type rbt = E | T of color * rbt * (int [@quickcheck.generator quickcheck_generator_int_new]) * (int [@quickcheck.generator quickcheck_generator_int_new]) * rbt
 [@@deriving sexp, quickcheck]
 
-type tree_staged =
-  | E
-  | T of tree_staged * int * int * tree_staged [@@deriving wh]
-*)
 (*
 let quickcheck_generator_int_new = Base_quickcheck.Generator.int_uniform_inclusive Int.min_value Int.max_value
 
@@ -163,10 +148,10 @@ let () =
   for _ = 1 to 1 do
     printf "\n";
     printf "\n";
-    let quickc_values = Base_quickcheck.Generator.generate Rbt.quickcheck_generator ~size ~random:random_a in
+    let quickc_values = Base_quickcheck.Generator.generate quickcheck_generator_rbt ~size ~random:random_a in
     let staged_values = Base_quickcheck.Generator.generate generator ~size ~random:random_b in
     printf "========== quickcheck_generator ==========\n";
-    printf "%s\n" (Sexp.to_string_hum (Rbt.sexp_of_t quickc_values));
+    printf "%s\n" (Sexp.to_string_hum (sexp_of_rbt quickc_values));
     printf "========= Staged generator ==========\n";
     printf "%s\n" (Sexp.to_string_hum (Rbt.sexp_of_t staged_values))
   done
