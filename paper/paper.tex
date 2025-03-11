@@ -401,14 +401,47 @@ MetaOCaml's staging functionality is exposed through a type \texttt{'a code}. A
 value of type \texttt{t code} at compile time is a (potentially open) OCaml term
 of type \texttt{t}.
 
-Values of \texttt{code} type are introduced by \emph{quotes}, written \texttt{.<$\ldots$>.}. Brackets
-delay execution of a program until run time. For example, the program \texttt{.< 5 + 1 >.} has type \texttt{int code}.
-Note that this is not the same as \texttt{.< 6 >.}. Because brackets delay computation, the code is not \emph{executed}
-until the next stage (run time).
+Values of \texttt{code} type are introduced by \emph{quotes}, written
+\texttt{.<$\ldots$>.}. Brackets delay execution of a program until run time. For
+example, the program \texttt{.< 5 + 1 >.} has type \texttt{int code}.  Note that
+this is not the same as \texttt{.< 6 >.}. Because brackets delay computation,
+the code is not \emph{executed} until the next stage (run time).
+Values of type \texttt{code} can be combined together using \emph{escape},
+written \texttt{.\~{}($\ldots$)}.  Escape lets you take a value of type
+\texttt{code}, and ``splice'' it directly into a quote.  For example, this
+program \texttt{let x = .<1 * 5>. in .< .\~{}(x) + .\~{}(x) >.} evaluates to
+\texttt{.<(1 * 5) + (1 * 5)>.}.  MetaOCaml ensures correct scoping and macro
+hygiene, ensuring that variables are not shadowed when open terms are spliced.
 
-Values of type \texttt{code} can be combined together using \emph{escape}, written \texttt{.\~{}($\ldots$)}.
-Escape lets you take a value of type \texttt{code}, and ``splice'' it directly into a quote.
-For example, this program \texttt{let x = .<1 * 5>. in .< .\~{}(x) + .\~{}(x) >.} evaluates to \texttt{.<(1 * 5) + (1 * 5)>.}.
+The power of staging for optimization away abstraction overheads comes from
+defining functions that accept and return \texttt{code} values.  A function
+\texttt{f : 'a code -> 'b code} is a function that takes a program computing a
+run-time \texttt{'a} and transforms it into a program computing a run-time
+\texttt{'b}. In particular, because \texttt{f} itself runs at compile time, the
+abstraction of using \texttt{f} is necessarily completely eliminated by
+run-time.
+A code-transforming function \texttt{'a code -> 'b code} can also be converted \emph{code for a function} --- a value of type
+\texttt{('a -> 'b) code} --- with the following program:
+\begin{lstlisting}
+let eta (f : 'a code -> 'b code) : ('a -> 'b) code = .<fun x -> .\~(f .<x>.)>.
+\end{lstlisting}
+
+This program is known as ``the trick'' in the partial evaluation and multi-stage programming literature.
+\cn{} 
+% USE THIS: https://arxiv.org/pdf/2309.08207
+
+\jwc{words}
+
+As an example, consider
+\begin{lstlisting}
+let is_even x = .< .~x mod 2 == 0 >. in
+let succ x = .< 1 + .~x >. in
+eta (succ . is_even)
+\end{lstlisting}
+This is equal to \texttt{.< fun x -> (1 + x) mod 2 == 0 >.}: the functions have been fused together, and the overhead of calling them is not present at runtime.
+
+This ``trick'' is how we use metaprogramming
+
 
 
 \jwc{
