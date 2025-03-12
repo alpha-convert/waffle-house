@@ -531,8 +531,9 @@ can ensure that any overhead of using them is eliminated by run time.
 
 \section{Why are Monadic Generator Libraries Slow?}
 \jwc{Why is a monadic generator library slow?}
-
 \jwc{NOTE: We can simplify this further by getting rid of the size parameter. Make the story even cleaner, I think!}
+
+\jwc{IMPORTANT: We are using OCaml because we have to pick a syntax for this section, but these abstraction overheads exist in other languages -- at least scala, rust.}
 
 \jwc{
   \begin{itemize}
@@ -578,6 +579,8 @@ let int_pair_inlined : (int * int) Bq.t
 \jwc{The overhead of the abstraction is 2x.
 The reality is actually worse: actual base-quickcheck includes even more indirection in its type.}
 
+\jwc{Demonstrate this in Scala too!!!}
+
 \jwc{
 The problem is plain: while the abstractions that PBT libraries like base quickcheck provide are indespensible for writing idiomatic generators, the performance overhead of using them is dramatic.
 The compiler (and flambda) uses heuristics (\href{https://ocaml.org/manual/5.3/flambda.html}{here}) to decide when to specialize and inline code, and these heuristics cannot guarantee that generator abstractions are zero-cost.
@@ -585,21 +588,23 @@ These heuristics are also extremely conservative about inlining and specializing
 }
 
 \tr{Each of these consist of an explanation of the problem and pseudocode outlining the solution.}
-\subsubsection{Monadic Bind}
+\subsubsection{Monadic DSL Abstraction Overhead}
 
 \jwc{
   \begin{itemize}
     \item While it's the ``correct'' abstraction for generators, using a monadic interface prevents the compiler from specializing generator code. Using monadic bind and return obscures the control and data flow of a generator from the compiler. This is
     compounded when handling recursive functions.
     \item In cases where the compiler cannot statically eliminate them, running a monadic bind allocates a short-lived closure: we allocate a closure for the continuation, and then immediately jump into it.
-    \item Each closure allocation is relatively cheap (they're going to be minor allocations since they're short-lived), but doing lots of allocation in a generation hot loop adds up fast, and each minor allocation brings us closer to the next costly GC pause.
+    \item Each closure allocation is relatively cheap (they're going to be minor allocations since they're short-lived), but doing lots of allocation in a generation hot loop adds up fast.
+    \item Similar things have been noticed about monadic parsing DSLs in the past.
   \end{itemize}
 }
 
-\subsubsection{Expensive Combinators}
+\subsubsection{Combinator Abstraction Overhead}
 \jwc{Many combinators like \texttt{union} and \texttt{weighted\_union} needlessly allocate large data structures in the generation hot path.
 Using a combination of staging and more careful algorithm design, we can avoid this overhead.
 }
+\jwc{Ensure this discussion is initially multi-language, but uses OCaml to demo.}
 
 \begin{lstlisting}
   let of_weighted_list alist =
@@ -642,6 +647,23 @@ Put more simply, you basically always call weighted union with an \emph{explicit
 
 % \subsubsection{Function call overhead}
 \subsubsection{Boxed RNG}
+
+\jwc{
+  \begin{itemize}
+    \item Because the RNG sits at the heart of the generation hot path, RNG speed matters enormously.
+    \item To illustrate this, we demonstrate a particular inefficiency of
+    OCaml's BQ, resolve it in a later section, and then show how much you can
+    bug-finding performance just by speeding up and RNG.
+    \item We also demonstrate how using an inequivalent RNG
+    \item Scalacheck uses a faster RNG called ``xoroshiro128++'' \cn{}.
+    % https://lemire.me/blog/2019/03/19/the-fastest-conventional-random-number-generator-that-can-pass-big-crush/
+    \item One could go even faster, using \href{https://lemire.me/blog/2019/03/19/the-fastest-conventional-random-number-generator-that-can-pass-big-crush/}{even faster RNG} with less guarantees.
+  \end{itemize}
+}
+
+\jwc{The inefficiency of BQ's RNG presents a ``natural experiment'' (in the
+sense of economics): we can demonstrate how using a faster RNG can improve
+bugfinding time, but while maintainign program equivlanece. (This should go in the last paragraph here...)}
 
 The core of any PBT generator library is a random-number generator. Following
 the original Haskell QuickCheck, \bq uses the SplitMix algorithm \cn,
@@ -942,16 +964,18 @@ And this has the desired effect that
 
 \jwc{This is 3-stage metaprogramming! There's PPX time, compile time, and run time.}
 
-\subsection{Faster Random Number Generators}
+\subsection{Fast Random Number Generators}
 \label{subsection:faster-rng}
 
 \jwc{
   \begin{itemize}
-    \item 
+    \item Using the fastest RNG possible is important.
+    \item In OCaml, the splittalbe random RNG is not as fast as it could be, because of the Ints issue.
+    \item In this section, we describe how to resolve the ints issue by calling out ot the FFI. 
+    \item All of this can be done with Jane Street bleeding-edge compiler extensions, though these are not yet compatible with MetaOCaml.
+    \item Because different libraries 
   \end{itemize}
 }
-
-\jwc{All of this can be done with Jane Street bleeding-edge compiler extensions, though these are not yet compatible with MetaOCaml.}
 
 \section{Evaluation}
 
