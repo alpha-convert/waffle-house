@@ -259,6 +259,7 @@ matters.  De-emphasize the abstraction overhead framing. Eliminating abstraction
 overhead is important, so is using the fastest RNG you can possibly use.
 }
 
+\jwc{``Property based testing is a race against time...''}
 
 Property-based testing (PBT) is a widely-used testing framework\hg{PBT isn't a
 framework, it's a ``technique'' or ``approach'' --- Base\_QuickCheck is a framework} consisting of
@@ -646,18 +647,32 @@ Put more simply, you basically always call weighted union with an \emph{explicit
 \jwc{ofc, sometimes you only know the list at runtime (see the STLC generator for an example), so you the library also includes this.}
 
 % \subsubsection{Function call overhead}
-\subsubsection{Boxed RNG}
+\subsubsection{Choice of RNG}
 
 \jwc{
   \begin{itemize}
-    \item Because the RNG sits at the heart of the generation hot path, RNG speed matters enormously.
-    \item To illustrate this, we demonstrate a particular inefficiency of
-    OCaml's BQ, resolve it in a later section, and then show how much you can
-    bug-finding performance just by speeding up and RNG.
-    \item We also demonstrate how using an inequivalent RNG
-    \item Scalacheck uses a faster RNG called ``xoroshiro128++'' \cn{}.
-    % https://lemire.me/blog/2019/03/19/the-fastest-conventional-random-number-generator-that-can-pass-big-crush/
-    \item One could go even faster, using \href{https://lemire.me/blog/2019/03/19/the-fastest-conventional-random-number-generator-that-can-pass-big-crush/}{even faster RNG} with less guarantees.
+    \item Because the RNG sits at the heart of the generation hot path, RNG
+    speed matters enormously. Which RNG you pick matters...
+
+    \item Different PBT libraries use different RNGs --- QuickCheck and \bq use
+    splittable_random, Scalacheck uses \href{https://burtleburtle.net/bob/rand/smallprng.html}{this one}.  These
+    are reasonably performant RNGs, but faster ones exist. Because this is the
+    core of the hot path of the generator, speeding up sampling just a little can
+    can dramatically speed up generation time.
+    \item Significantly faster RNGs that still pass pRNG benchmarks like BigCrush exist (like \href{https://github.com/lemire/testingRNG/blob/master/source/lehmer64.h}{this one}), and using them can 
+    speed up generation enormously.
+
+    \item However, showing this
+    is tricky, because different RNGs have different sampling orders, but our
+    eval is made much stronger by the fact that all of our generators are functionally equivalent.
+
+    \item In this paper demonstrate this fact by noticing a ``natural experiment'': OCaml's splittable random library is
+    slow in a way that can be improved \emph{without} changing the extensional behavior. By resolving this issue, we can demonstrate
+    just how much you can improve bug-finding performance simply by speeding up the RNG.
+
+    % To illustrate this, we demonstrate a particular inefficiency of
+    % OCaml's BQ, resolve it in a later section, and then show how much you can
+    % bug-finding performance just by speeding up and RNG.
   \end{itemize}
 }
 
