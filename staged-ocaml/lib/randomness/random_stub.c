@@ -283,3 +283,21 @@ CAMLprim value one_ulp_down_c(value x_val){
   CAMLparam1(x_val);
   CAMLreturn(caml_copy_double(one_ulp_down_c_unboxed(Double_val(x_val))));
 }
+
+// void fill_from_value(value v){
+//     int64_t *seed = (int64_t*) Data_custom_val(Field(v,0));
+//     int64_t odd_gamma = Int64_val(Field(v,1));
+//     global_state.seed = seed;
+//     global_state.odd_gamma = odd_gamma;
+// }
+
+CAMLprim value repopulate(value state_val, value sr_state_val) {
+  CAMLparam2(state_val, sr_state_val);
+
+  state_t s = State_val(state_val);
+
+  Int64_val(Field(sr_state_val,0)) = s.seed;
+  Int64_val(Field(sr_state_val,1)) = s.odd_gamma;
+  
+  CAMLreturn(Val_unit);
+}

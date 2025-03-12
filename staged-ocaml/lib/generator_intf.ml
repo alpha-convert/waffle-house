@@ -5,6 +5,7 @@ module type C_INTF = sig
   val pair : 'a t -> 'b t -> ('a * 'b) t
   val pred : Int.t t -> Int.t t
   val cons : 'a t -> 'a list t -> 'a list t
+  val cnil : 'a list t
   val modulus : Int.t t -> Int.t -> Int.t t
 end
 module type S = sig

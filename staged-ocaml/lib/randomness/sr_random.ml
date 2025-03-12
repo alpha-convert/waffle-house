@@ -18,3 +18,5 @@ end
 let dep_paths = List.map Util.run_ocamlfind_query ["splittable_random";"base_quickcheck";"base"]
 
 let of_sr x = x
+
+let repopulate_sr _ _ = .< () >.

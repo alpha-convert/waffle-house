@@ -14,3 +14,6 @@ external create : int64 -> int64 -> t = "create_state"
 
 external one_ulp_up : float -> float = "one_ulp_up_c" "one_ulp_up_c_unboxed" [@@unboxed] [@@noalloc]
 external one_ulp_down : float -> float = "one_ulp_down_c" "one_ulp_down_c_unboxed" [@@unboxed] [@@noalloc]
+
+
+external repopulate : t -> Splittable_random.State.t -> unit = "repopulate"
