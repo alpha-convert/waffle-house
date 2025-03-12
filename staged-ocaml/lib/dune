@@ -2,7 +2,7 @@
 (preprocess (pps ppx_jane))
  (foreign_stubs
   (language c)
-  (names random_stub sr_random_stub)
+  (names random_stub sr_random_stub lehmer_stub)
   (flags -O3 -fPIC)
   )
  (libraries unix splittable_random dynlink metaocaml base)

@@ -310,6 +310,16 @@ module BB : TestCase = struct
   end
 end
 
+module OfListDynTC : TestCase = struct
+  type t = int [@@deriving eq, show]
+  module F (G : Generator_intf.S) = struct
+    open G
+    open Let_syntax
+    open C
+    let gen = of_list_dyn (cons (lift 1) (cons (lift 2) (cons (lift 3) cnil)))
+  end
+end
+
 open Stlc_impl
 open Stlc_gen_bq
 open Stlc_gen_st
@@ -322,23 +332,30 @@ module G_Bq = Bq_generator
 module G_SR = Staged_generator.MakeStaged(Sr_random)
 module G_C = Staged_generator.MakeStaged(C_random)
 module G_C_SR = Staged_generator.MakeStaged(C_sr_dropin_random)
+module G_Lehmer = Staged_generator.MakeStaged(Lehmer_random)
 
 module Bm = Benchmark
 
-let () = G_C_SR.print (G_C_SR.int)
-
 (* let () =
-  let module TC = IntList in
+  let module TC = IntTC in
   let module M1 = TC.F(G_Bq) in
   let module M2 = TC.F(G_SR) in
   let module M3 = TC.F(G_C) in
   let module M4 = TC.F(G_C_SR) in
+  let module M5 = TC.F(G_Lehmer) in
   let g1 = M1.gen in
   let g2 = G_SR.jit M2.gen in
   let g3 = G_C.jit M3.gen in
   let g4 = G_C_SR.jit M4.gen in
-  Benchmark.bm ~bench_name:"Int list" ~named_gens:["BQ",g1; "SR",g2; "C", g3; "CSR", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000
- *)
+  let g5 = G_Lehmer.jit M5.gen in
+  Benchmark.bm ~bench_name:"Int list" ~named_gens:[
+    "BQ",g1;
+    "SR",g2;
+    "C", g3;
+    "CSR", g4;
+    "Lehmer", g5
+  ] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000 *)
+
 (* let () =
   let module TC = IntUIList in
   let module M2 = TC.F(G_SR) in
@@ -400,16 +417,22 @@ let () =
   let g3 = G_C.jit M3.gen in
   let g4 = G_C_SR.jit M4.gen in
   Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged C", g3; "Staged CSR", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:100000
+  *)
 
 
-let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/" *)
+let path = "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte/"
 
-(* let stlc_test =
+let stlc_test =
   let g1 = Stlc_gen_bq.genExpr in
   let g2 = G_SR.jit ~extra_cmi_paths:[path] Stlc_gen_st.genExpr in
-  Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ Expr.show v1 ^ "\nST: " ^ Expr.show v2 ^"\n") Expr.equal g1 g2
+  Difftest.difftest ~config:{qc_cfg with test_count = 1000} ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ Expr.show v1 ^ "\nST: " ^ Expr.show v2 ^"\n") Expr.equal g1 g2
 
-let g1 = Base_quickcheck.Generator.create
+let bst_test =
+  let g1 = G_SR.jit ~extra_cmi_paths:[path] Bst_gen_sr.gen in
+  let g2 = G_C.jit ~extra_cmi_paths:[path] Bst_gen_c.gen in
+  Difftest.difftest ~config:{qc_cfg with test_count = 1000} ~name:"BST" (fun v1 v2 -> failwith @@ "BQ: " ^ Bst_impl.show_tree v1 ^ "\nST: " ^ Bst_impl.show_tree v2 ^"\n") Bst_impl.equal_tree g1 g2
+
+(* let g1 = Base_quickcheck.Generator.create
 (fun ~size:size_26 ->
    fun ~random:random_27 ->
      let t_28 = Obj.magic 0 in
@@ -496,9 +519,9 @@ let g2 =
       Ppx_quickcheck_runtime.Base_quickcheck.Generator.of_lazy
         quickcheck_generator
 
-let bl2s xs = "[" ^ (String.concat "," (List.map Bool.to_string xs)) ^ "]"
+let bl2s xs = "[" ^ (String.concat "," (List.map Bool.to_string xs)) ^ "]" *)
 
-let derived_testcase = Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ bl2s v1 ^ "\nST: " ^ bl2s v2 ^"\n") (List.equal Bool.equal) g1 g2 *)
+(* let derived_testcase = Difftest.difftest ~config:qc_cfg ~name:"STLC" (fun v1 v2 -> failwith @@ "BQ: " ^ bl2s v1 ^ "\nST: " ^ bl2s v2 ^"\n") (List.equal Bool.equal) g1 g2 *)
 
 
 let () =
@@ -521,7 +544,9 @@ let () =
       (let open MakeDiffTest(BoolListListCombinator)(G_Bq)(G_SR) in alco ~config:qc_cfg "Bool List List Combinator Generator");
       (let open MakeDiffTest(AA)(G_Bq)(G_SR) in alco ~config:qc_cfg "Swing generator");
       (let open MakeDiffTest(BB)(G_Bq)(G_SR) in alco ~config:qc_cfg "Unused bind-to-union");
-            (* stlc_test; *)
+      (let open MakeDiffTest(OfListDynTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "OfListDyn");
+      bst_test;
+      stlc_test
     ];
     "RNG Bool Equivalence", [
       (let open MakeDiffTest(BoolTC)(G_Bq)(G_SR) in alco ~config:qc_cfg "SR");
