@@ -367,6 +367,15 @@ by optimizing them for speed. Specifically, we make the following contributions:
     using our library in a controlled comparison.
 \end{enumerate}
 
+\jwc{
+  Things to ensure people come away with answers to:
+  \begin{itemize}
+    \item Is there generality?
+    \item Is this important?
+    \item Did they actually solve the problem?
+  \end{itemize}
+}
+
 \section{Background}
 
 \jwc{In this paper, we'll use OCaml to illustrate the ideas, but the concepts
@@ -520,7 +529,7 @@ can ensure that any overhead of using them is eliminated by run time.
   \end{itemize}
 }
 
-\section{Why is \bq\ slow, and how can we fix it?}
+\section{Why are Monadic Generator Libraries Slow?}
 \jwc{Why is a monadic generator library slow?}
 
 \jwc{NOTE: We can simplify this further by getting rid of the size parameter. Make the story even cleaner, I think!}
@@ -667,7 +676,8 @@ should be engineered for performance.
 
 \jwc{If you're not using the fasteest RNG possible, you're leaving RNG on the table.}
 
-\section{\name: A Library for Staged Generators}
+\section{Eliminating Abstraction Overhead of Generator DSLs by Staging}
+\jwc{Emphasize that this is an \emph{COMPLETELY EQUIVALENT drop in replacement!} We din't just build a different library with different distributions.}
 
 \jwc{Usual introduction to this section, corresponding to how we talked about it in the intro. ``We present a library that XYZ''.}
 
@@ -704,7 +714,7 @@ and \texttt{k .<a>. size\_c random\_c} run at compile time.
 Given any size and random seed, it returns a code block that calls \texttt{SR.int} with that random seed. Because the lower and upper bounds
 might not be known at compile time --- they may themselves be the results of calling \texttt{Gen.int} ---
 the arguments \texttt{lo} and \texttt{hi} are of type \texttt{int code}, and get spliced into the code block as arguments to \texttt{SR.int}.
-Lastly, \texttt{to_bq} turns a staged generator into code for a normal \bq
+Lastly, \texttt{to\_bq} turns a staged generator into code for a normal \bq
 generator. This function is just a 2-argument version of ``The Trick'' (\texttt{eta}
 from Section~\ref{subsection:msp}).
 
