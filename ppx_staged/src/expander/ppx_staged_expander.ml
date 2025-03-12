@@ -85,6 +85,9 @@ let gen_of_ty ~rec_names ~loc ~typ =
     | None -> ""
   in
   match typ.ptyp_desc with
+  | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> Some [%expr G.bool]
+  | Ptyp_constr ({ txt = Lident "float"; _}, _) -> Some [%expr G.float ~lo:(G.C.lift 0.0) ~hi:(G.C.lift 1.0)]
+  | Ptyp_constr ({ txt = Lident "int"; _}, _) -> Some [%expr G.int]
   | Ptyp_constr ({ txt = id; _ }, _) ->
     let rec last_component = function
       | Longident.Lident s -> s
@@ -201,43 +204,40 @@ type impl =
 
 let rec generator_of_core_type core_type ~gen_env ~obs_env =
   let loc = { core_type.ptyp_loc with loc_ghost = true } in
-  match Attribute.get staged_generator_attribute core_type with
-    |Some expr -> expr
-    | None -> 
-      (match gen_of_ty ~typ:core_type ~loc ~rec_names:(Set.empty (module String)) with
-      | Some expr -> expr
-      | None ->
-        (match core_type.ptyp_desc with
-        | Ptyp_constr (constr, args) ->
-          type_constr_conv
-            ~loc
-            ~f:generator_name
-            constr
-            (List.map args ~f:(generator_of_core_type ~gen_env ~obs_env))
-        | Ptyp_var tyvar -> Environment.lookup gen_env ~loc ~tyvar
-        | Ptyp_arrow (arg_label, input_type, output_type) -> unsupported ~loc "Arrow types are not supported, %s" (short_string_of_core_type core_type)
-        | Ptyp_tuple labeled_fields ->
-              compound 
-                ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
-                ~loc
-                ~fields:labeled_fields
-                (module Field_syntax.Tuple)
-        | Ptyp_variant (clauses, Closed, None) -> variant
-            ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
-            ~loc
-            ~variant_type:core_type
-            ~clauses
-            ~rec_names:(Set.empty (module String))
-            (module Clause_syntax.Polymorphic_variant)
-        | Ptyp_variant (_, Open, _) -> unsupported ~loc "polymorphic variant type with [>]"
-        | Ptyp_variant (_, _, Some _) -> unsupported ~loc "polymorphic variant type with [<]"
-        | Ptyp_extension (tag, payload) -> unsupported ~loc "No custom extensions allowed!"
-        | Ptyp_any
-        | Ptyp_object _
-        | Ptyp_class _
-        | Ptyp_alias _
-        | Ptyp_poly _
-        | Ptyp_package _ -> unsupported ~loc "%s" (short_string_of_core_type core_type)))
+    match gen_of_ty ~typ:core_type ~loc ~rec_names:(Set.empty (module String)) with
+    | Some expr -> expr
+    | None ->
+      (match core_type.ptyp_desc with
+      | Ptyp_constr (constr, args) ->
+        type_constr_conv
+          ~loc
+          ~f:generator_name
+          constr
+          (List.map args ~f:(generator_of_core_type ~gen_env ~obs_env))
+      | Ptyp_var tyvar -> Environment.lookup gen_env ~loc ~tyvar
+      | Ptyp_arrow (arg_label, input_type, output_type) -> unsupported ~loc "Arrow types are not supported, %s" (short_string_of_core_type core_type)
+      | Ptyp_tuple labeled_fields ->
+            compound 
+              ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
+              ~loc
+              ~fields:labeled_fields
+              (module Field_syntax.Tuple)
+      | Ptyp_variant (clauses, Closed, None) -> variant
+          ~generator_of_core_type:(generator_of_core_type ~gen_env ~obs_env)
+          ~loc
+          ~variant_type:core_type
+          ~clauses
+          ~rec_names:(Set.empty (module String))
+          (module Clause_syntax.Polymorphic_variant)
+      | Ptyp_variant (_, Open, _) -> unsupported ~loc "polymorphic variant type with [>]"
+      | Ptyp_variant (_, _, Some _) -> unsupported ~loc "polymorphic variant type with [<]"
+      | Ptyp_extension (tag, payload) -> unsupported ~loc "No custom extensions allowed!"
+      | Ptyp_any
+      | Ptyp_object _
+      | Ptyp_class _
+      | Ptyp_alias _
+      | Ptyp_poly _
+      | Ptyp_package _ -> unsupported ~loc "%s" (short_string_of_core_type core_type))
 
 let generator_impl type_decl ~rec_names =
   let loc = type_decl.ptype_loc in
