@@ -79,16 +79,19 @@ let clause_is_recursive
 ;;
 
 let gen_of_ty ~rec_names ~loc ~typ =
-  let randomness_suffix =
-    match Attribute.get randomness_attribute typ with
-    | Some s -> "_" ^ s
-    | None -> ""
-  in
   match typ.ptyp_desc with
-  | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> Some [%expr G.bool]
-  | Ptyp_constr ({ txt = Lident "float"; _}, _) -> Some [%expr G.float ~lo:(G.C.lift 0.0) ~hi:(G.C.lift 1.0)]
-  | Ptyp_constr ({ txt = Lident "int"; _}, _) -> Some [%expr G.int]
+  | Ptyp_constr ({ txt = Longident.Lident "bool"; _ }, _) 
+  | Ptyp_constr ({ txt = Longident.Ldot (_, "bool"); _ }, _) -> Some [%expr G.bool]
+  | Ptyp_constr ({ txt = Longident.Lident "float"; _ }, _) 
+  | Ptyp_constr ({ txt = Longident.Ldot (_, "float"); _ }, _) -> Some [%expr G.float ~lo:(G.C.lift 0.0) ~hi:(G.C.lift 1.0)]
+  | Ptyp_constr ({ txt = Longident.Lident "int"; _ }, _) 
+  | Ptyp_constr ({ txt = Longident.Ldot (_, "int"); _ }, _) -> Some [%expr G.int]
   | Ptyp_constr ({ txt = id; _ }, _) ->
+    let randomness_suffix =
+      match Attribute.get randomness_attribute typ with
+      | Some s -> "_" ^ s
+      | None -> ""
+    in
     let rec last_component = function
       | Longident.Lident s -> s
       | Longident.Ldot (_, s) -> s
@@ -208,6 +211,9 @@ let rec generator_of_core_type core_type ~gen_env ~obs_env =
     | Some expr -> expr
     | None ->
       (match core_type.ptyp_desc with
+      | Ptyp_constr ({ txt = Lident "bool"; _ }, _) -> [%expr G.bool]
+      | Ptyp_constr ({ txt = Lident "float"; _}, _) -> [%expr G.float ~lo:(G.C.lift 0.0) ~hi:(G.C.lift 1.0)]
+      | Ptyp_constr ({ txt = Lident "int"; _}, _) -> [%expr G.int]
       | Ptyp_constr (constr, args) ->
         type_constr_conv
           ~loc

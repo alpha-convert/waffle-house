@@ -246,10 +246,20 @@ have a significant performance overhead, and present a cross-language technique
 for eliminating the overhead while preserving the idiomatic abstraction.
 ''}
 
+\jwc{People have been using staged metaprogrammign to eliminate abstraction
+overheads in parsing for a long time, we turn that lens on generation (Which looks like parsing)}
+
 \jwc{Another angle that I'd argue needs to come out more is that we demonstrate that
 engineering PBT libraries with performance in mind has significant impact on testing power.
 }
 
+\jwc{
+Let's lead on with the quote from PBT in practice: performance engineering
+matters.  De-emphasize the abstraction overhead framing. Eliminating abstraction
+overhead is important, so is using the fastest RNG you can possibly use.
+}
+
+\jwc{``Property based testing is a race against time...''}
 
 Property-based testing (PBT) is a widely-used testing framework\hg{PBT isn't a
 framework, it's a ``technique'' or ``approach'' --- Base\_QuickCheck is a framework} consisting of
@@ -358,6 +368,15 @@ by optimizing them for speed. Specifically, we make the following contributions:
     using our library in a controlled comparison.
 \end{enumerate}
 
+\jwc{
+  Things to ensure people come away with answers to:
+  \begin{itemize}
+    \item Is there generality?
+    \item Is this important?
+    \item Did they actually solve the problem?
+  \end{itemize}
+}
+
 \section{Background}
 
 \jwc{In this paper, we'll use OCaml to illustrate the ideas, but the concepts
@@ -405,6 +424,7 @@ let int_pair : (int * int) Bq.t =
 
 
 \subsection{Multi-Stage Programming}
+\label{subsection:msp}
 
 \jwc{
   \begin{itemize}
@@ -510,9 +530,11 @@ can ensure that any overhead of using them is eliminated by run time.
   \end{itemize}
 }
 
-\section{Why is \bq\ slow, and how can we fix it?}
-
+\section{Why are Monadic Generator Libraries Slow?}
+\jwc{Why is a monadic generator library slow?}
 \jwc{NOTE: We can simplify this further by getting rid of the size parameter. Make the story even cleaner, I think!}
+
+\jwc{IMPORTANT: We are using OCaml because we have to pick a syntax for this section, but these abstraction overheads exist in other languages -- at least scala, rust.}
 
 \jwc{
   \begin{itemize}
@@ -558,6 +580,8 @@ let int_pair_inlined : (int * int) Bq.t
 \jwc{The overhead of the abstraction is 2x.
 The reality is actually worse: actual base-quickcheck includes even more indirection in its type.}
 
+\jwc{Demonstrate this in Scala too!!!}
+
 \jwc{
 The problem is plain: while the abstractions that PBT libraries like base quickcheck provide are indespensible for writing idiomatic generators, the performance overhead of using them is dramatic.
 The compiler (and flambda) uses heuristics (\href{https://ocaml.org/manual/5.3/flambda.html}{here}) to decide when to specialize and inline code, and these heuristics cannot guarantee that generator abstractions are zero-cost.
@@ -565,21 +589,23 @@ These heuristics are also extremely conservative about inlining and specializing
 }
 
 \tr{Each of these consist of an explanation of the problem and pseudocode outlining the solution.}
-\subsubsection{Monadic Bind}
+\subsubsection{Monadic DSL Abstraction Overhead}
 
 \jwc{
   \begin{itemize}
     \item While it's the ``correct'' abstraction for generators, using a monadic interface prevents the compiler from specializing generator code. Using monadic bind and return obscures the control and data flow of a generator from the compiler. This is
     compounded when handling recursive functions.
     \item In cases where the compiler cannot statically eliminate them, running a monadic bind allocates a short-lived closure: we allocate a closure for the continuation, and then immediately jump into it.
-    \item Each closure allocation is relatively cheap (they're going to be minor allocations since they're short-lived), but doing lots of allocation in a generation hot loop adds up fast, and each minor allocation brings us closer to the next costly GC pause.
+    \item Each closure allocation is relatively cheap (they're going to be minor allocations since they're short-lived), but doing lots of allocation in a generation hot loop adds up fast.
+    \item Similar things have been noticed about monadic parsing DSLs in the past.
   \end{itemize}
 }
 
-\subsubsection{Expensive Combinators}
+\subsubsection{Combinator Abstraction Overhead}
 \jwc{Many combinators like \texttt{union} and \texttt{weighted\_union} needlessly allocate large data structures in the generation hot path.
 Using a combination of staging and more careful algorithm design, we can avoid this overhead.
 }
+\jwc{Ensure this discussion is initially multi-language, but uses OCaml to demo.}
 
 \begin{lstlisting}
   let of_weighted_list alist =
@@ -621,7 +647,38 @@ Put more simply, you basically always call weighted union with an \emph{explicit
 \jwc{ofc, sometimes you only know the list at runtime (see the STLC generator for an example), so you the library also includes this.}
 
 % \subsubsection{Function call overhead}
-\subsubsection{Boxed RNG}
+\subsubsection{Choice of RNG}
+
+\jwc{
+  \begin{itemize}
+    \item Because the RNG sits at the heart of the generation hot path, RNG
+    speed matters enormously. Which RNG you pick matters...
+
+    \item Different PBT libraries use different RNGs --- QuickCheck and \bq use
+    splittable_random, Scalacheck uses \href{https://burtleburtle.net/bob/rand/smallprng.html}{this one}.  These
+    are reasonably performant RNGs, but faster ones exist. Because this is the
+    core of the hot path of the generator, speeding up sampling just a little can
+    can dramatically speed up generation time.
+    \item Significantly faster RNGs that still pass pRNG benchmarks like BigCrush exist (like \href{https://github.com/lemire/testingRNG/blob/master/source/lehmer64.h}{this one}), and using them can 
+    speed up generation enormously.
+
+    \item However, showing this
+    is tricky, because different RNGs have different sampling orders, but our
+    eval is made much stronger by the fact that all of our generators are functionally equivalent.
+
+    \item In this paper demonstrate this fact by noticing a ``natural experiment'': OCaml's splittable random library is
+    slow in a way that can be improved \emph{without} changing the extensional behavior. By resolving this issue, we can demonstrate
+    just how much you can improve bug-finding performance simply by speeding up the RNG.
+
+    % To illustrate this, we demonstrate a particular inefficiency of
+    % OCaml's BQ, resolve it in a later section, and then show how much you can
+    % bug-finding performance just by speeding up and RNG.
+  \end{itemize}
+}
+
+\jwc{The inefficiency of BQ's RNG presents a ``natural experiment'' (in the
+sense of economics): we can demonstrate how using a faster RNG can improve
+bugfinding time, but while maintainign program equivlanece. (This should go in the last paragraph here...)}
 
 The core of any PBT generator library is a random-number generator. Following
 the original Haskell QuickCheck, \bq uses the SplitMix algorithm \cn,
@@ -654,7 +711,10 @@ the corresponding evaluation
 --- to demonstrate the testing-time savings of taking seriously the notion that PBT libraries
 should be engineered for performance.
 
-\section{\name: A Library for Staged Generators}
+\jwc{If you're not using the fasteest RNG possible, you're leaving RNG on the table.}
+
+\section{Eliminating Abstraction Overhead of Generator DSLs by Staging}
+\jwc{Emphasize that this is an \emph{COMPLETELY EQUIVALENT drop in replacement!} We din't just build a different library with different distributions.}
 
 \jwc{Usual introduction to this section, corresponding to how we talked about it in the intro. ``We present a library that XYZ''.}
 
@@ -667,31 +727,36 @@ figuring out which parts of the DSL can be determined statically (and can be
 part of the compile-time stage), and which parts are only known dynamically (and
 hence must be \texttt{code}).
 
-The crux of our binding time analysis is that particular size random seed are
-only known at run time (the later stage), but the code of the generator itself
-is known at compile time.
-
-Generators --- values of type \texttt{'a Bq.t} --- are never constructed dynamically at run time in practice,
-so the 
+The crux of our binding time analysis is that the particular random seed and
+size parameter \jwc{if explained} are only known at run time (the later stage),
+but the code of the generator itself is known at compile time. Generators ---
+values of type \texttt{'a Bq.t} --- are never constructed dynamically at run
+time in practice, so all of the combinators we use to build them can run at compile time.
 
 This means our library's generator type \texttt{'a
 Gen.t} should be \texttt{int code -> SR.t code -> 'a code}: a compile-time
 function from dynamically-known size and seed to dynamically-determined result.
 
-\jwc{Note that some of this is a lie, but it's a good first cut: point to the section on \emph{The Trick} to see the real version.}
+This type, along with basic monadic generator DSL functionality can be found in Figure~\ref{fig:gen-staged-basic}.
+The monadic interface is given by a return and bind, as usual.
+\texttt{return} is the constant generator, but this time it operates on codes. Given \texttt{cx : 'a code}, the code for a \texttt{'a}, it returns the generator which always generates that value.
+\texttt{bind g k} sequences generators by passing the result of running the generator \texttt{g} to a continuation \texttt{k}. However, instead of getting access
+to the particular value generated by \texttt{g}, the continuation \texttt{k} gets access to \texttt{code} for the value sampled from \texttt{g}:
+at compile time, we only know \texttt{g} will generate \emph{some} \texttt{'a}, but not which one.
+Operationally, bind takes code for the size and seed, and returns code that (1) let-binds a variable \texttt{a} to spliced-in code that runs \texttt{g}, and then
+(2) runs the spliced-in continuation \texttt{k}.
+Both function applications \texttt{g size\_c random\_c}
+and \texttt{k .<a>. size\_c random\_c} run at compile time.
+\texttt{Gen.int} is the generator that samples an int from the RNG.
+Given any size and random seed, it returns a code block that calls \texttt{SR.int} with that random seed. Because the lower and upper bounds
+might not be known at compile time --- they may themselves be the results of calling \texttt{Gen.int} ---
+the arguments \texttt{lo} and \texttt{hi} are of type \texttt{int code}, and get spliced into the code block as arguments to \texttt{SR.int}.
+Lastly, \texttt{to\_bq} turns a staged generator into code for a normal \bq
+generator. This function is just a 2-argument version of ``The Trick'' (\texttt{eta}
+from Section~\ref{subsection:msp}).
 
-\jwc{
-  \begin{itemize}
-    \item The simplest combinators are presented below.
-    \item \texttt{return} is the constant generator, given code for \texttt{x : 'a}, it gives the generator which always generates \texttt{x}
-    \item \texttt{bind} is like BQ's bind --- sequencing generators by passing the result of one to another --- except that the continuation gets access to the
-    \texttt{code} for the result of running the first generator. At compile time, we know only that \texttt{g} will return \emph{some} \texttt{a}, but we do not get access to the particular \texttt{a}.
-    \item Bind takes code for the size and seed, and returns code that first let-binds the result of the first generator.
-    The function application \texttt{g size\_c random\_c} runs during the first stage, producing the code for the \texttt{a}. This is then spliced into the quote: the specialized code of the generator \texttt{g}
-    put on the right-hand side of the let. Then, we splice in the code for the continuation, passing first the variable x, and the same size and random seed.
-  \end{itemize}
-}
 
+\begin{figure}
 \begin{lstlisting}
 module Gen = struct
   type 'a t = int code -> Random.t code -> 'a code
@@ -701,8 +766,8 @@ module Gen = struct
   let bind (g : 'a t) (k : 'a code -> 'b t) : 'b t =
     fun size_c random_c ->
       .<
-        let x = .~(g size_c random_c) in
-        .~(k .<x>. size_c random_c)
+        let a = .~(g size_c random_c) in
+        .~(k .<a>. size_c random_c)
       >.
 
   let int (lo : int code) (hi : int code) : int t =
@@ -715,10 +780,11 @@ module Gen = struct
   >.
 end
 \end{lstlisting}
+\caption{Basic Staged Generator Library}
+\ref{fig:gen-staged-basic}
+\end{figure}
 
-\jwc{Conversion to a bq generator}
-
-\jwc{Then show the running example, with }
+Returning to our running example, we can define a staged generator for pairs of ints
 
 \begin{lstlisting}
 let int_pair_staged : ((int * int) code) Gen.t =
@@ -736,6 +802,8 @@ let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
     (x,y)
 .>
 \end{lstlisting}
+
+\jwc{Changing some identifier names }
 
 \jwc{So if you write with the \texttt{Gen} combinators and then only call \texttt{to\_bq} at the end, you get something that inlines everything all the way down!}
 
@@ -911,16 +979,18 @@ And this has the desired effect that
 
 \jwc{This is 3-stage metaprogramming! There's PPX time, compile time, and run time.}
 
-\subsection{Faster Random Number Generators}
+\subsection{Fast Random Number Generators}
 \label{subsection:faster-rng}
 
 \jwc{
   \begin{itemize}
-    \item 
+    \item Using the fastest RNG possible is important.
+    \item In OCaml, the splittalbe random RNG is not as fast as it could be, because of the Ints issue.
+    \item In this section, we describe how to resolve the ints issue by calling out ot the FFI. 
+    \item All of this can be done with Jane Street bleeding-edge compiler extensions, though these are not yet compatible with MetaOCaml.
+    \item Because different libraries 
   \end{itemize}
 }
-
-\jwc{All of this can be done with Jane Street bleeding-edge compiler extensions, though these are not yet compatible with MetaOCaml.}
 
 \section{Evaluation}
 
