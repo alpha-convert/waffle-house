@@ -419,7 +419,7 @@ defining functions that accept and return \texttt{code} values.  A function
 run-time \texttt{'a} and transforms it into a program computing a run-time
 \texttt{'b}. In particular, because \texttt{f} itself runs at compile time, the
 abstraction of using \texttt{f} is necessarily completely eliminated by
-run-time.
+run time.
 A code-transforming function \texttt{'a code -> 'b code} can also be converted \emph{code for a function} --- a value of type
 \texttt{('a -> 'b) code} --- with the following program:
 \begin{lstlisting}
@@ -643,8 +643,13 @@ part of the compile-time stage), and which parts are only known dynamically (and
 hence must be \texttt{code}).
 
 The crux of our binding time analysis is that particular size random seed are
-only known at run-time (the later stage), but the code of the generator itself
-is known at compile time.  This means our library's generator type \texttt{'a
+only known at run time (the later stage), but the code of the generator itself
+is known at compile time.
+
+Generators --- values of type \texttt{'a Bq.t} --- are never constructed dynamically at run time in practice,
+so the 
+
+This means our library's generator type \texttt{'a
 Gen.t} should be \texttt{int code -> SR.t code -> 'a code}: a compile-time
 function from dynamically-known size and seed to dynamically-determined result.
 
@@ -879,7 +884,7 @@ And this has the desired effect that
 
 \jwc{Todo: Thia}
 
-\jwc{This is 3-stage metaprogramming! There's PPX-time, compile time, and run-time.}
+\jwc{This is 3-stage metaprogramming! There's PPX time, compile time, and run time.}
 
 \subsection{Faster Random Number Generators}
 \label{subsection:faster-rng}
