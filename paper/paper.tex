@@ -554,10 +554,9 @@ can ensure that any overhead of using them is eliminated by run time.
 
 \begin{lstlisting}
 let int_pair : (int * int) Bq.t =
-  Bq.bind (Bq.gen_int 0 100) (fun x ->
-    Bq.bind (Bq.gen_int 0 x) (fun y ->
-      Bq.return (x,y)
-  ))
+  let%bind x = (Bq.gen_int 0 100) in
+  let%bind y = (Bq.gen_int 0 x) in
+  Bq.return (x,y)
 
 let int_pair_inlined : (int * int) Bq.t
   fun sr ->
@@ -567,8 +566,6 @@ let int_pair_inlined : (int * int) Bq.t
 \end{lstlisting}
 
 \jwc{Show benchmark difference between these two generators: the benchmark is in \texttt{waffle-house/handwritten-ocaml/bin/basic-compare.ml}. It's about 2x. (see comment in latex here.)}
-
-\jwc{The native code OCaml compiler, even with -O3, fails to specialize this code and eliminate the overhead of this abstraction --- inlining all of the funciton definitions and then performing beta-reductions speeds up sampling by a factor of 2.}
 
 % ┌───────┬──────────┬─────────┬────────────┐
 % │ Name  │ Time/Run │ mWd/Run │ Percentage │
@@ -580,7 +577,35 @@ let int_pair_inlined : (int * int) Bq.t
 \jwc{The overhead of the abstraction is 2x.
 The reality is actually worse: actual base-quickcheck includes even more indirection in its type.}
 
-\jwc{Demonstrate this in Scala too!!!}
+\jwc{The native code OCaml compiler, even with -O3, fails to specialize this code and eliminate the overhead of this abstraction --- inlining all of the funciton definitions and then performing beta-reductions speeds up sampling by a factor of 2.}
+
+\jwc{Same story in scala. Approximately 2x difference for the same generator... (scala uses a slightly different generator type, but the principles are the same)}
+
+\begin{lstlisting}
+def intPair : Gen[(Long,Long)] = for {
+  x <- Gen.choose(0,1000)
+  y <- Gen.choose(0,x)
+} yield (x,y)
+
+def intPairInlined : (Gen.Parameters, Seed) => (Option[(Long,Long)],Seed) = {
+ (p,seed) =>
+  val (x,seed2) = chLng(0,1000)(p,seed)
+  x match {
+    case None => (None,seed2)
+    case Some(x) =>
+      val (y,seed3) = chLng(0,x)(p,seed2)
+      y match {
+        case None => (None,seed)
+        case Some(y) => (Some(x,y),seed3)
+      }
+    }
+}
+\end{lstlisting}
+
+
+% [info] GenBm.generateComplexBase     avgt    3  458.325 ± 67.214  ns/op
+% [info] GenBm.generateComplexInlined  avgt    3  266.035 ±  8.559  ns/op
+
 
 \jwc{
 The problem is plain: while the abstractions that PBT libraries like base quickcheck provide are indespensible for writing idiomatic generators, the performance overhead of using them is dramatic.
@@ -653,26 +678,18 @@ Put more simply, you basically always call weighted union with an \emph{explicit
   \begin{itemize}
     \item Because the RNG sits at the heart of the generation hot path, RNG
     speed matters enormously. Which RNG you pick matters...
-
     \item Different PBT libraries use different RNGs --- QuickCheck and \bq use
-    splittable_random, Scalacheck uses \href{https://burtleburtle.net/bob/rand/smallprng.html}{this one}.  These
+    splittable random, Scalacheck uses \href{https://burtleburtle.net/bob/rand/smallprng.html}{this one}.  These
     are reasonably performant RNGs, but faster ones exist. Because this is the
     core of the hot path of the generator, speeding up sampling just a little can
     can dramatically speed up generation time.
     \item Significantly faster RNGs that still pass pRNG benchmarks like BigCrush exist (like \href{https://github.com/lemire/testingRNG/blob/master/source/lehmer64.h}{this one}), and using them can 
     speed up generation enormously.
-
-    \item However, showing this
-    is tricky, because different RNGs have different sampling orders, but our
+    \item However, showing this is tricky, because different RNGs have different sampling orders, but our
     eval is made much stronger by the fact that all of our generators are functionally equivalent.
-
     \item In this paper demonstrate this fact by noticing a ``natural experiment'': OCaml's splittable random library is
     slow in a way that can be improved \emph{without} changing the extensional behavior. By resolving this issue, we can demonstrate
     just how much you can improve bug-finding performance simply by speeding up the RNG.
-
-    % To illustrate this, we demonstrate a particular inefficiency of
-    % OCaml's BQ, resolve it in a later section, and then show how much you can
-    % bug-finding performance just by speeding up and RNG.
   \end{itemize}
 }
 
