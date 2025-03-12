@@ -1,0 +1,35 @@
+type t = Splittable_random.State.t
+
+let int st ~lo ~hi = .< if Base.Int.compare .~lo .~hi > 0 then failwith "Crossed bounds!" else Lehmer_random_runtime.int_unchecked .~st .~lo .~hi >.
+let int_unchecked st ~lo ~hi = .< Lehmer_random_runtime.int_unchecked .~st .~lo .~hi >.
+let bool st = .< Lehmer_random_runtime.bool .~st >.
+
+let float st ~(lo : float Codelib.code) ~hi = .<
+  if Base.Float.compare .~lo .~ hi > 0 then failwith "Crossed bounds!" else
+  if (not (Float.is_finite .~lo && Float.is_finite .~hi)) then failwith "Infite floats" else
+  Lehmer_random_runtime.float_unchecked .~st .~lo .~hi
+>.
+
+let float_unchecked st ~(lo : float Codelib.code) ~hi = .<
+  Lehmer_random_runtime.float_unchecked .~st .~lo .~hi
+>.
+
+let one_ulp ~dir x =
+  match dir with
+  | `Up -> .< C_random_runtime.one_ulp_up .~x >.
+  | `Down -> .< C_random_runtime.one_ulp_down .~x >.
+
+module Log_uniform = struct
+  let int st ~lo ~hi = .< Lehmer_random_runtime.int_log_uniform .~st .~lo .~hi >.
+end
+
+(* THIS IS A HACK!
+*)
+let dep_paths = ["/home/ubuntu/waffle-house/staged-ocaml/_build/default/lib/.fast_gen.objs/byte/"]
+
+let of_sr sr_t = sr_t
+
+let repopulate_sr t t_sr =
+  .<
+    Lehmer_random_runtime.repopulate .~t .~t_sr
+  >.
