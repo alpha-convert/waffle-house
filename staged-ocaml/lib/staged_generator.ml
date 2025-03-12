@@ -51,7 +51,10 @@ module MakeStaged(R : Random_intf.S) = struct
     let pred n = .< .~n - 1 >.
     let cons x xs = .< .~x :: .~xs >.
     let cnil = .< [] >.
+    let plus m n = .< .~m + .~n >.
+    let minus m n = .< .~m - .~n >.
     let modulus x n = .< .~x mod n >.
+    let modulus2 x1 x2 = .< .~x1 mod .~x2 >.
   end
 
   type 'a c = 'a C.t

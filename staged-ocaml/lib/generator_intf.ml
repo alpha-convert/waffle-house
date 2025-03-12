@@ -6,7 +6,10 @@ module type C_INTF = sig
   val pred : Int.t t -> Int.t t
   val cons : 'a t -> 'a list t -> 'a list t
   val cnil : 'a list t
+  val plus : Int.t t -> Int.t t -> Int.t t
+  val minus : Int.t t -> Int.t t -> Int.t t
   val modulus : Int.t t -> Int.t -> Int.t t
+  val modulus2 : Int.t t -> Int.t t -> Int.t t
 end
 module type S = sig
   type 'a t
