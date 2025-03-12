@@ -1,4 +1,4 @@
-\documentclass[sigplan,screen,acmsmall]{acmart}%%
+\documentclass[sigplan,screen,acmsmall,anonymous,review]{acmart}%%
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
   \providecommand\BibTeX{{%
@@ -251,17 +251,22 @@ engineering PBT libraries with performance in mind has significant impact on tes
 }
 
 
-Property-based testing (PBT) is a widely-used testing framework consisting of
+Property-based testing (PBT) is a widely-used testing framework\hg{PBT isn't a
+framework, it's a ``technique'' or ``approach'' --- Base\_QuickCheck is a framework} consisting of
 two key components: a set of \textit{properties} that a system must satisfy, and
+a way of producing
 a large number of \textit{inputs} to that system. In contrast to traditional
-unit testing, where inputs are hand-written, PBT users create a random-input
+unit testing, where test inputs are hand-written, PBT users create a random input
 \textit{generator} that automatically produces inputs. Sometimes, this process
 can itself be automated through the use of PBT libraries that synthesize
 generators from type definitions; however, when inputs are required to maintain
 invariants not communicated by the type, users must write a custom generator (or
-filter out a broad class of invalid inputs). 
+filter out a broad class of invalid inputs).
 
-Writing ``good" generators—those that uncover more bugs in the system under
+\hg{I think this paragraph buries the lede. I'd start the paragraph talking
+about performance and citing the 50ms number, and then jump right into what's
+slow.}
+Writing ``good'' generators—ones that successfully uncover bugs in the system under
 test—is challenging. Much effort has been dedicated to this problem, often by
 developing sophisticated domain-specific languages for specifying constrained
 generators. However, these approaches do not always reflect the needs of real
@@ -276,12 +281,17 @@ with performance in mind.
 
 To better understand and address performance challenges in the landscape of PBT
 generators, we explore popular libraries across several widely-used programming
-languages. We find that the flexibility of these libraries comes at a cost to 
+languages.\hg{Again, this sentence also starts the paragraph too slowly; rather than
+focus on our exploration (which isn't really the point of the paper) lead with
+the result --- that abstraction overhead, boxing/unboxing, and allocations slow
+down QuickCheck ports} We find that the flexibility of these libraries comes at a cost to 
 performance,
 introducing abstraction overhead, frequent boxing and unboxing, and avoidable
 allocations (which lead to costly garbage collection pauses). We focus primarily 
 on OCaml's \bq, selected for its efficiency relative to other OCaml PBT libraries 
-and its integration with industrial build systems, where it is expected to run 
+and its integration with industrial build systems\hg{Let's not try to justify
+our choice of OCaml \bq here --- we should just talk about strict functional
+languages and justify this choice later}, where it is expected to run 
 within tight time constraints. These
 inefficiencies raise a fundamental question: how can PBT libraries produce code
 that is both efficient \textit{and} general? By analyzing
@@ -289,7 +299,8 @@ that is both efficient \textit{and} general? By analyzing
 More?}, we provide a broader perspective on common performance challenges in PBT
 and explore potential strategies for more efficient generator implementations.
 
-Our solution is \name, a generator library that preserves
+Our solution is \name, a generator library\hg{Can we say ``an approach to PBT
+generator libraries'' or something more general like that?} that preserves
 \bq’s functionality while improving performance through
 \textit{multi-stage programming} (staging). Staging is a lightweight,
 domain-specific compilation technique that allows us to completely eliminate the
@@ -300,8 +311,9 @@ generates static control structures, and leverages unboxed integer libraries to
 achieve performance improvements over \texttt{base\_quickcheck}, making it
 well-suited to real-world PBT applications.
 
-We present a new methodology for evaluating the relative effectiveness of PBT
-generators. Prior work has compared generators based on bug-finding ability: 
+We \hg{also} present a new methodology for evaluating the relative effectiveness of PBT
+generators.\hg{Might be an over-claim, we'll need to write this carefully}
+Prior work has compared generators based on bug-finding ability: 
 generators are considered equally effective if they find bugs in a
 system at the same rate over a large number of trials ~\cite{etna}. However,
 because \name\ preserves the semantics of
@@ -311,6 +323,17 @@ generators based on \textit{program equality}, we ensure that any speedups in
 bug-finding ability stem from performance enhancements rather than variations in
 input distribution. This approach establishes a foundation for benchmarking
 optimizations that enhance performance without compromising expressiveness.
+\hg{I'm not totally convinced by this paragraph. Here's how I'd explain this:\\
+In order to justify the switching cost associated with using \name, we designed
+\name\ to be incredibly easy to benchmark: most PBT generator optimizations make
+changes up to {\em distributional equivalence}, allowing the precise sampling
+order to differ as long as the probability distribution is maintained, but
+\name's optimizations are correct up to {\em program equivalence}. This means
+that a \name\ generator produces precisely the same values in the same order as
+the original generator, only faster. With this setup, benchmarking becomes
+significantly easier than for prior work---our measurements have incredibly low
+variance, and performance gains from \name\ translate directly to improved
+bug-finding speed.}
 
 Finally, we conduct an extensive evaluation, implementing both type-derived and
 custom generators in \name\ and \bq. Our
@@ -321,16 +344,18 @@ unstaged generators, demonstrating that \name\ achieves
 significant gains in speed and resource.
 
 In summary, we dramatically improve the bug-finding effectiveness of PBT generators
-by optimizing them for speed. In speicific, we make the following contributions:
+by optimizing them for speed. Specifically, we make the following contributions:
 \begin{enumerate}
     \item An empirical analysis of the sources of inefficiency in PBT
-    generators. \jwc{And an argument that PBT generator libraries should be engineered for performance}
+    generators. \jwc{And an argument that PBT generator libraries should be
+    engineered for performance}
+    \hg{Let's talk about this, I'm not sure I buy it}
     \item A library, \name, which offers efficient \jwc{performant?} generator \proposechange{functions}{combinators} through the
-    use of multi-stage programming; this is the first known application of staging to PBT.
-    \item The insight that generators should be compared by program equality 
+    use of multi-stage programming; this is the first known application of
+    staging to PBT.\hg{Let's also talk about this}
+    \item The insight that generators should be compared by program equality
     \item An evaluation demonstrating the improved performance of generators constructed
     using our library in a controlled comparison.
-
 \end{enumerate}
 
 \section{Background}
