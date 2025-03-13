@@ -954,15 +954,34 @@ preserve exactly the effect order of base quickcheck \jwc{and the scala version 
 
 \subsection{CodeCPS and a Monad Instance}
 \label{subsection:codecps}
+
+This is all great so far, but there's a subtle issue that prevents the version of the library design discussed so far
+from being used as a proper drop-in replacement for an existing generator DSL: the types of \texttt{return : 'a code -> 'a Gen.t}
+and \texttt{bind : 'a Gen.t -> ('a code -> 'b Gen.t) -> 'b Gen.t} aren't quite right.
+For the type \texttt{'a Gen.t} to actually be a monad, 
+the these types cannot mention \texttt{code}. This is not just a theoretical issue, it is a significant usability concern:
+the syntactic sugar for monadic programming (\texttt{let\%bind} in OCaml, \texttt{foreach} in Scala, \texttt{do} in Haskell, etc)
+that makes it so appealing van \emph{only} be used if the types involved are actually the proper monad function types.
+
+To support real monadic programming, we'll need to adjust the type of \texttt{'a Gen.t} slightly.
+An initial attempt is to try \texttt{type 'a t = int code -> SR.t code -> 'a}. If we strip the \texttt{code} off the result type,
+the functions \texttt{return (x : 'a) = fun \_ \_ -> x} and \texttt{bind (g : 'a t) (k : 'a -> 'b t) = fun size random -> k (g size random) size random}
+have the proper types for a monad instance. Then, any combinators of type \texttt{'a Gen.t} before simply become \texttt{'a code Gen.t} with this new version. \jwc{do we want a different name for the first cut?}
+
+However, this definition of bind doesn't have call-by value effect semantics, as
+discussed in the previous section!  And because the result type of \texttt{g} is
+just \texttt{'a} (not necessarily \texttt{'a code}), we cannot perform the
+let-insertion needed to preserve the CBV effects.  To solve this problem, we
+turn to a classic technique from the multistage programming literature: writing
+our staged program in continuation-passing style \cite{bondorf92, carrette05}.
+
+In Figure~\ref{fig:codecps-and-final-gen}, we follow \citet{kovacs24} and define the type \texttt{'a CodeCps.t = 'z. ('a -> 'z code) -> 'z code}. This is the polymorphic CPS monad, with the continuation type always in \texttt{code}.
+\footnote{
+This is an instance of the \emph{codensity} monad \cite{janis08}.
+}
+
 \jwc{
   \begin{itemize}
-    \item Careful readers might note that the types of return and bind are not actually the right types.
-    \item This means that they aren't compatible with ppx-jane syntax.
-    \item We could try a different type, \texttt{type 'a gen = int code -> SR.t code -> 'a}. This has an actual monad instance (show), and ou can write teh combinators of before, with \texttt{'a code gen} everywhere you had \texttt{'a gen} before.
-    \item But because the result type isn't always in \texttt{code}, \texttt{bind} can't perform the let-insertion needed to preserve effect ordering.
-    \item Instead, we turn to a classic technique from the multistage programming literature: writing our staged program in continuation-passing style.
-    \item We define \texttt{type 'a codecps = 'z. ('a -> 'z code) -> 'z code}. This is the polymorphic CPS monad, with the continuation type always in `code'. (Footnote: this is an instance of the \emph{codensity} monad, cf ``Asymptotic Improvement of Computations over Free Monads'')
-    (Cite: ``improving binding times without explicit cps conversion'', ``Multi-stage programming with functors and monads: Eliminating abstraction overhead from generic code'', and ``Closure-Free Functional Programming in a Two-Level Type Theory'')
     \item This lets us define the function \texttt{let\_insert : 'a code -> 'a codecps} as \texttt{let\_insert cx = fun k -> k .< let x = .~cx in .~(k .<x>.) >.}.
     \item of course, \texttt{codecps} has the usual monad instance for the CPS monad with a polymorphic result type.
     \item We then define \texttt{type 'a gen = int code -> SR.t code -> 'a codecps}, which lets us have it both ways. the effectful programs like \texttt{int} do their \emph{own} let-insertion, and we get a real monad instance.
@@ -971,6 +990,7 @@ preserve exactly the effect order of base quickcheck \jwc{and the scala version 
 
 \jwc{This gives us the final definitions:}
 
+\begin{figure}
 \begin{lstlisting}
 module CodeCps = struct
   type 'a t = { cps : 'z. ('a -> 'z code) -> 'z code }
@@ -1001,7 +1021,11 @@ module Gen = struct
     fun size random ->
       let_insert .< SR.int .~random .~lo .~hi >.
 end
-\end{lstlisting}
+\end{lstlisting} 
+\caption{CodeCPS and The Final Gen Monad}
+\label{fig:codecps-and-final-gen}
+\end{figure}
+
 
 \jwc {
 And this has the desired effect that
