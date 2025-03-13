@@ -289,8 +289,7 @@ CAMLprim value repopulate(value state_val, value sr_state_val) {
 
   state_t s = State_val(state_val);
 
-  Int64_val(Field(sr_state_val,0)) = s.seed;
-  Int64_val(Field(sr_state_val,1)) = s.odd_gamma;
-  
+  caml_modify(&Field(sr_state_val, 0), caml_copy_int64(s.seed));
+
   CAMLreturn(Val_unit);
 }
