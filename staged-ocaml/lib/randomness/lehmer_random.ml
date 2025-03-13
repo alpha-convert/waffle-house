@@ -28,8 +28,3 @@ end
 let dep_paths = ["/home/ubuntu/waffle-house/staged-ocaml/_build/default/lib/.fast_gen.objs/byte/"]
 
 let of_sr sr_t = sr_t
-
-let repopulate_sr t t_sr =
-  .<
-    Lehmer_random_runtime.repopulate .~t .~t_sr
-  >.

@@ -23,7 +23,6 @@ module type S = sig
      To propogate those changes back into the SR, we call repopulate_SR. This is a no-op for c_sr_dropin and sr_random.
   *)
   val of_sr : Splittable_random.State.t code -> t code
-  val repopulate_sr : t code -> Splittable_random.State.t code -> unit code
 
   val dep_paths : string list
 end
