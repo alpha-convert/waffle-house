@@ -325,7 +325,7 @@ let int_uniform_inclusive ~(lo : int code) ~(hi : int code) : int code t = {
       Base_quickcheck.Generator.create (fun ~size ~random ->
         let custom_random = .~(R.of_sr .<random>.) in
         let v = .~(Codecps.code_generate (sg.rand_gen ~size_c:.<size>. ~random_c:.<custom_random>.)) in
-        .~(R.repopulate_sr .<custom_random>. .<random>.);
+        (* .~(R.repopulate_sr .<custom_random>. .<random>.); *)
         v
       )
     >.
