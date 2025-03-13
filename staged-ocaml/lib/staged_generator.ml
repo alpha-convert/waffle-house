@@ -49,6 +49,7 @@ module MakeStaged(R : Random_intf.S) = struct
     let pair x y = .< (.~x,.~y) >.
     let i2f x = .< Float.of_int .~x >.
     let pred n = .< .~n - 1 >.
+    let div2 n = .< .~n / 2 >.
     let cons x xs = .< .~x :: .~xs >.
     let cnil = .< [] >.
     let plus m n = .< .~m + .~n >.
@@ -324,7 +325,9 @@ let int_uniform_inclusive ~(lo : int code) ~(hi : int code) : int code t = {
     .<
       Base_quickcheck.Generator.create (fun ~size ~random ->
         let custom_random = .~(R.of_sr .<random>.) in
-        .~(Codecps.code_generate (sg.rand_gen ~size_c:.<size>. ~random_c:.<custom_random>.))
+        let v = .~(Codecps.code_generate (sg.rand_gen ~size_c:.<size>. ~random_c:.<custom_random>.)) in
+        .~(R.repopulate_sr .<custom_random>. .<random>.);
+        v
       )
     >.
 

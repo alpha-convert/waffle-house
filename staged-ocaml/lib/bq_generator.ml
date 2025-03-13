@@ -6,6 +6,7 @@ module C = struct
   let i2f = Float.of_int
   let pair x y = (x,y)
   let pred n = n - 1
+  let div2 n = n / 2
   let cons x xs = x :: xs
   let cnil = []
   let plus m n = m + n

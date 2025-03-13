@@ -4,6 +4,7 @@ module type C_INTF = sig
   val i2f : Int.t t -> Float.t t
   val pair : 'a t -> 'b t -> ('a * 'b) t
   val pred : Int.t t -> Int.t t
+  val div2 : Int.t t -> Int.t t
   val cons : 'a t -> 'a list t -> 'a list t
   val cnil : 'a list t
   val plus : Int.t t -> Int.t t -> Int.t t

@@ -36,7 +36,7 @@ let of_sr sr_t =
     C_random_runtime.create seed odd_gamma
   >.
 
-(* let repopulate_sr t t_sr =
+let repopulate_sr t t_sr =
   .<
     C_random_runtime.repopulate .~t .~t_sr
-  >. *)
+  >.
