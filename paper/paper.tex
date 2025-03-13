@@ -973,22 +973,35 @@ discussed in the previous section!  And because the result type of \texttt{g} is
 just \texttt{'a} (not necessarily \texttt{'a code}), we cannot perform the
 let-insertion needed to preserve the CBV effects.  To solve this problem, we
 turn to a classic technique from the multistage programming literature: writing
-our staged program in continuation-passing style \cite{bondorf92, carrette05}.
+our staged programs in continuation-passing style \cite{bondorf92}.
 
-In Figure~\ref{fig:codecps-and-final-gen}, we follow \citet{kovacs24} and define the type \texttt{'a CodeCps.t = 'z. ('a -> 'z code) -> 'z code}. This is the polymorphic CPS monad, with the continuation type always in \texttt{code}.
-\footnote{
-This is an instance of the \emph{codensity} monad \cite{janis08}.
-}
+In Figure~\ref{fig:codecps-and-final-gen}, we follow prior work \cite{kovacs24, carrette05} and define
+the type \texttt{'a CodeCps.t = 'z. ('a -> 'z code) -> 'z code}: a polymorphic continuation transformer with the result type
+always in \texttt{code}
+\footnote{This is an instance of the \emph{codensity} monad \cite{janis08}, a fact which deserves further investigation.}.
+The monad instance for this type is the standard instance for a CPS monad with polymorphic return type.
+In prior work, this type is often referred to as the ``code generation'' monad (and sometimes called \texttt{Gen}).
+This is because a value of type \texttt{('a code) CodeCps.t} is like an ``action'' that generates \texttt{code}:
+\texttt{CodeCps.run} passes the continuation transformer the identity continuation to produce a \texttt{'a code}.
+To avoid confusion with random data generators, we refer to this type as \texttt{CodeCps.t}.
+Most importantly, the \texttt{CodeCps} type supports a function \texttt{let\_insert}, which, given \texttt{cx : 'a code},
+let-binds \texttt{let x = .\~{}cx}, and then passes \texttt{.<x>.} to the continuation.
 
-\jwc{
-  \begin{itemize}
-    \item This lets us define the function \texttt{let\_insert : 'a code -> 'a codecps} as \texttt{let\_insert cx = fun k -> k .< let x = .~cx in .~(k .<x>.) >.}.
-    \item of course, \texttt{codecps} has the usual monad instance for the CPS monad with a polymorphic result type.
-    \item We then define \texttt{type 'a gen = int code -> SR.t code -> 'a codecps}, which lets us have it both ways. the effectful programs like \texttt{int} do their \emph{own} let-insertion, and we get a real monad instance.
-  \end{itemize}
-}
+We can then redefine our staged generator monad type to be
+\texttt{'a Gen.t = int code -> SR.t code -> 'a CodeCPS.t}, as shown in Figure~\ref{fig:codecps-and-final-gen}.
+\jwc{any types that were \texttt{'a Gen.t} before are now \texttt{'a code Gen.t}}.
+This gives us the best of both worlds. First, we get a monad instance for \texttt{'a Gen.t} with the correct types, which lets us
+use the monadic syntactic sugar of our chosen language. Moreover, we also get to maintain the correct
+effect ordering: effectful combinators like \texttt{Gen.int} do their \emph{own} let-insertion, ensuring
+that a program like \texttt{Gen.bind Gen.int (fun x -> ...)} generates a let-binding for the result of sampling the RNG.
+For example, \texttt{bind (int .<0>. .<1.>) (fun cx -> return .<(.~cx,.~cx)>.)} now correctly generates
+\texttt{.< fun size random -> let x = SR.int random 0 1 in (x,x) >.}. \jwc{Should we do out the whole reduction sequence here? It might be explanatory, but it also might be boring.}
 
-\jwc{This gives us the final definitions:}
+This design is less obviously correct, and does require some care. Rather than \texttt{bind} ensuring correct evaluation order once and for all,
+individual combinators must be carefully written to ensure that \texttt{'a code} values that contian effects are \texttt{let\_insert}'d.
+In Section~\ref{subsection:pbt-for-pbt}, we discuss how we use PBT to ensure that the OCaml is written correctly.
+
+\jwc{... and all of this works identically in Scala, too.}
 
 \begin{figure}
 \begin{lstlisting}
@@ -1000,7 +1013,7 @@ module CodeCps = struct
   let bind (x : 'a t) (f : 'a -> 'b t) : 'b t =
     {cps = fun k -> x.cps (fun a -> (f a).cps k)}
 
-  let run (t : 'a code t) : 'a code = t.cps (fun x -> x)
+  let run (t : ('a code) t) : 'a code = t.cps (fun x -> x)
 
   let let_insert (cx : 'a code) : 'a code t =
     {cps = fun k -> k .< let x = .~cx in .~(k .<x>.) >.}
@@ -1018,8 +1031,8 @@ module Gen = struct
       )
   
   let int (lo : int code) (hi : int code) : int code t =
-    fun size random ->
-      let_insert .< SR.int .~random .~lo .~hi >.
+    fun size random -> let_insert .< SR.int .~random .~lo .~hi >.
+
 end
 \end{lstlisting} 
 \caption{CodeCPS and The Final Gen Monad}
@@ -1027,18 +1040,51 @@ end
 \end{figure}
 
 
-\jwc {
-And this has the desired effect that
-\texttt{bind (int .<0>. .<1.>) (fun x -> return .<(.~x,.~x)>.)} generates
-\texttt{fun size random -> let x = SR.int random 0 1 in (x,x)}
-}
+\subsubsection{The Trick at Other Types}
+To write more interesting generators, we also need the ability to generate code that manipulates runtime values.
+For instance, consider this generator
 
-\subsubsection{The Trick}
+\jwc{need a better example here}
+
+\begin{figure}
+\begin{lstlisting}
+let int_or_zero : int Bq.t =
+  let%bind n = size in
+  if n <= 5 then return 0 else Bq.int
+
+let split_bool (b : bool code) : bool Gen.t =
+  fun _ _ -> 
+
+let int_or_zero_staged : int 
+\end{lstlisting}
+\caption{??}
+\label{fig:trick-example}
+\end{figure}
+
+
 \jwc{Describe split --- this section is approximately experts-only, but you can just point at the Andras paper and the things it cites.}
 
 \subsection{Recursive Generators}
 \jwc{Describe recursion and recurisve handles}
 
+\begin{lstlisting}
+type ('a,'r) handle = 'r code -> 'a code t
+
+let recurse (f : ('a,'r) handle) (x : 'r code) : 'a code t =
+  fun size random ->
+    Codecps.bind ((f x) size random) @@ fun c ->
+    Codecps.let_insert c
+
+let recursive (x0 : 'r code) (step : ('a,'r) handle -> 'r code -> 'a code t) : 'a code t =
+  fun size_c random_c -> 
+    Codecps.return @@
+      .< let rec go x size random = .~(
+            Codecps.code_generate @@
+            (step (fun xc' -> fun ~size' ~random' -> Codecps.return .< go .~xc' .~size' .~random' >.) .<x>.) .<size>. .<random>.
+          )
+        in go .~x0 .~size_c .~random_c
+      >.
+\end{lstlisting}
 
 \subsection{Staged Type-Derived Generators}
 
@@ -1060,8 +1106,10 @@ And this has the desired effect that
 }
 
 \section{Evaluation}
+\subsection{Implementing and Testing Generators}
+\label{subsection:pbt-for-pbt}
+\jwc{Talk about the difftesting to ensure staging maintains semantics, and also different RNGs have identical semantics.}
 
-\subsubsection{Implementation}
 \subsection{Benchmarking speed \& resource usage}
 
 \jwc{NOTE: we should test generator speed across both languages, but speed -> bugfinding ability in only OCaml.}
