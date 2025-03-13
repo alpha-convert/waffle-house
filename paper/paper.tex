@@ -953,7 +953,9 @@ let grades : char Bq.t = Gen.to_bq (
 Careful readers might note that the definition of \texttt{bind} in Section~\ref{subsection:basic-design}
 was more complicated than one might expect. In particular, why not define bind in a more standard way: as
 \texttt{let bind' g k = fun size random -> k (g size random) size random}, without the code block
-that let-binds the spliced code \texttt{.\~{}(g size random)}?
+that let-binds the spliced code \texttt{.\~{}(g size random)}?\hg{Need to spell
+this out --- the vast majority of readers won't have that precise question in
+their heads. Might even be worth comparing the two implementations here side by side}
 Unfortunately, using \texttt{Gen.bind'} leads to incorrect code being generated.
 For example, consider \texttt{Gen.bind' (Gen.int .<0>. .<1>.) (fun x -> Gen.return .<(.~x,.~x)>.)}.
 This generates the run time code \texttt{fun size random -> (SR.int random 0 1, int SR.random 0 1)},
@@ -970,6 +972,10 @@ and then passes that to the continuation.
 The library \jwc{ensure this is consistent with the way we talk about the project, cf cross-language} is careully designed to 
 preserve exactly the effect order of base quickcheck \jwc{and the scala version to preserve the effect ordering of ScalaCheck}.
 \jwc{This fact should go earlier. Not really sure about where this subsection should actually land, but it needs to be said somehwere.}
+\hg{+1, I think this feels sort of out of place here, but I also think moving it
+up would make that part harder to understand too. Is there a way to tie this in
+to our discussion about maintaining the precise set of choices? The two issues
+are different, but they're related}
 
 \subsection{CodeCPS and a Monad Instance}
 \label{subsection:codecps}
