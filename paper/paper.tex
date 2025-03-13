@@ -422,9 +422,42 @@ let int_pair : (int * int) Bq.t =
   ))
 \end{lstlisting}
 
+\jwc{
+  \begin{itemize}
+    \item PBT generator libraries include more functions than just the monad interface and sampling, libraries include helper functions.
+    \item With \texttt{weighted\_union}, to make a weighted choices, and \texttt{fixed\_point} to define recursive generators.
+    \item Also \texttt{size} and \texttt{with\_size} to adjust the size parameter --- these are useful to ensure we terminate with recursive generators.
+  \end{itemize}
+}
+
+\jwc{This section needs to explain approximately how weighted union works --- compute a sum of the weights, sample between 0 and the sum, pick
+the first element where the partial sums to the left exceeds the sampled number.
+(This has been written about a billion times, cite one of the papers about this.)
+}
+
+\begin{lstlisting}
+let tree_of g = fixed_point (fun rg ->
+  let%bind n = size in
+  weighted_union [
+    (1, return E);
+    (n,
+      let%bind x = g in
+      let%bind l = with_size (n / 2) rg in
+      let%bind r = with_size (n / 2) rg in
+      return (Node (l,x,r))
+    )
+  ]
+)
+\end{lstlisting}
+
+\jwc{This generator generates binary trees using all the combinators, yay. Explain em.}
+
+\jwc{Explain effect ordering here!!}
 
 \subsection{Multi-Stage Programming}
 \label{subsection:msp}
+
+\jwc{I think this section should actually go later.}
 
 \jwc{
   \begin{itemize}
@@ -452,7 +485,7 @@ example, the program \texttt{.< 5 + 1 >.} has type \texttt{int code}.  Note that
 this is not the same as \texttt{.< 6 >.}. Because brackets delay computation,
 the code is not \emph{executed} until the next stage (run time).
 Values of type \texttt{code} can be combined together using \emph{escape},
-written \texttt{.\~{}($\ldots$)}.  Escape lets you take a value of type
+written \texttt{.\~{}(e)} (or just \texttt{.\~{}x}, when \texttt{x} is a variable).  Escape lets you take a value of type
 \texttt{code}, and ``splice'' it directly into a quote.  For example, this
 program \texttt{let x = .<1 * 5>. in .< .\~{}(x) + .\~{}(x) >.} evaluates to
 \texttt{.<(1 * 5) + (1 * 5)>.}.  MetaOCaml ensures correct scoping and macro
@@ -530,12 +563,14 @@ can ensure that any overhead of using them is eliminated by run time.
   \end{itemize}
 }
 
-\section{Why are Monadic Generator Libraries Slow?}
+\section{Sources of Inefficiency in Monadic Generator Libraries}
+\label{section:motiv}
 \jwc{Why is a monadic generator library slow?}
 \jwc{NOTE: We can simplify this further by getting rid of the size parameter. Make the story even cleaner, I think!}
 
 \jwc{IMPORTANT: We are using OCaml because we have to pick a syntax for this section, but these abstraction overheads exist in other languages -- at least scala, rust.}
 
+\subsubsection{Monadic DSL Abstraction Overhead}
 \jwc{
   \begin{itemize}
     \item It's been long-known that clean functional abstractions have a runtime overhead (this should be familiar by this time in the paper).
@@ -611,71 +646,48 @@ This doesn't even account for more inlining we could do to eliminate the boxing/
 
 
 \jwc{
-The problem is plain: while the abstractions that PBT libraries like base quickcheck provide are indespensible for writing idiomatic generators, the performance overhead of using them is dramatic.
+The problem is plain: while the monadic abstraction that PBT libraries like base quickcheck provide are indespensible for writing idiomatic generators, the performance overhead of using them is dramatic.
 Modern compilers use heuristics to decide when to specialize and inline code \cn, and these heuristics cannot guarantee that generator abstractions are zero-cost.
 These heuristics are also necessarily conservative about inlining and specializing recursive functions, which all generators of recursive data types must be.
 }
 
 \tr{Each of these consist of an explanation of the problem and pseudocode outlining the solution.}
-\subsubsection{Monadic DSL Abstraction Overhead}
 
 \jwc{
   \begin{itemize}
     \item While it's the ``correct'' abstraction for generators, using a monadic interface prevents the compiler from specializing generator code. Using monadic bind and return obscures the control and data flow of a generator from the compiler. This is
     compounded when handling recursive functions.
     \item In cases where the compiler cannot statically eliminate them, running a monadic bind allocates a short-lived closure: we allocate a closure for the continuation, and then immediately jump into it.
-    \item Each closure allocation is relatively cheap (they're going to be minor allocations since they're short-lived), but doing lots of allocation in a generation hot loop adds up fast.
+    \item Each closure allocation is relatively cheap, but doing lots of allocation in a generation hot loop adds up fast.
     \item Similar things have been noticed about monadic parsing DSLs in the past.
   \end{itemize}
 }
 
 \subsubsection{Combinator Abstraction Overhead}
-\jwc{Many combinators like \texttt{union} and \texttt{weighted\_union} needlessly allocate large data structures in the generation hot path.
-Using a combination of staging and more careful algorithm design, we can avoid this overhead.
+
+\jwc{
+Aside from the usual fact that the compiler can't ``see through'' the abstraction boundary to specialize, combinators like union and weighted union
+necessarily allocate a lot in the generation hot path.
+Even without the dumb BQ array thing, to call union and weighted union, the types mean that you have to allocate a list.
+These allocations are extremely costly, and happen every sample from the generator. If the generator is recursive (like the tree generator), they occur at each recursive call.
 }
-\jwc{Ensure this discussion is initially multi-language, but uses OCaml to demo.}
 
-\begin{lstlisting}
-  let of_weighted_list alist =
-  let weights, values = List.unzip alist in
-  let value_array = Array.of_list values in
-  let total_weight, cumulative_weight_array =
-    let array = Array.init (Array.length value_array) ~f:(fun _ -> 0.) in
-    let sum =
-      List.foldi weights ~init:0. ~f:(fun index acc weight ->
-        let acc' = acc +. weight in
-        array.(index) <- acc';
-        acc'
-      )
-    in
-    sum, array
-  in
-  create (fun ~size:_ ~random ->
-    let choice = Splittable_random.float random ~lo:0. ~hi:total_weight in
-    match
-      Array.binary_search
-        cumulative_weight_array
-        ~compare:Float.compare
-        `First_greater_than_or_equal_to
-        choice
-    with
-    | Some index -> value_array.(index)
-    | None -> assert false
-   )
-\end{lstlisting}
+\jwc{In practice, the possible options are almost always statically known: in the binary tree generator from earlier, we can tell from the text of the code what
+the weights are, what the generators are, and how many there are.
+Put more simply, you basically always call weighted union with an \emph{explicit list}, which is then immediately traversed by the weighted union. For this reason, you should not have to incur the cost of allocating this list at runtime.
+However, almost no compilers (GHC is a notable exception) can figure this out and eliminate the list \cn (list fusion).
+}
 
-\jwc{This builds the cdf of the distribution, samples from 0 to the total, and binary searches through the array to find the bucket.}
-\jwc{Allocating this array is unnecessary: we can simply compute the total weight, sample \texttt{x} between 0 and the total, and then walk the list accumulating the sum, until the accumulator exceeds \texttt{x}. Since in practice the list of possible options is quite small (usually at most 10 in practice), the linear time scan is going to be much faster.}
-\jwc{(The point of this para will just be to emphasize that it's almost always better to be allocation-aware, instead of algorithmically clever.)}
 
-\jwc{Moreover, the possible options is almost always statically known in practice: you use weightedunion to generate (say) a datatype with possible
-variants, whose options are known at compile time.
-Put more simply, you basically always call weighted union with an \emph{explicit list}: For this reason, you should not have to incur the cost of allocating this list at runtime.}
+% \jwc{This builds the cdf of the distribution, samples from 0 to the total, and binary searches through the array to find the bucket.}
+% \jwc{Allocating this array is unnecessary: we can simply compute the total weight, sample \texttt{x} between 0 and the total, and then walk the list accumulating the sum, until the accumulator exceeds \texttt{x}. Since in practice the list of possible options is quite small (usually at most 10 in practice), the linear time scan is going to be much faster.}
+% \jwc{(The point of this para will just be to emphasize that it's almost always better to be allocation-aware, instead of algorithmically clever.)}
 
-\jwc{ofc, sometimes you only know the list at runtime (see the STLC generator for an example), so you the library also includes this.}
 
 % \subsubsection{Function call overhead}
 \subsubsection{Choice of RNG}
+
+\jwc{We really need to have explained the effect ordering equivalence before here.}
 
 \jwc{
   \begin{itemize}
@@ -683,11 +695,11 @@ Put more simply, you basically always call weighted union with an \emph{explicit
     speed matters enormously. Which RNG you pick matters...
     \item Different PBT libraries use different RNGs --- QuickCheck and \bq use
     splittable random, Scalacheck uses \href{https://burtleburtle.net/bob/rand/smallprng.html}{this one}.  These
-    are reasonably performant RNGs, but faster ones exist. Because this is the
+    are reasonably performant RNGs. Because this is the
     core of the hot path of the generator, speeding up sampling just a little can
     can dramatically speed up generation time.
     \item Significantly faster RNGs that still pass pRNG benchmarks like BigCrush exist (like \href{https://github.com/lemire/testingRNG/blob/master/source/lehmer64.h}{this one}), and using them can 
-    speed up generation enormously.
+    speed up generation enormously --- in our microbenchmarks, the lehmer generator runs 4x faster than splittable random.
     \item However, showing this is tricky, because different RNGs have different sampling orders, but our
     eval is made much stronger by the fact that all of our generators are functionally equivalent.
     \item In this paper demonstrate this fact by noticing a ``natural experiment'': OCaml's splittable random library is
@@ -695,10 +707,6 @@ Put more simply, you basically always call weighted union with an \emph{explicit
     just how much you can improve bug-finding performance simply by speeding up the RNG.
   \end{itemize}
 }
-
-\jwc{The inefficiency of BQ's RNG presents a ``natural experiment'' (in the
-sense of economics): we can demonstrate how using a faster RNG can improve
-bugfinding time, but while maintainign program equivlanece. (This should go in the last paragraph here...)}
 
 The core of any PBT generator library is a random-number generator. Following
 the original Haskell QuickCheck, \bq uses the SplitMix algorithm \cn,
@@ -739,7 +747,7 @@ should be engineered for performance.
 \jwc{Usual introduction to this section, corresponding to how we talked about it in the intro. ``We present a library that XYZ''.}
 
 \subsection{Basic Design}
-
+\label{subsection:basic-design}
 Recall that staging a DSL requires carefully changing some of the types and
 combinators to transform \texttt{code}s.  Deciding which types \texttt{t} can
 instead be \texttt{t code} is an art known as ``binding-time analysis'' \cn:
@@ -762,7 +770,8 @@ The monadic interface is given by a return and bind, as usual.
 \texttt{return} is the constant generator, but this time it operates on codes. Given \texttt{cx : 'a code}, the code for a \texttt{'a}, it returns the generator which always generates that value.
 \texttt{bind g k} sequences generators by passing the result of running the generator \texttt{g} to a continuation \texttt{k}. However, instead of getting access
 to the particular value generated by \texttt{g}, the continuation \texttt{k} gets access to \texttt{code} for the value sampled from \texttt{g}:
-at compile time, we only know \texttt{g} will generate \emph{some} \texttt{'a}, but not which one.
+at compile time, we only know \texttt{g} will generate \emph{some} \texttt{'a}, but not which one \footnote{Readers familiar with OCaml may notice that \texttt{return : 'a code -> 'a Gen.t} and \texttt{bind : 'a Gen.t -> ('a code -> 'b Gen.t) -> 'b Gen.t}
+do not have the correct types for a monad instance, preventing us from using \texttt{let\%bind} notation. We rectify this issue in Section~\ref{subsection:codecps} by importing some clever ideas from the staging literature.}.
 Operationally, bind takes code for the size and seed, and returns code that (1) let-binds a variable \texttt{a} to spliced-in code that runs \texttt{g}, and then
 (2) runs the spliced-in continuation \texttt{k}.
 Both function applications \texttt{g size\_c random\_c}
@@ -804,133 +813,147 @@ end
 \ref{fig:gen-staged-basic}
 \end{figure}
 
-Returning to our running example, we can define a staged generator for pairs of ints
+Returning to our running example, Figure~\ref{fig:running-staged} shows the
+int-pair example written with the staged \texttt{Gen.t} monad, as well as the
+inlined code that results from calling \texttt{Gen.to\_bq} (changing some identifier names for clarity).
+The code generated is identical to the manually inlined version from Section~\ref{section:motiv}, and of course runs equally fast.
 
+\begin{figure}
 \begin{lstlisting}
-let int_pair_staged : ((int * int) code) Gen.t =
+let int_pair_staged : (int * int) Gen.t =
   Gen.bind (Gen.int .<0>. .<100>.) (fun cx ->
     Gen.bind (Gen.int .<0> cx) (fun cy ->
       Gen.return .<(.~cx,.~cy)>.
     )
   )
+
 let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
-====
-.<
-  fun size random ->
-    let x = SR.int random 0 100 in
-    let y = SR.int random 0 x in
-    (x,y)
-.>
+(* .< fun size random ->
+        let x = SR.int random 0 100 in
+        let y = SR.int random 0 x in
+        (x,y)
+    >.
+*)
 \end{lstlisting}
+\caption{Pairs of Ints, Staged}
+\ref{fig:running-staged}
+\end{figure}
 
-\jwc{Changing some identifier names }
+\jwc{Is there anything more we need to say here?}
 
-\jwc{So if you write with the \texttt{Gen} combinators and then only call \texttt{to\_bq} at the end, you get something that inlines everything all the way down!}
+\subsection{Staging Combinators}
 
-\subsection{Staging More Combinators}
+In Section~\ref{section:motiv}, we noticed that generator combinators like \texttt{weighted\_union}
+must allocate lists in the hot path of the generator. Even though these lists are often small ---
+usually at most a few dozen elements in practice --- each allocation takes us closer to the next garbage collection.
 
-\jwc{Weighted unions: recall that we should not need to materialize}
+This is an ideal opportunity to exercise another use of staging: compile-time specialization.
+Because we almost always know the particular list of choices at compile time, a staged version of \texttt{weighted\_union}
+can generate \emph{different code} depending on the number of generators that are being unioned together.
+If we use weighted union on a list (known at compile time) of generators \texttt{g1}, \texttt{g2}, and \texttt{g3},
+we can emit code that never has to create a list of three elements at run time.
 
-% let rec genpick n ws =
-% match ws with
-% | [] -> { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return .< failwith "Fell of the end of pick list" >. }
-% | (k,g) :: ws' ->
-%       { rand_gen = 
-%         fun ~size_c ~random_c ->
-%           Codecps.bind (Codecps.split_bool .< Float.compare .~(v2c n) .~(v2c k) <= 0 >.) (fun leq ->
-%             if leq then
-%               g.rand_gen ~size_c ~random_c
-%             else
-%               Codecps.bind (Codecps.let_insertv .< .~(v2c n) -. .~(v2c k) >.) @@ fun n' ->
-%               (* let%bind n' =  in *)
-%               (genpick n' ws').rand_gen ~size_c ~random_c
-%         )
-%       }
-
+\begin{figure}
 \begin{lstlisting}
-  let weighted_union (weighted_elts : (float code * 'a code) list) : 'a t =
-    let sum_code = List.foldr _ in
-    let pick (rc : int code) (weighted_elts : (float code * 'a code) list) : 'a code =
-      match weighted_elts with
-      | [] -> .< failwith "Error" >.
-      | (wc,xc) :: elts' ->
-        .<
-          if .~rc <= .~wc then .~xc
-          else
-            let r' = .~rc - .~wc in
-            .~(go .<r'>. elts')
-        >.
+module Gen =
+$\dots$
+  let pick (acc : int code) (weighted_gens : (int code * 'a t) list) (size : int code) (random : Sr.t code) : 'a code =
+    match weighted_gens with
+    | [] -> .< failwith "Error" >.
+    | (wc,g) :: gens' ->
+      .<
+        if .~acc <= .~wc then .~(g size random)
+        else
+          let acc' = .~acc - .~wc in
+          .~(pick .<acc'>. gens' size random)
+      >.
 
-    fun size_c random_c ->
+  let weighted_union (weighted_gens : (int code * 'a t) list) : 'a t =
+    let sum_code = List.foldr (fun acc (w,_) -> .<.~acc + .~w>. ) .<0>. weighted_gens in
+    fun size random ->
       .<
         let sum = .~sum_code in
         let r = SR.int .~random_c 0 sum in
-        .~(pick .<r>. weighted_elts)
+        .~(pick .<r>. weighted_gens size random)
       >.
 \end{lstlisting}
+\caption{Staged Weighted Union}
+\label{fig:staged-weighted-union}
+\end{figure}
 
-Then, if we write
+Figure~\ref{fig:staged-weighted-union} shows the code for such a staged weighted union.
+Crucially, it takes a \emph{compile-time} list \texttt{weighted\_gens} of
+generators and weights. The weights themselves might only be known at run time --- it is
+common to use the current size parameter as a weight, for instance ---
+so they are \texttt{code}s.
+\texttt{Gen.weighted\_union} begins by computing \texttt{sum\_code}, an \texttt{int code}
+that is the sum of the weights. Note that this happens at compile time: we fold over a list
+known at compile time to produce another code value. 
+We then call \texttt{SR.int} to sample a random number \texttt{r} between \texttt{0} and the sum.
+Finally, we splice in the result of calling the helper function \texttt{pick}. \texttt{pick}
+produces a tree of \texttt{if}s by again traversing the list of generators at compile time.
+This tree of \texttt{ifs} ``searches'' for the genrator corresponding to the sampled value \texttt{r}, and then runs it.
 
+Figure~\ref{fig:staged-weighted-union-example} demonstrates a use of this staged weighted union.
+Given a list (in this case constant) generators with weights ``the current size parameter'', \texttt{2}, and \texttt{1},
+the generated code first computes the sum of these numbers, samples between \texttt{0} and the sum, and then
+traverses a tree of three \texttt{if}s to find the correct value to return.
+
+\begin{figure}
 \begin{lstlisting}
-let grades : charBq.t gen = to_bq (
-  weighted_union [
-    (.<3.0>., .<'a'>.);
-    (.<2.0>., .<'b'>.);
-    (.<1.0>., .<'c'>.);
-  ]
+let grades : char Bq.t = Gen.to_bq (
+  Gen.bind size (fun n ->
+    Gen.weighted_union [
+      (n, Gen.return .<'a'>.);
+      (.<2>., Gen.return .<'b'>.);
+      (.<1>., Gen.return .<'c'>.);
+    ]
+  )
 )
-===
-Bq.create (
-  fun size random ->
-    let sum = 3.0 + 2.0 + 1.0 in
+(*
+.< fun size random ->
+    let sum = size + 2 + 1 + 0 in
     let r = SR.int random 0 sum in
-    if r <= 3.0 then 'a'
+    if r <= size then 'a'
     else
-      let r' = r - 3.0 in
-      if r' <= 2.0 then 'b'
+      let r' = r - size in
+      if r' <= 2 then 'b'
       else
-        let r'' = r' - 2.0 in
-        if r'' <= 1.0 then 'c'
+        let r'' = r' - 2 in
+        if r'' <= 1 then 'c'
         else
           failwith "Error"
-)
-\end{lstlisting}
+>.
+*)
+\end{lstlisting} 
+\caption{Use of Staged Weighted Union}
+\label{fig:staged-weighted-union-example}
+\end{figure}
 
-\subsection{Effect Ordering, and Equivalence is Program Equality}
-\jwc{``Wait, why was the defintion of bind like that''?
-Careful readers might note that the definition of bind was a little strange. In particular, why not just do this?}
-\begin{lstlisting}
-  let bind (g : 'a gen) (k : 'a code -> 'b gen) : 'b gen =
-    fun size_c random_c ->
-      k (g size_c random_c) size_c random_c
-\end{lstlisting}
-\jwc{The answer is that this doesn't generate the right code! In particular, this definition of bind means that
-\texttt{bind (int 0 1) (fun x -> return .<(.~x,.~x)>.)} would generate \texttt{fun size random -> (int random 0 1, int random 0 1)},
-which is \emph{not} the desired behavior. (Cite cbn/cbv randomness here).
-A splice is a (hygenic) syntactic replacment, so
-if a function \texttt{f : 'a code -> 'b code} splices its argument multiple times into its output, the argument code will be directly copied in.
-This is why we insert a let-binding in the definition of bind, to ensure that
-the explicit sequencing of bind is preserved into explicit sequencing in the
-generated code.
-}
+\subsection{Let-Insertion and Effect Ordering}
+Careful readers might note that the definition of \texttt{bind} in Section~\ref{subsection:basic-design}
+was more complicated than one might expect. In particular, why not define bind in a more standard way: as
+\texttt{let bind' g k = fun size random -> k (g size random) size random}, without the code block
+that let-binds the spliced code \texttt{.\~{}(g size random)}?
+Unfortunately, using \texttt{Gen.bind'} leads to incorrect code being generated.
+For example, consider \texttt{Gen.bind' (Gen.int .<0>. .<1>.) (fun x -> Gen.return .<(.~x,.~x)>.)}.
+This generates the run time code \texttt{fun size random -> (SR.int random 0 1, int SR.random 0 1)},
+which is incorrect. 
+This is not equivalent to the behavior of writing the same code with base quickcheck \jwc{Which is a property we want to hold for our eval.}.
+Instead of generating a single integer and returning it twice, it samples two different integers.
 
-\jwc{
-The library is carefully design to preserve exactly the effect order of BQ. If
-you write the same generator in both, they run identically: for the same size
-and random seed, they produce the same value.
-}
+This problem is intimately related to nondeterministic effects in the presence of CBN/CBV evaluation ordering \cn.
+In essence, the behavior of splice \texttt{.\~{}cx} in a staged function \texttt{f(cx : 'a code) = ...} is to \emph{copy}
+the entire block of code, effects and all. To ensure that the randomness effects of the first generator are executed only once,
+but that the value can be used in the continuation multiple times, \texttt{bind} let-binds the result of generation to a variable,
+and then passes that to the continuation.
 
-\jwc{Note: tradeoff between maintaining the effect ordering and even more performance.}
+The library \jwc{ensure this is consistent with the way we talk about the project, cf cross-language} is careully designed to 
+preserve exactly the effect order of base quickcheck \jwc{and the scala version to preserve the effect ordering of ScalaCheck}.
+\jwc{This fact should go earlier. Not really sure about where this subsection should actually land, but it needs to be said somehwere.}
 
-\bcp{How much faster could we go if we changed the effect ordering?
-  If it might be a lot, then should we measure this too?}
-
-\subsection{Size Parameters, A Real Monad Instance, CPS, and Recursion}
-
-\subsubsection{Size Parameters}
-\jwc{Introduce the size parameter here. (if you deleted it beforehand.)}
-
-\subsubsection{CodeCPS and a Monad Instance}
+\subsection{CodeCPS and a Monad Instance}
+\label{subsection:codecps}
 \jwc{
   \begin{itemize}
     \item Careful readers might note that the types of return and bind are not actually the right types.
@@ -986,12 +1009,12 @@ And this has the desired effect that
 \texttt{fun size random -> let x = SR.int random 0 1 in (x,x)}
 }
 
-
-\subsubsection{Recursive Generators}
-\jwc{Describe recursion and recurisve handles}
-
 \subsubsection{The Trick}
 \jwc{Describe split --- this section is approximately experts-only, but you can just point at the Andras paper and the things it cites.}
+
+\subsection{Recursive Generators}
+\jwc{Describe recursion and recurisve handles}
+
 
 \subsection{Staged Type-Derived Generators}
 
@@ -1028,6 +1051,8 @@ And this has the desired effect that
 }
 \subsection{Impact on bug-finding ability}
 \section{Conclusion \& Future Work}
+\section{Related Work}
+\jwc{A generator is a parser of randomness, and people have implemented lots of staged parser libraries!}
 %%
 %% The next two lines define the bibliography style to be used, and
 %% the bibliography file.
