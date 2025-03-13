@@ -856,15 +856,16 @@ let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
 
 \subsection{Staging Combinators}
 
-In Section~\ref{section:motiv}, we noticed that generator combinators like \texttt{weighted\_union}
+In Section~\ref{section:motiv}, we noted that generator combinators like \texttt{weighted\_union}
 must allocate lists in the hot path of the generator. Even though these lists are often small ---
 usually at most a few dozen elements in practice --- each allocation takes us closer to the next garbage collection.
 
 This is an ideal opportunity to exercise another use of staging: compile-time specialization.
-Because we almost always know the particular list of choices at compile time, a staged version of \texttt{weighted\_union}
-can generate \emph{different code} depending on the number of generators that are being unioned together.
-If we use weighted union on a list (known at compile time) of generators \texttt{g1}, \texttt{g2}, and \texttt{g3},
-we can emit code that never has to create a list of three elements at run time.
+Since we almost always know the particular list of choices at compile time, a staged version of \texttt{weighted\_union}
+can generate \emph{different code} depending on the number of generators in the union.
+If we use weighted union on a compile-time list of generators \texttt{g1}, \texttt{g2}, and \texttt{g3},
+we can emit code that picks between the generators without realizing the list at
+run time.
 
 \begin{figure}
 \begin{lstlisting}
@@ -905,7 +906,12 @@ known at compile time to produce another code value.
 We then call \texttt{SR.int} to sample a random number \texttt{r} between \texttt{0} and the sum.
 Finally, we splice in the result of calling the helper function \texttt{pick}. \texttt{pick}
 produces a tree of \texttt{if}s by again traversing the list of generators at compile time.
-This tree of \texttt{ifs} ``searches'' for the genrator corresponding to the sampled value \texttt{r}, and then runs it.
+This tree of \texttt{ifs} ``searches'' for the generator corresponding to the
+sampled value \texttt{r}, and then runs it.
+\hg{I'm not sure this helps me. I think I'd prefer a less detailed explanation
+of the code that conveys the intuition and let the reader actually read the code
+if they want to know specifics. As it stands the explanation is just too dense
+for me to process}
 
 Figure~\ref{fig:staged-weighted-union-example} demonstrates a use of this staged weighted union.
 Given a list (in this case constant) generators with weights ``the current size parameter'', \texttt{2}, and \texttt{1},
