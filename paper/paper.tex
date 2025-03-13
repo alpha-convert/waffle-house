@@ -980,13 +980,16 @@ are different, but they're related}
 \subsection{CodeCPS and a Monad Instance}
 \label{subsection:codecps}
 
-This is all great so far, but there's a subtle issue that prevents the version of the library design discussed so far
+This is all great so far,\hg{too informal} but there's a subtle issue that prevents the version of the library design discussed so far
 from being used as a proper drop-in replacement for an existing generator DSL: the types of \texttt{return : 'a code -> 'a Gen.t}
 and \texttt{bind : 'a Gen.t -> ('a code -> 'b Gen.t) -> 'b Gen.t} aren't quite right.
 For the type \texttt{'a Gen.t} to actually be a monad, 
 the these types cannot mention \texttt{code}. This is not just a theoretical issue, it is a significant usability concern:
 the syntactic sugar for monadic programming (\texttt{let\%bind} in OCaml, \texttt{foreach} in Scala, \texttt{do} in Haskell, etc)
-that makes it so appealing van \emph{only} be used if the types involved are actually the proper monad function types.
+that makes it so appealing van \emph{only} be used if the types involved are
+actually the proper monad function types.
+\hg{A pedantic reader may ask: Are we concerned with the monad {\em laws} as
+well, or just the type signature?}
 
 To support real monadic programming, we'll need to adjust the type of \texttt{'a Gen.t} slightly.
 An initial attempt is to try \texttt{type 'a t = int code -> SR.t code -> 'a}. If we strip the \texttt{code} off the result type,
@@ -999,18 +1002,24 @@ just \texttt{'a} (not necessarily \texttt{'a code}), we cannot perform the
 let-insertion needed to preserve the CBV effects.  To solve this problem, we
 turn to a classic technique from the multistage programming literature: writing
 our staged programs in continuation-passing style \cite{bondorf92}.
+\hg{Slow down! This is all very interesting and very technical! Try making each
+of these sentences two sentences, add some citations, and maybe spell this out
+wiht an example}
 
 In Figure~\ref{fig:codecps-and-final-gen}, we follow prior work \cite{kovacs24, carrette05} and define
 the type \texttt{'a CodeCps.t = 'z. ('a -> 'z code) -> 'z code}: a polymorphic continuation transformer with the result type
 always in \texttt{code}
 \footnote{This is an instance of the \emph{codensity} monad \cite{janis08}, a fact which deserves further investigation.}.
 The monad instance for this type is the standard instance for a CPS monad with polymorphic return type.
-In prior work, this type is often referred to as the ``code generation'' monad (and sometimes called \texttt{Gen}).
+In prior work, this type is often referred to as the ``code generation'' monad
+(and sometimes\hg{, ironically,} called ``\texttt{Gen}'').
 This is because a value of type \texttt{('a code) CodeCps.t} is like an ``action'' that generates \texttt{code}:
 \texttt{CodeCps.run} passes the continuation transformer the identity continuation to produce a \texttt{'a code}.
 To avoid confusion with random data generators, we refer to this type as \texttt{CodeCps.t}.
 Most importantly, the \texttt{CodeCps} type supports a function \texttt{let\_insert}, which, given \texttt{cx : 'a code},
-let-binds \texttt{let x = .\~{}cx}, and then passes \texttt{.<x>.} to the continuation.
+let-binds \texttt{let x = .\~{}cx}, and then passes \texttt{.<x>.} to the
+continuation.
+\hg{I'm getting lost in the inline code again}
 
 We can then redefine our staged generator monad type to be
 \texttt{'a Gen.t = int code -> SR.t code -> 'a CodeCPS.t}, as shown in Figure~\ref{fig:codecps-and-final-gen}.
