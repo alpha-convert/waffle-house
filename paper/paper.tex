@@ -579,7 +579,6 @@ The reality is actually worse: actual base-quickcheck includes even more indirec
 
 \jwc{The native code OCaml compiler, even with -O3, fails to specialize this code and eliminate the overhead of this abstraction --- inlining all of the funciton definitions and then performing beta-reductions speeds up sampling by a factor of 2.}
 
-\jwc{Same story in scala. Approximately 2x difference for the same generator... (scala uses a slightly different generator type, but the principles are the same)}
 
 \begin{lstlisting}
 def intPair : Gen[(Long,Long)] = for {
@@ -602,6 +601,10 @@ def intPairInlined : (Gen.Parameters, Seed) => (Option[(Long,Long)],Seed) = {
 }
 \end{lstlisting}
 
+\jwc{Same story in scala. 
+Approximately 2x difference for the same generator (though an order of magnitude slower overall than bq)... (scala uses a slightly different generator type, but the principles are the same)
+This doesn't even account for more inlining we could do to eliminate the boxing/unboxing of results. (Scalacheck generators can fail, though this adds significant overhead)
+}
 
 % [info] GenBm.generateComplexBase     avgt    3  458.325 ± 67.214  ns/op
 % [info] GenBm.generateComplexInlined  avgt    3  266.035 ±  8.559  ns/op
@@ -609,8 +612,8 @@ def intPairInlined : (Gen.Parameters, Seed) => (Option[(Long,Long)],Seed) = {
 
 \jwc{
 The problem is plain: while the abstractions that PBT libraries like base quickcheck provide are indespensible for writing idiomatic generators, the performance overhead of using them is dramatic.
-The compiler (and flambda) uses heuristics (\href{https://ocaml.org/manual/5.3/flambda.html}{here}) to decide when to specialize and inline code, and these heuristics cannot guarantee that generator abstractions are zero-cost.
-These heuristics are also extremely conservative about inlining and specializing recursive functions, which all generators of recursive data types must be.
+Modern compilers use heuristics to decide when to specialize and inline code \cn, and these heuristics cannot guarantee that generator abstractions are zero-cost.
+These heuristics are also necessarily conservative about inlining and specializing recursive functions, which all generators of recursive data types must be.
 }
 
 \tr{Each of these consist of an explanation of the problem and pseudocode outlining the solution.}
