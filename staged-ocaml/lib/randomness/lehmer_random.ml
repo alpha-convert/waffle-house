@@ -28,3 +28,5 @@ end
 let dep_paths = ["/home/ubuntu/waffle-house/staged-ocaml/_build/default/lib/.fast_gen.objs/byte/"]
 
 let of_sr sr_t = sr_t
+
+let repopulate_sr _ _ = .<()>.

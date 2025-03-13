@@ -24,5 +24,7 @@ module type S = sig
   *)
   val of_sr : Splittable_random.State.t code -> t code
 
+  val repopulate_sr : t code -> Splittable_random.State.t code -> unit code
+
   val dep_paths : string list
 end
