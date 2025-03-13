@@ -143,7 +143,6 @@ CAMLprim value bool_c(value state_val) {
 }
 
 double float_c_unchecked_unboxed(value state_val, double lo, double hi){
-  // CAMLparam1(state_val);
   state_t *st = State_ptr(state_val);
   double result = next_float(st,lo,hi);
   return result;
@@ -286,10 +285,12 @@ CAMLprim value one_ulp_down_c(value x_val){
 
 CAMLprim value repopulate(value state_val, value sr_state_val) {
   CAMLparam2(state_val, sr_state_val);
+  CAMLlocal1(seed_val);
 
   state_t s = State_val(state_val);
+  seed_val = caml_copy_int64(s.seed);
 
-  caml_modify(&Field(sr_state_val, 0), caml_copy_int64(s.seed));
+  caml_modify(&Field(sr_state_val, 0), seed_val);
 
   CAMLreturn(Val_unit);
 }

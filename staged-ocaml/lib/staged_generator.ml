@@ -49,6 +49,7 @@ module MakeStaged(R : Random_intf.S) = struct
     let pair x y = .< (.~x,.~y) >.
     let i2f x = .< Float.of_int .~x >.
     let pred n = .< .~n - 1 >.
+    let div2 n = .< .~n / 2 >.
     let cons x xs = .< .~x :: .~xs >.
     let cnil = .< [] >.
     let plus m n = .< .~m + .~n >.
