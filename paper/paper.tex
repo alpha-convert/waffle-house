@@ -694,9 +694,41 @@ Different PBT libraries use a wide range of different RNGs.
 Following the original Haskell QuickCheck, \bq uses the SplitMix algorithm \cn,
 implemented (statefully) as an OCaml library called \texttt{Splittable\_random}. Meanwhile,
 ScalaCheck uses the JSF algorithm.
+
+Because the RNG sits at the heart of the generation hot path, RNG speed matters enormously.
+We argue that the RNGs that PBT libraries use are (broadly) a source of inefficiency, and their (lack of) speed is
+an impediment towards better bugfinding ability \cn \jwc{see comment for cites}.
 % https://www.pcg-random.org/posts/bob-jenkins-small-prng-passes-practrand.html
 % https://burtleburtle.net/bob/rand/smallprng.html
 
+
+Significantly faster RNGs like the Lehmer RNG \cn exist like, and using them can
+speed up generation tremendously --- in microbenchmarks, a C implementation of
+the lehmer generator runs 4x faster than a C implementation of splitmix.
+Similarly, PBT libraries could even eschew the requirement that a source of
+entropy pass statistical tests\cn.  This is common practice in testing already:
+fuzzers often simply use a buffer full of arbitrary bytes as a source of entropy
+\cn.  Bumping a pointer and reading from a buffer (which can be pipelined
+trivially) will always be significantly faster than any RNG with data-dependent
+arithmetic instructions.
+
+In the context of this paper, however, demonstrating the benefits of any of the
+above options is tricky.  Our bug-finding evaluation's power is predicated on
+the fact that all of the different versions of a generator we test are
+extensionally identical: for a given seed and size parameter, they all produce
+the \emph{same} value.  Using a different random number generator or different
+source of entropy would break this property.  In Section~\ref{eval}, we
+demonstrate that faster RNG matters for bugfinding by exploting a ``natural
+experiment'': OCaml's \texttt{Splittable\_random} library is slow in a way that
+can be improved \emph{without} changing its extensional behavior.
+In particular,
+due to implementation details related to the OCaml garbage collector,
+values of the OCaml type \texttt{int64} are not machine words, but rather
+\emph{pointers} to machine words. This means
+that \emph{all} \texttt{int64} operations (both arithmetic and bitwise) must
+allocate memory cells to contain their output, which has a significant performance benefit.
+By building a version that uses much faster ``unboxed'' 64-bit integer arithmetic, we can demonstrate just how much bug-finding
+performance can be improved just by using a more performant RNG.
 
 % \jwc{There are a few aspects of PBT that make it interesting when it comes to PBT choice.
 % \begin{itemize}
@@ -706,28 +738,9 @@ ScalaCheck uses the JSF algorithm.
 % \end{itemize}
 % }
 
-Because the RNG sits at the heart of the generation hot path, RNG speed matters enormously.
-As we will show in Section~\ref{eval}, speeding up sampling can dramatically speed up generation time and bugfinding speed.
 
-We argue that the RNGs that PBT libraries use are (broadly) a source of inefficiency, and their (lack of) speed is
-an impediment towards better bugfinding ability.
 
-Significantly faster RNGs (that still pass pRNG benchmarks like BigCrush) exist like \href{https://github.com/lemire/testingRNG/blob/master/source/lehmer64.h}{this one}, and using them can 
-speed up generation tremendously --- in microbenchmarks, a C implementation of the lehmer generator runs 4x faster than a C implementation of splitmix.
 
-Similarly, PBT libraries could even eschew the requirement that a source of entropy pass statistical tests like bigcrush \cn.
-This is common practice in testing already: fuzzers often simply use a buffer full of arbitrary bytes as a source of entropy!
-Bumping a pointer and reading from a buffer (which can be pipelined trivially) is likely to be significantly faster than any RNG with data-dependent arithmetic instructions.
-
-In the context of this paper, however, demonstrating the benefits of any of the above options is tricky.
-Our bug-finding evaluation's power is predicated on the fact that all of the different versions of a generator we test are extensionally identical:
-for a given seed and size parameter, they all produce the \emph{same} value.
-Using a different random number generator or different source of entropy would break this property.
-
-In Section~\ref{eval}, we demonstrate that faster RNG matters for bugfinding by exploting a ``natural experiment'':
-OCaml's \texttt{Splittable\_random} library is slow in a way that can be improved \emph{without} changing its extensional behavior,
-namely that it uses \emph{boxed} 64-bit integers. By building a version that uses much faster unoxed 64-bit integer arithmetic, we can
-demonstrate just how much bug-finding performance can be improved just by using a more performant RNG.
 
 
 % \jwc{
@@ -741,12 +754,7 @@ demonstrate just how much bug-finding performance can be improved just by using 
 %  The precise
 % details of how SplitMix works are unimportant for the present paper, but the
 % main operations are defined in terms of bitwise operations on 64-bit integers.
-% However, due to implementation details related to the garbage collector, all
-% runtime OCaml values are either (a) pointers to a block of memory, or (b) 63-bit ``immediate'' values.
-% As such, the OCaml type of 64-bit ingeters, \texttt{int64}, is \emph{boxed}: it
-% is a pointer to a block of memory that contains a 64-bit integer.  This means
-% that \emph{all} \texttt{int64} operations (both arithmetic and bitwise) must
-% allocate memory cells to contain their output.
+% However, 
 
 % This has a significant impact on the performance of generators. A single call to
 % one of the \bq library functions may sample from \texttt{Splittable\_random}
