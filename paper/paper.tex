@@ -1158,12 +1158,24 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
     \item In PBT in practice, we learned that in many cases, programmers don't
     even write custom generators, instead relying on type-derived generators.
     \item These generators just produce arbitrary values of a given type, not necessarily enforcing validity conditions.
-    \item Many generator
+    \item If 
+    \item Let's talk about how type-deriving works. In languages with typeclasses, it works
+    by typeclass resolution. In OCaml it works by PPX system, but the principle
+    is the same. You define rules to go from generators of a subtypes to a generator of the larger type, and then apply those rules to build up a full generator.
+    \item \begin{itemize}
+      \item For base types, you just call the associated generator
+      \item For product types, you sample from all the component gnerators, bind the values, and then tuple up the values, and return the tuple
+      \item For variant types, you use a weighted union to choose one of the component generators with a weighted union.
+      \item For recursive types, wrap the whole thing in a fixedpoint and then use the recusive handle as the ``component generator'' for all recursive instance of the type.
+    \end{itemize}
+    \item This kind of generic deriving of generators works just as well for
+    staged generators. Just replace the standard combinators in question with
+    staged ones!
+    \item We built this in OCaml, but you can easily use typeclasses to do it in scala too.
+    \item Note that this is (essentially) 3-stage metaprograming. You're using either the PPX mechanism or typeclass resolution to generate a bunch of staged combinator calls, which then run at compile time, which then run at run time.
   \end{itemize}
 }
 \jwc{Todo: Thia}
-
-\jwc{This is 3-stage metaprogramming! There's PPX time, compile time, and run time.}
 
 \subsection{Fast Random Number Generators}
 \label{subsection:faster-rng}
