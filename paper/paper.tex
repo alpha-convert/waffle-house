@@ -383,7 +383,8 @@ by optimizing them for speed. Specifically, we make the following contributions:
 are portable to other languages: see Section~\ref{subsection:other-langs}}
 
 \subsection{Property-Based Testing}
-\jwc{Usual spiel about pbt and generators: here's the BQ generator library, it has return and bind, this is what they're for.}
+\jwc{Usual spiel about pbt and generators: here's a monadic generic generator library (but we're using BQ to illustrage), it has return and bind, this is what they're for.}
+\jwc{You often want generators to generate for sparse precoditions so you can exercise a property reasonably well}
 
 \begin{lstlisting}
 module Bq = struct
@@ -1152,6 +1153,14 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
 
 \subsection{Staged Type-Derived Generators}
 
+\jwc{
+  \begin{itemize}
+    \item In PBT in practice, we learned that in many cases, programmers don't
+    even write custom generators, instead relying on type-derived generators.
+    \item These generators just produce arbitrary values of a given type, not necessarily enforcing validity conditions.
+    \item Many generator
+  \end{itemize}
+}
 \jwc{Todo: Thia}
 
 \jwc{This is 3-stage metaprogramming! There's PPX time, compile time, and run time.}
@@ -1186,6 +1195,7 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
   \end{itemize}
 }
 \subsection{Impact on bug-finding ability}
+\jwc{Staging type-derived generators (which are the most commonly used ones) can turn a timeout into a found bug!}
 \section{Conclusion \& Future Work}
 \section{Related Work}
 \jwc{A generator is a parser of randomness, and people have implemented lots of staged parser libraries!}
