@@ -423,6 +423,18 @@ let int_pair : (int * int) Bq.t =
   ))
 \end{lstlisting}
 
+
+\jwc{
+Explain effect ordering here!!
+\begin{itemize}
+  \item \texttt{Bq.bind} has the CBV sampling semantics
+  \item If you \texttt{Bq.bind} \texttt{x} and then use it twice, both uses refer to the \emph{same} value.
+  \item Sampling is effectful: it mutates the internal state.
+  \item Permuting two independent binds gives you a generator that is distributionally equivalent, but not equivlaent when considered up to pointwise equality as \emph{functions} from seed to value.
+  \item Note that it's much more sensible to compare the bugfinding performance of two function-equivalent generators:
+\end{itemize}
+}
+
 \jwc{
   \begin{itemize}
     \item PBT generator libraries include more functions than just the monad interface and sampling, libraries include helper functions.
@@ -453,7 +465,6 @@ let tree_of g = fixed_point (fun rg ->
 
 \jwc{This generator generates binary trees using all the combinators, yay. Explain em.}
 
-\jwc{Explain effect ordering here!!}
 
 \subsection{Multi-Stage Programming}
 \label{subsection:msp}
