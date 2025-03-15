@@ -571,7 +571,7 @@ can ensure that any overhead of using them is eliminated by run time.
 
 \jwc{IMPORTANT: We are using OCaml because we have to pick a syntax for this section, but these abstraction overheads exist in other languages -- at least scala, rust.}
 
-\subsubsection{Monadic DSL Abstraction Overhead}
+\subsection{Monadic DSL Abstraction Overhead}
 \jwc{
   \begin{itemize}
     \item It's been long-known that clean functional abstractions have a runtime overhead (this should be familiar by this time in the paper).
@@ -664,7 +664,7 @@ These heuristics are also necessarily conservative about inlining and specializi
   \end{itemize}
 }
 
-\subsubsection{Combinator Abstraction Overhead}
+\subsection{Combinator Abstraction Overhead}
 
 \jwc{
 Aside from the usual fact that the compiler can't ``see through'' the abstraction boundary to specialize, combinators like union and weighted union
@@ -686,10 +686,10 @@ However, almost no compilers (GHC is a notable exception) can figure this out an
 
 
 % \subsubsection{Function call overhead}
-\subsubsection{Choice of RNG}
+\subsection{Choice of RNG}
 \jwc{We really need to have explained the effect ordering equivalence aspect of the evaluation before here.}
 
-The core of any PBT generator library is a (pseudo) random number generator.
+The core of any PBT generator library is a random number generator: to generate random values, we need
 Different PBT libraries use a wide range of different RNGs.
 Following the original Haskell QuickCheck, \bq uses the SplitMix algorithm \cn,
 implemented (statefully) as an OCaml library called \texttt{Splittable\_random}. Meanwhile,
@@ -780,7 +780,7 @@ performance can be improved just by using a more performant RNG.
 
 % \jwc{If you're not using the fasteest RNG possible, you're leaving RNG on the table.}
 
-\section{Eliminating Abstraction Overhead of Generator DSLs by Staging}
+\section{Eliminating Abstraction Overhead of Generator DSLs by Staging and Faster RNG}
 \jwc{Emphasize that this is an \emph{COMPLETELY EQUIVALENT drop in replacement!} We din't just build a different library with different distributions.}
 
 \jwc{Usual introduction to this section, corresponding to how we talked about it in the intro. ``We present a library that XYZ''.}
@@ -1215,16 +1215,24 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
 }
 \jwc{Todo: Thia}
 
-\subsection{Fast Random Number Generators}
+\subsection{Faster SplitMix with Unboxed Int}
 \label{subsection:faster-rng}
+
+\jwc{Unclear what we should call this section}
 
 \jwc{
   \begin{itemize}
-    \item Using the fastest RNG possible is important.
-    \item In OCaml, the splittalbe random RNG is not as fast as it could be, because of the Ints issue.
-    \item In this section, we describe how to resolve the ints issue by calling out ot the FFI. 
-    \item All of this can be done with Jane Street bleeding-edge compiler extensions, though these are not yet compatible with MetaOCaml.
-    \item Because different libraries 
+    \item As we discussed in Section~\ref{section:motiv}, inefficient RNG choice is a bottleneck for bugfinding power.
+    \item Faster RNGs and sources of entropy exist, though they are extensionally inequivalent. To demonstrate the bugfinding power of a faster RNG, we use the natural experiment provided by OCaml's inefficient implementation of SplitMix.
+    \item Unlike the previous subsections, this is not a anguage-agnostic technique. In most other PBT frameworks, the RNG operates on by machine integers, so this inefficiency does not exist.
+    \item We are simply using this as a way to demonstrate that faster RNG can translate to faster bugfinding for sampling-bounded generators.
+    \item Here's how SplitMix is slow: the core of SplitMix is nextInt64, which does allocations for each operation.
+    \item If we could use actual int64s, we wouldn't have to allocate.
+    \item So we do this:
+    \begin{itemize}
+      \item We implement SplitMix in C (which uses normal Int64s) and real int64 arithmetic, and use the OCaml FFI to call out to the C functions. T
+      \item This could be done with Jane Street bleeding-edge compiler extensions, though these are not yet implemented in a a version of the OCaml compiler that also has staging.
+    \end{itemize}
   \end{itemize}
 }
 
@@ -1241,7 +1249,8 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
   \begin{itemize}
     \item Single int
     \item Pair of ints, constrained
-    \item List of ints
+    \item List of ints without bind (use map): lots of sampling, minimal binds.
+    \item Unableled Trees of a fixed size (no weighted union) minimal sampling, lots of binds.
   \end{itemize}
 }
 \subsection{Impact on bug-finding ability}
