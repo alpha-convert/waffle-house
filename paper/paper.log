@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2025.2.13)  15 MAR 2025 03:53
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2025.2.13)  15 MAR 2025 17:27
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -750,6 +750,9 @@ Package caption Info: New subtype `subfigure' on input line 238.
 Package caption Info: New subtype `subtable' on input line 238.
 \c@subtable=\count323
 )
+(/usr/local/texlive/2024/texmf-dist/tex/latex/tools/xspace.sty
+Package: xspace 2014/10/28 v1.13 Space after command names (DPC,MH)
+)
 
 LaTeX Warning: \include should only be used after \begin{document} on input lin
 e 40.
@@ -1040,116 +1043,116 @@ local/texlive/2024/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-4.enc}{/usr/loc
 al/texlive/2024/texmf-dist/fonts/enc/dvips/libertine/lbtn_7grukw.enc}{/usr/loca
 l/texlive/2024/texmf-dist/fonts/enc/dvips/libertine/lbtn_naooyc.enc}]
 LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/it' will be
-(Font)              scaled to size 10.0pt on input line 283.
+(Font)              scaled to size 10.0pt on input line 282.
 LaTeX Font Info:    Font shape `T1/zi4/m/n' will be
-(Font)              scaled to size 10.0pt on input line 322.
+(Font)              scaled to size 10.0pt on input line 309.
 LaTeX Font Info:    Font shape `T1/LinuxBiolinumT-TLF/m/n' will be
-(Font)              scaled to size 8.0pt on input line 332.
+(Font)              scaled to size 8.0pt on input line 330.
  [2.2]
-Overfull \hbox (7.5784pt too wide) in paragraph at lines 345--368
+Overfull \hbox (7.5784pt too wide) in paragraph at lines 379--402
 \T1/LinuxLibertineT-TLF/m/n/10 (-20) In or-der to jus-tify the switch-ing cost 
 as-so-ci-ated with us-ing \T1/zi4/m/n/10 waffle_house\T1/LinuxLibertineT-TLF/m/
 n/10 (-20) , we de-signed \T1/zi4/m/n/10 waffle_house
  []
 
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [3.3]
+[3.3]
 LaTeX Font Info:    Font shape `T1/zi4/m/n' will be
-(Font)              scaled to size 8.0pt on input line 410.
+(Font)              scaled to size 8.0pt on input line 444.
 LaTeX Font Info:    Trying to load font information for TS1+zi4 on input line 4
-12.
-
-(/usr/local/texlive/2024/texmf-dist/tex/latex/inconsolata/ts1zi4.fd
+46.
+ (/usr/local/texlive/2024/texmf-dist/tex/latex/inconsolata/ts1zi4.fd
 File: ts1zi4.fd 2018/01/14 TS1/zi4 (Inconsolata)
 )
 LaTeX Font Info:    Font shape `TS1/zi4/m/n' will be
-(Font)              scaled to size 8.0pt on input line 412.
+(Font)              scaled to size 8.0pt on input line 446.
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `zi4' (encoding: TS1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
- [4.4{/usr/local/texlive/2024/texmf-dist/fonts/enc/dvips/inconsolata/i4-ts1.enc
-}] [5.5]
-[6.6]
-LaTeX Font Info:    Font shape `T1/LinuxBiolinumT-TLF/m/it' will be
-(Font)              scaled to size 10.0pt on input line 610.
-LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/b/n' will be
-(Font)              scaled to size 10.0pt on input line 610.
 
-Overfull \hbox (208.62192pt too wide) in paragraph at lines 625--626
+[4.4{/usr/local/texlive/2024/texmf-dist/fonts/enc/dvips/inconsolata/i4-ts1.enc}
+] [5.5] [6.6] [7.7]
+LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/b/n' will be
+(Font)              scaled to size 10.0pt on input line 655.
+
+Overfull \hbox (208.62192pt too wide) in paragraph at lines 670--671
 [][]\T1/LinuxLibertineT-TLF/m/n/10 (-20) [JWC: Show bench-mark dif-fer-ence be-
 tween these two gen-er-a-tors: the bench-mark is in \T1/zi4/m/n/10 waffle-house
 /handwritten-ocaml/bin/basic-compare.ml\T1/LinuxLibertineT-TLF/m/n/10 (-20) .
  []
 
-[7.7{/usr/local/texlive/2024/texmf-dist/fonts/enc/dvips/libertine/lbtn_nh77jq.e
-nc}] [8.8]
+[8.8{/usr/local/texlive/2024/texmf-dist/fonts/enc/dvips/libertine/lbtn_nh77jq.e
+nc}] [9.9]
 
-LaTeX Warning: Reference `eval' on page 9 undefined on input line 744.
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [9.9]
-
-LaTeX Warning: Reference `fig:gen-staged-basic' on page 10 undefined on input l
-ine 834.
-
-LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 7.3pt on input line 841.
-LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
-(Font)              scaled to size 6.2pt on input line 842.
-LaTeX Font Info:    Font shape `T1/LinuxBiolinumT-TLF/m/n' will be
-(Font)              scaled to size 9.0pt on input line 884.
-
-LaTeX Warning: Reference `fig:gen-staged-basic' on page 10 undefined on input l
-ine 885.
-
-
-Class acmart Warning: A possible image without description on input line 886.
-
-
-LaTeX Warning: Reference `fig:running-staged' on page 10 undefined on input lin
-e 888.
-
-
-LaTeX Warning: Reference `fig:running-staged' on page 10 undefined on input lin
-e 911.
-
-
-Class acmart Warning: A possible image without description on input line 912.
+LaTeX Warning: Reference `eval' on page 10 undefined on input line 803.
 
 [10.10]
-Overfull \hbox (90.1775pt too wide) in paragraph at lines 933--934
+
+LaTeX Warning: Reference `fig:gen-staged-basic' on page 11 undefined on input l
+ine 881.
+
+LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
+(Font)              scaled to size 7.3pt on input line 888.
+LaTeX Font Info:    Font shape `T1/LinuxLibertineT-TLF/m/n' will be
+(Font)              scaled to size 6.2pt on input line 889.
+LaTeX Font Info:    Font shape `T1/LinuxBiolinumT-TLF/m/n' will be
+(Font)              scaled to size 9.0pt on input line 931.
+
+LaTeX Warning: Reference `fig:gen-staged-basic' on page 11 undefined on input l
+ine 932.
+
+
+Class acmart Warning: A possible image without description on input line 933.
+
+
+LaTeX Warning: Reference `fig:running-staged' on page 11 undefined on input lin
+e 935.
+
+
+LaTeX Warning: Reference `fig:running-staged' on page 11 undefined on input lin
+e 958.
+
+
+Class acmart Warning: A possible image without description on input line 959.
+
+
+Overfull \hbox (90.1775pt too wide) in paragraph at lines 980--981
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 ][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Class acmart Warning: A possible image without description on input line 955.
+Class acmart Warning: A possible image without description on input line 1002.
 
-[11.11]
+[11.11] [12.12]
 
-Class acmart Warning: A possible image without description on input line 1009.
+Class acmart Warning: A possible image without description on input line 1056.
 
-[12.12] [13.13]
+[13.13] [14.14]
 
-Class acmart Warning: A possible image without description on input line 1133.
+Class acmart Warning: A possible image without description on input line 1180.
 
+LaTeX Font Info:    Font shape `T1/LinuxBiolinumT-TLF/m/it' will be
+(Font)              scaled to size 10.0pt on input line 1184.
 
-Class acmart Warning: A possible image without description on input line 1154.
+Class acmart Warning: A possible image without description on input line 1201.
 
-[14.14] [15.15]
+[15.15] [16.16]
 
-Class acmart Warning: A possible image without description on input line 1210.
+Class acmart Warning: A possible image without description on input line 1257.
 
-[16.16] (./paper.bbl
+LaTeX Font Info:    Font shape `T1/zi4/b/n' will be
+(Font)              scaled to size 10.0pt on input line 1286.
+[17.17]
+
+LaTeX Warning: Reference `section:eval' on page 18 undefined on input line 1316
+.
+
+[18.18] (./paper.bbl
 LaTeX Info: Redefining \tempurl on input line 87.
 LaTeX Info: Redefining \tempurl on input line 102.
 LaTeX Info: Redefining \tempurl on input line 119.
- [17.17])
+)
 
 Class acmart Warning: Some images may lack descriptions.
 
@@ -1161,14 +1164,14 @@ Class acmart Warning: ACM reference format is mandatory
 
 
 Class acmart Warning: \vspace should only be used to provide space above/below 
-surrounding objects on input line 1282.
+surrounding objects on input line 1357.
 
 (/usr/local/texlive/2024/texmf-dist/tex/generic/stringenc/se-pdfdoc.def
 File: se-pdfdoc.def 2019/11/29 v1.12 stringenc: PDFDocEncoding
 )
 (/usr/local/texlive/2024/texmf-dist/tex/generic/stringenc/se-utf8.def
 File: se-utf8.def 2019/11/29 v1.12 stringenc: UTF-8
-) [18.18]
+) [19.19]
 (./paper.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
@@ -1179,31 +1182,32 @@ L3 programming layer <2024-02-20>
 LaTeX Warning: There were undefined references.
 
 Package rerunfilecheck Info: File `paper.out' has not changed.
-(rerunfilecheck)             Checksum: 26C1B1E63A942DA302CFD625336CDBD2;4406.
+(rerunfilecheck)             Checksum: 0A283F9490512E3377A2919E303674B4;5167.
  ) 
 Here is how much of TeX's memory you used:
- 23054 strings out of 474116
- 366745 string characters out of 5743682
+ 23117 strings out of 474116
+ 368130 string characters out of 5743682
  1991187 words of memory out of 5000000
- 44221 multiletter control sequences out of 15000+600000
- 718859 words of font info for 352 fonts, out of 8000000 for 9000
+ 44261 multiletter control sequences out of 15000+600000
+ 720883 words of font info for 363 fonts, out of 8000000 for 9000
  1302 hyphenation exceptions out of 8191
- 90i,17n,131p,1143b,2031s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,17n,131p,1143b,2033s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2024/texmf-dist/fonts/type1/public/inconsolata/Inconsolat
-a-zi4r.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/newtx/Liberti
-neMathMI.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/newtx/Liber
-tineMathMI7.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/libertin
-e/LinBiolinumT.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/liber
-tine/LinBiolinumTB.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/l
-ibertine/LinBiolinumTI.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/publ
-ic/libertine/LinLibertineT.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/
-public/libertine/LinLibertineTB.pfb></usr/local/texlive/2024/texmf-dist/fonts/t
-ype1/public/libertine/LinLibertineTI.pfb></usr/local/texlive/2024/texmf-dist/fo
-nts/type1/public/newtx/txsys.pfb>
-Output written on paper.pdf (18 pages, 517217 bytes).
+a-zi4b.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/inconsolata/I
+nconsolata-zi4r.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/newt
+x/LibertineMathMI.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/ne
+wtx/LibertineMathMI7.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public
+/libertine/LinBiolinumT.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/pub
+lic/libertine/LinBiolinumTB.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1
+/public/libertine/LinBiolinumTI.pfb></usr/local/texlive/2024/texmf-dist/fonts/t
+ype1/public/libertine/LinLibertineT.pfb></usr/local/texlive/2024/texmf-dist/fon
+ts/type1/public/libertine/LinLibertineTB.pfb></usr/local/texlive/2024/texmf-dis
+t/fonts/type1/public/libertine/LinLibertineTI.pfb></usr/local/texlive/2024/texm
+f-dist/fonts/type1/public/newtx/txsys.pfb>
+Output written on paper.pdf (19 pages, 533533 bytes).
 PDF statistics:
- 549 PDF objects out of 1000 (max. 8388607)
- 499 compressed objects within 5 object streams
- 265 named destinations out of 1000 (max. 500000)
- 86209 words of extra memory for PDF output out of 89155 (max. 10000000)
+ 571 PDF objects out of 1000 (max. 8388607)
+ 518 compressed objects within 6 object streams
+ 267 named destinations out of 1000 (max. 500000)
+ 86745 words of extra memory for PDF output out of 89155 (max. 10000000)
 

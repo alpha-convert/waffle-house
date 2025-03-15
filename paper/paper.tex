@@ -14,7 +14,7 @@
 
 \usepackage{listings}
 \usepackage{subcaption}
-
+\usepackage{xspace}
 \lstset{
   mathescape=true,
   frame=none,
@@ -274,14 +274,48 @@ system under test, which is then checked against a set of properties the system 
  provided with the tools to write fast generators, then they do not themselves 
  need to be performance experts. However, existing libraries fail to achieve good performance 
  due to two major sources of inefficiency. The first is \textit{random sampling}, or the process
- of selecting random values. The first is random sampling, or the process of selecting random values. 
- The second is abstraction: while generator libraries are designed for flexibility and expressiveness, 
- this comes at the cost of performance, resulting in frequent boxing and unboxing and unnecessary 
- allocations (which lead to costly garbage collection pauses). In strict functional languages, 
- constructs like monadic bind introduce function call overhead, requiring each step in a generator 
- sequence to allocate closures and thread state through function applications.
+ of selecting random values. (Another sentence here?)
+ The second is abstraction: generator libraries are implemented as embedded DSLS, which are flexible
+ and expressive, but also introduce significant overhead that is not necessarily optimized away by 
+ the compiler. These costs compound in the aggregate, raising a fundamental
+ question: can generator libraries produce code that is both expressive \textit{and} efficient?
  }
-
+ \\
+\tr{
+  % in strict functionallanguages like OCaml and Scala
+We outline a fully general, two-stage approach to designing generator libraries, 
+which provide high-level combinator functions with dramatically reduced 
+overhead. First, \rand choice matters. We demonstrate that using a faster \rand
+significantly impacts generator performance by directly optimizing an existing RNG, which
+produces the same values as its unoptimized counterpart---but faster--thereby allowing us
+to compare the RNG's impact on an existing generator library. Second, we 
+describe a method of optimizing generator libraries using \textit{staged metaprogramming}, 
+or ``staging''. Staged metaprogramming allows for code generation, which can mitigate 
+performance challenges introduced by embedded DSLs. In particular, when a generator DSL 
+introduces overhead for dynamic control flow, staging can specialize that control flow
+and compile it statically. For example, when choosing between a list of options, a staged
+generator can avoid allocating the list of options at runtime by expanding to an 
+if-else. This approach is not tied to any particular PBT library---instead, it gives a recipe
+for improving even SOTA PBT libraries.}
+\tr{To demonstrate
+the effectiveness of our technique, we apply our technique to a leading PBT library, \bq, built with performance engineering in mind.
+Our version of this library, termed \name, is a direct drop-in replacement for the original that is completely
+semantically equivalent: generators written using it produce exactly the same values as 
+those written in the original version. However, in \name, the abstractions provided by the generator DSL are 
+zero-cost, and the \rand is highly-optimized. The direct equivalence between \name and \bq
+allows us to perform extremely fine-grained comparisons between generators---generators implemented with both versions of the
+library will produce exactly the same sequence of values, so differences in testing performance are directly attributable
+to \name's performance speedup.
+}
+\tr{
+  To test \name's effectiveness, we run a bunch of experiments to show that \name runs faster, allocates less, etc., than
+  \bq on a variety of different workloads. We demonstrate the generality of the technique by implementing \name in
+  Scala, and benchmarking the same generators in the Scala port of the library. Finally, as a sanity check, we demonstrate
+  that \name allows you to find bugs significantly faster ... .
+}
+\\
+\tr{ Introduce waffle house... }
+\tr{Harry's ``methodology'' paragraph...}
 Property-based testing (PBT) is a widely-used testing framework\hg{PBT isn't a
 framework, it's a ``technique'' or ``approach'' --- Base\_QuickCheck is a framework} consisting of
 two key components: a set of \textit{properties} that a system must satisfy, and
