@@ -754,18 +754,6 @@ performance can be improved just by using a more performant RNG.
 %   \end{itemize}
 % }
 
-%  The precise
-% details of how SplitMix works are unimportant for the present paper, but the
-% main operations are defined in terms of bitwise operations on 64-bit integers.
-% However, 
-
-% This has a significant impact on the performance of generators. A single call to
-% one of the \bq library functions may sample from \texttt{Splittable\_random}
-% multiple times, and each sample from \texttt{Splittable\_random} allocates 9
-% words \jwc{this is a call to \texttt{next\_int64}}.  While seemingly small, we
-% will see in Section~\ref{section:eval} that this amount of allocation has a
-% significant impact on significant.
-
 % In Section~\ref{subsection:faster-rng}, we show how our library mitigates this
 % performance hit by using OCaml's FFI to reimplement the RNG in non-allocating C code.
 % We also discuss how the ``unboxed types'' extension to the OCaml compiler \cn could instead be used
@@ -1220,54 +1208,83 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
 
 \jwc{Unclear what we should call this section}
 
+As we discussed in Section~\ref{section:motiv}, inefficient RNG choice is
+another bottleneck for finding bugs fast. While generator libraries by
+and large use sensible RNG algorithms, they are not explicitly chosen
+with performance in mind. Indeed, much faster RNGs \cn and fast sources
+of entropy \cn exist. \jwc{... more here?}
+To demonstrate that a faster RNG can significanty impact bugfinding power, we
+use the natural experiment provided by OCaml's inefficient implementation of
+SplitMix. By replacing this slow RNG with a faster but extensionally equivalent
+implemetnation, we are able to precisely quantify the bugfinding speedup that using a RNG gives across a range of PBT scenarios.
+
+We emphasize that while we believe that the insight that faster RNG translates to faster bug finding
+is a cross-langauge one, the specific technical contents of this section are OCaml-specific.
+In most other PBT frameworks \cn, the RNG operates on by machine
+integers, so this \emph{particular} inefficiency does not exist.
+
+The precise details of how the SplitMix algorithm works are unimportant for the
+present paper, but the critical component is that all of its operations are are
+defined in terms of arithmetic bitwise operations on 64-bit integers.  In OCaml,
+a
+% however, 
+
+% this has a significant impact on the performance of generators. a single call to
+% one of the \bq library functions may sample from \texttt{splittable\_random}
+% multiple times, and each sample from \texttt{splittable\_random} allocates 9
+% words \jwc{this is a call to \texttt{next\_int64}}.  while seemingly small, we
+% will see in section~\ref{section:eval} that this amount of allocation has a
+% significant impact on significant.
+
+
 \jwc{
   \begin{itemize}
-    \item As we discussed in Section~\ref{section:motiv}, inefficient RNG choice is a bottleneck for bugfinding power.
-    \item Faster RNGs and sources of entropy exist, though they are extensionally inequivalent. To demonstrate the bugfinding power of a faster RNG, we use the natural experiment provided by OCaml's inefficient implementation of SplitMix.
-    \item Unlike the previous subsections, this is not a anguage-agnostic technique. In most other PBT frameworks, the RNG operates on by machine integers, so this inefficiency does not exist.
-    \item We are simply using this as a way to demonstrate that faster RNG can translate to faster bugfinding for sampling-bounded generators.
-    \item Here's how SplitMix is slow: the core of SplitMix is nextInt64, which does allocations for each operation.
-    \item If we could use actual int64s, we wouldn't have to allocate.
-    \item So we do this:
+    \item as we discussed in section~\ref{section:motiv}, 
+    \item faster rngs and sources of entropy exist, though they are extensionally inequivalent. 
+    \item 
+    \item 
+    \item here's how splitmix is slow: the core of splitmix is nextint64, which does allocations for each operation.
+    \item if we could use actual int64s, we wouldn't have to allocate.
+    \item so we do this:
     \begin{itemize}
-      \item We implement SplitMix in C (which uses normal Int64s) and real int64 arithmetic, and use the OCaml FFI to call out to the C functions. T
-      \item This could be done with Jane Street bleeding-edge compiler extensions, though these are not yet implemented in a a version of the OCaml compiler that also has staging.
+      \item we implement splitmix in c (which uses normal int64s) and real int64 arithmetic, and use the ocaml ffi to call out to the c functions. t
+      \item this could be done with jane street bleeding-edge compiler extensions, though these are not yet implemented in a a version of the ocaml compiler that also has staging.
     \end{itemize}
   \end{itemize}
 }
 
-\section{Evaluation}
-\subsection{Implementing and Testing Generators}
+\section{evaluation}
+\subsection{implementing and testing generators}
 \label{subsection:pbt-for-pbt}
-\jwc{Talk about the difftesting to ensure staging maintains semantics, and also different RNGs have identical semantics.}
+\jwc{talk about the difftesting to ensure staging maintains semantics, and also different rngs have identical semantics.}
 
-\subsection{Benchmarking speed \& resource usage}
+\subsection{benchmarking speed \& resource usage}
 
-\jwc{NOTE: we should test generator speed across both languages, but speed -> bugfinding ability in only OCaml.}
+\jwc{note: we should test generator speed across both languages, but speed -> bugfinding ability in only ocaml.}
 \jwc{
-  Baseline generators to test speed in both languages:
+  baseline generators to test speed in both languages:
   \begin{itemize}
-    \item Single int
-    \item Pair of ints, constrained
-    \item List of ints without bind (use map): lots of sampling, minimal binds.
-    \item Unableled Trees of a fixed size (no weighted union) minimal sampling, lots of binds.
+    \item single int
+    \item pair of ints, constrained
+    \item list of ints without bind (use map): lots of sampling, minimal binds.
+    \item unableled trees of a fixed size (no weighted union) minimal sampling, lots of binds.
   \end{itemize}
 }
-\subsection{Impact on bug-finding ability}
-\jwc{Staging type-derived generators (which are the most commonly used ones) can turn a timeout into a found bug!}
-\section{Conclusion \& Future Work}
-\section{Related Work}
-\jwc{A generator is a parser of randomness, and people have implemented lots of staged parser libraries!}
+\subsection{impact on bug-finding ability}
+\jwc{staging type-derived generators (which are the most commonly used ones) can turn a timeout into a found bug!}
+\section{conclusion \& future work}
+\section{related work}
+\jwc{a generator is a parser of randomness, and people have implemented lots of staged parser libraries!}
 %%
-%% The next two lines define the bibliography style to be used, and
+%% the next two lines define the bibliography style to be used, and
 %% the bibliography file.
-\bibliographystyle{ACM-Reference-Format}
+\bibliographystyle{acm-reference-format}
 \bibliography{bib}
 
 
 %%
-%% If your work has an appendix, this is the place to put it.
+%% if your work has an appendix, this is the place to put it.
 \end{document}
 \endinput
 %%
-%% End of file `sample-sigplan.tex'.
+%% end of file `sample-sigplan.tex'.
