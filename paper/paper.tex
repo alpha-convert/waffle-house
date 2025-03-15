@@ -260,6 +260,27 @@ overhead is important, so is using the fastest RNG you can possibly use.
 }
 
 \jwc{``Property based testing is a race against time...''}
+\\
+\tr{Property-based testing (PBT) uses generators of random data to produce inputs to a
+system under test, which is then checked against a set of properties the system is
+ expected to satisfy.  In practice, PBT is used as a lightweight, ad hoc approach 
+ to software correctness, aimed at detecting bugs within a short testing 
+ window---typically 50 milliseconds to 30 seconds. Given this practical constraint, 
+ it is 
+ imperative that inputs be generated as fast as possible; in other words, 
+ generators must be treated as performance-sensitive code.}
+
+\tr{The locus for improvement in this area is \textit{generator libraries}: if programmers are 
+ provided with the tools to write fast generators, then they do not themselves 
+ need to be performance experts. However, existing libraries fail to achieve good performance 
+ due to two major sources of inefficiency. The first is \textit{random sampling}, or the process
+ of selecting random values. The first is random sampling, or the process of selecting random values. 
+ The second is abstraction: while generator libraries are designed for flexibility and expressiveness, 
+ this comes at the cost of performance, resulting in frequent boxing and unboxing and unnecessary 
+ allocations (which lead to costly garbage collection pauses). In strict functional languages, 
+ constructs like monadic bind introduce function call overhead, requiring each step in a generator 
+ sequence to allocate closures and thread state through function applications.
+ }
 
 Property-based testing (PBT) is a widely-used testing framework\hg{PBT isn't a
 framework, it's a ``technique'' or ``approach'' --- Base\_QuickCheck is a framework} consisting of
