@@ -1206,6 +1206,8 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
 \subsection{Faster SplitMix with Unboxed Int}
 \label{subsection:faster-rng}
 
+\label{subsection:faster-rng}
+
 \jwc{Unclear what we should call this section}
 As we discussed in Section~\ref{section:motiv}, inefficient RNG choice is
 another bottleneck for finding bugs fast. While generator libraries by
@@ -1254,38 +1256,38 @@ a large performance impact on some generators that spend most of their time samp
 %   \end{itemize}
 % }
 
-\section{evaluation}
-\subsection{implementing and testing generators}
+\section{Evaluation}
+\subsection{Implementing and Testing Generators}
 \label{subsection:pbt-for-pbt}
-\jwc{talk about the difftesting to ensure staging maintains semantics, and also different rngs have identical semantics.}
+\jwc{Talk about the difftesting to ensure staging maintains semantics, and also different RNGs have identical semantics.}
 
-\subsection{benchmarking speed \& resource usage}
+\subsection{Benchmarking speed \& resource usage}
 
-\jwc{note: we should test generator speed across both languages, but speed -> bugfinding ability in only ocaml.}
+\jwc{NOTE: we should test generator speed across both languages, but speed -> bugfinding ability in only OCaml.}
 \jwc{
-  baseline generators to test speed in both languages:
+  Baseline generators to test speed in both languages:
   \begin{itemize}
-    \item single int
-    \item pair of ints, constrained
-    \item list of ints without bind (use map): lots of sampling, minimal binds.
-    \item unableled trees of a fixed size (no weighted union) minimal sampling, lots of binds.
+    \item Single int
+    \item Pair of ints, constrained
+    \item List of ints without bind (use map): lots of sampling, minimal binds.
+    \item Unableled Trees of a fixed size (no weighted union) minimal sampling, lots of binds.
   \end{itemize}
 }
-\subsection{impact on bug-finding ability}
-\jwc{staging type-derived generators (which are the most commonly used ones) can turn a timeout into a found bug!}
-\section{conclusion \& future work}
-\section{related work}
-\jwc{a generator is a parser of randomness, and people have implemented lots of staged parser libraries!}
+\subsection{Impact on bug-finding ability}
+\jwc{Staging type-derived generators (which are the most commonly used ones) can turn a timeout into a found bug!}
+\section{Conclusion \& Future Work}
+\section{Related Work}
+\jwc{A generator is a parser of randomness, and people have implemented lots of staged parser libraries!}
 %%
-%% the next two lines define the bibliography style to be used, and
+%% The next two lines define the bibliography style to be used, and
 %% the bibliography file.
-\bibliographystyle{acm-reference-format}
+\bibliographystyle{ACM-Reference-Format}
 \bibliography{bib}
 
 
 %%
-%% if your work has an appendix, this is the place to put it.
+%% If your work has an appendix, this is the place to put it.
 \end{document}
 \endinput
 %%
-%% end of file `sample-sigplan.tex'.
+%% End of file `sample-sigplan.tex'.
