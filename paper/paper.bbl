@@ -2,7 +2,7 @@
 %%% Do NOT edit. File created by BibTeX with style
 %%% ACM-Reference-Format-Journals [18-Jan-2012].
 
-\begin{thebibliography}{6}
+\begin{thebibliography}{4}
 
 %%% ====================================================================
 %%% NOTE TO THE USER: you can override these defaults by providing
@@ -69,25 +69,6 @@
 \showISBNx{978-3-540-31977-1}
 
 
-\bibitem[Goldstein et~al\mbox{.}(2024)]%
-        {inpractice}
-\bibfield{author}{\bibinfo{person}{Harrison Goldstein},
-  \bibinfo{person}{Joseph~W. Cutler}, \bibinfo{person}{Daniel Dickstein},
-  \bibinfo{person}{Benjamin~C. Pierce}, {and} \bibinfo{person}{Andrew Head}.}
-  \bibinfo{year}{2024}\natexlab{}.
-\newblock \showarticletitle{Property-Based Testing in Practice}. In
-  \bibinfo{booktitle}{\emph{Proceedings of the IEEE/ACM 46th International
-  Conference on Software Engineering}} (Lisbon, Portugal)
-  \emph{(\bibinfo{series}{ICSE '24})}. \bibinfo{publisher}{Association for
-  Computing Machinery}, \bibinfo{address}{New York, NY, USA}, Article
-  \bibinfo{articleno}{187}, \bibinfo{numpages}{13}~pages.
-\newblock
-\showISBNx{9798400702174}
-\urldef\tempurl%
-\url{https://doi.org/10.1145/3597503.3639581}
-\showDOI{\tempurl}
-
-
 \bibitem[Kov\'{a}cs(2024)]%
         {kovacs24}
 \bibfield{author}{\bibinfo{person}{Andr\'{a}s Kov\'{a}cs}.}
@@ -100,23 +81,6 @@
 \newblock
 \urldef\tempurl%
 \url{https://doi.org/10.1145/3674648}
-\showDOI{\tempurl}
-
-
-\bibitem[Shi et~al\mbox{.}(2023)]%
-        {etna}
-\bibfield{author}{\bibinfo{person}{Jessica Shi}, \bibinfo{person}{Alperen
-  Keles}, \bibinfo{person}{Harrison Goldstein}, \bibinfo{person}{Benjamin~C.
-  Pierce}, {and} \bibinfo{person}{Leonidas Lampropoulos}.}
-  \bibinfo{year}{2023}\natexlab{}.
-\newblock \showarticletitle{Etna: An Evaluation Platform for Property-Based
-  Testing (Experience Report)}.
-\newblock \bibinfo{journal}{\emph{Proc. ACM Program. Lang.}}
-  \bibinfo{volume}{7}, \bibinfo{number}{ICFP}, Article \bibinfo{articleno}{218}
-  (\bibinfo{date}{Aug.} \bibinfo{year}{2023}), \bibinfo{numpages}{17}~pages.
-\newblock
-\urldef\tempurl%
-\url{https://doi.org/10.1145/3607860}
 \showDOI{\tempurl}
 
 
