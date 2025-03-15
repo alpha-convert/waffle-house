@@ -1231,10 +1231,9 @@ a 64-bit integer \cn. This means that all operations that return an \texttt{int6
 This has a significant impact on the performance of generators. A single call to
 one of the \bq library functions --- like generating an integer uniformly in a range --- may call the \texttt{splittable\_random}
 algorithm multiple times. Each sample from \texttt{splittable\_random} allocates 9
-words \jwc{this is a call to \texttt{next\_int64}}, and each allocation brings us closer
-to the next garbage collection pause. While allocation in OCaml is fast and the garbage colletor
-runs incrementally in small slices
-\footnote{The OCaml GC is a generational collector \cn, and since these allocations are mostly very short lived, they will never be promoted. }, we will see in Section~\ref{section:eval} that this can have
+times \jwc{this is a call to \texttt{next\_int64}}, and each allocation brings us closer
+to the next garbage collection pause. While small allocations like these are \emph{very} fast to perform and subsequently collect in OCaml,
+\footnote{The OCaml GC is a generational collector \cn, and since these allocations are small and mostly very short lived, they will all be minor allocations, never to be promoted.}, we will see in Section~\ref{section:eval} that this can have
 a large performance impact on some generators that spend most of their time sampling data.
 To circumvent this allocation and provide an equivalent version of \texttt{splittable\_random}, we
 reimplement SplitMix in C, and call out to it with the OCaml FFI. The C version of the library uses
