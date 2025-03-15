@@ -712,15 +712,17 @@ ScalaCheck uses the JSF algorithm \cn.
 
 The RNG sits at the heart of the hot path.
 Even basic generators, like ones generating a single \texttt{int} or \texttt{float}, may sample from the RNG multiple times,
-and generator combinators like \texttt{list} call those basic generators. \hg{To
+and generator combinators like \texttt{list} call those basic generators.
+\hg{To
 generate a single list with 3 elements, \bq's list generator calls the RNG \dots times!}
 Because of this, the speed of a single RNG call matters a great deal. Unfortunately,
-\proposecut{we argue that} existing PBT libraries make relatively inefficient choices on this front,
+existing PBT libraries make relatively inefficient choices on this front,
 leading to worse bugfinding power than what is possible.
 
 \hg{This paragraph feels a bit clumsy right now. What if we started with a table
 of the RNGs used by a bunch of popular PBT frameworks and then argued that
 things like Lehmer are faster?}
+
 For example, significantly faster RNG algorithms than SplitMix or JSF exist,
 such as the Lehmer RNG \cn. In microbenchmarks, the Lehmer generator almost 2x as fast as SplitMix \cn.
 % https://github.com/lemire/testingRNG/tree/master
@@ -740,6 +742,7 @@ generation; for that, we need an experiment. The most obvious experiment is to
 simply swap out the RNG for \bq\ with a totally different, faster one. But, as
 discussed previously, generators with different generation orders can be
 difficult to compare. To get around this, we exploit a ``natural experiment'': \dots''}
+
 In the context of this paper, however, clearly demonstrating the benefits of any of the
 above faster options is tricky. Our bug-finding evaluation's power is predicated on
 the fact that all of the different versions of a generator we test are
