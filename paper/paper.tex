@@ -1203,9 +1203,7 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
 }
 \jwc{Todo: Thia}
 
-\subsection{Faster SplitMix with Unboxed Int}
-\label{subsection:faster-rng}
-
+\subsection{Faster SplitMix with Unboxed \texttt{int64}s}
 \label{subsection:faster-rng}
 
 \jwc{Unclear what we should call this section}
@@ -1229,9 +1227,7 @@ present paper, but the critical component is that all of its operations are are
 defined in terms of arithmetic bitwise operations on 64-bit integers. In OCaml,
 because of details related to the garbage collector, the 64-bit integer type \texttt{int64} is represented
 at run time as a \emph{pointer} to an unscanned block of memory containing (among other things)
-a 64-bit integer \cn.
-
-This means that all operations that return an \texttt{int64} must allocate this block of memory.
+a 64-bit integer \cn. This means that all operations that return an \texttt{int64} must allocate this block of memory.
 This has a significant impact on the performance of generators. A single call to
 one of the \bq library functions --- like generating an integer uniformly in a range --- may call the \texttt{splittable\_random}
 algorithm multiple times. Each sample from \texttt{splittable\_random} allocates 9
@@ -1240,21 +1236,13 @@ to the next garbage collection pause. While allocation in OCaml is fast and the 
 runs incrementally in small slices
 \footnote{The OCaml GC is a generational collector \cn, and since these allocations are mostly very short lived, they will never be promoted. }, we will see in Section~\ref{section:eval} that this can have
 a large performance impact on some generators that spend most of their time sampling data.
-
-
-% \jwc{
-%   \begin{itemize}
-%     \item as we discussed in section~\ref{section:motiv}, 
-%     \item faster rngs and sources of entropy exist, though they are extensionally inequivalent. 
-%     \item here's how splitmix is slow: the core of splitmix is nextint64, which does allocations for each operation.
-%     \item if we could use actual int64s, we wouldn't have to allocate.
-%     \item so we do this:
-%     \begin{itemize}
-%       \item we implement splitmix in c (which uses normal int64s) and real int64 arithmetic, and use the ocaml ffi to call out to the c functions. t
-%       \item this could be done with jane street bleeding-edge compiler extensions, though these are not yet implemented in a a version of the ocaml compiler that also has staging.
-%     \end{itemize}
-%   \end{itemize}
-% }
+To circumvent this allocation and provide an equivalent version of \texttt{splittable\_random}, we
+reimplement SplitMix in C, and call out to it with the OCaml FFI. The C version of the library uses
+proper \texttt{int64\_t} arithmetic, only boxing and unboxing integers at the call boundaries between OCaml and C code.
+Ideally in the future, one would not need to call out to C for this: the Jane Street bleeding-edge OCaml compiler has support
+for unboxed types \cn, which (among other things) would let us implement a version of SplitMix that does not allocate, directly
+in OCaml. Unfortunately, the Jane Street branch of the compiler is incompatible with MetaOCaml, which we use to implement the metaprogramming
+discussed in the previous sections.
 
 \section{Evaluation}
 \subsection{Implementing and Testing Generators}
