@@ -123,7 +123,7 @@ object StGen {
 
   def frequency[T : Type](gs : (Expr[Int],StGen[Expr[T]])*)(using Quotes) : StGen[Expr[T]] = {
     val sum = gs.map(_._1).foldRight('{0L})((x,y) => '{${x}.toLong + ${y}})
-    chooseLong('{0L},sum).flatMap(pick(gs*))
+    chooseLong('{1L},sum).flatMap(pick(gs*))
   }
 
   //  def frequency[T](gs: (Int, Gen[T])*): Gen[T] = {
@@ -206,17 +206,18 @@ object StGen {
   //       >.
   //   }
 
-  def complexStGenImpl (using q : Quotes): Expr[Int => Seed => (Long,Long)] = {
-    val e = StGen.splat(for {
-        x <- StGen.chooseLong('{1},'{1000})
-        y <- StGen.chooseLong('{0},x)
-    } yield '{(${x},${y})}
+  def wgImpl (using q : Quotes): Expr[Int => Seed => Int] = {
+    val e = StGen.splat(
+      StGen.frequency(
+        '{2} -> StGen.pure('{999}),
+        '{3} -> StGen.pure('{111})
+      )
     )
     e
   }
 
-  inline def complexStGen = {
-    ${complexStGenImpl}
+  inline def wg = {
+    ${wgImpl}
   }
 }
 
