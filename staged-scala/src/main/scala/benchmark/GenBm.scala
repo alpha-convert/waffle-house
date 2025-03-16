@@ -7,8 +7,11 @@ import org.openjdk.jmh.annotations._
 import org.scalacheck.Gen
 import org.scalacheck.rng.*
 import stagedgen.StGen
+import BST.Bst
+import BST.SingleBespoke
+import BST.SingleBespokeStaged
 
-  def complexGen: Gen[(Long,Long)] = for {
+def complexGen: Gen[(Long,Long)] = for {
     x <- Gen.choose(1,1000)
     y <- Gen.choose(0,x)
   } yield (x,y)
@@ -16,7 +19,7 @@ import stagedgen.StGen
 class IllegalBoundsError[A](low: A, high: A)
     extends IllegalArgumentException(s"invalid bounds: low=$low, high=$high")
 
-  def chLng(l: Long, h: Long)(p: Gen.Parameters, seed: Seed): (Option[Long],Seed) = {
+def chLng(l: Long, h: Long)(p: Gen.Parameters, seed: Seed): (Option[Long],Seed) = {
       if (h < l) {
         throw new IllegalBoundsError(l, h)
       } else if (h == l) {
@@ -69,11 +72,40 @@ class IllegalBoundsError[A](low: A, high: A)
       }
   }
 
-  //   def flatMap[U](f: T => Gen[U]): Gen[U] = gen { (p, seed) =>
-  //   val rt = doApply(p, seed)
-  //   rt.flatMap(t => f(t).doApply(p, rt.seed))
-  // }
 
+
+// @State(Scope.Thread)
+// class GenBm {
+// @Benchmark
+// @BenchmarkMode(Array(Mode.AverageTime))
+// @OutputTimeUnit(TimeUnit.NANOSECONDS)
+// @Warmup(iterations = 2, time = 5, timeUnit = TimeUnit.SECONDS)
+// @Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+// @Fork(1)
+//   def generateComplexBase(): Option[(Long,Long)] = {
+//     complexGen.sample
+//   }
+
+// @Benchmark
+// @BenchmarkMode(Array(Mode.AverageTime))
+// @OutputTimeUnit(TimeUnit.NANOSECONDS)
+// @Warmup(iterations = 2, time = 5, timeUnit = TimeUnit.SECONDS)
+// @Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+// @Fork(1)
+//   def generateComplexSt(): Option[(Long,Long)] = {
+//     StGen.complexStGen(Gen.Parameters.default.size)(Seed.random())
+//   }
+
+// @Benchmark
+// @BenchmarkMode(Array(Mode.AverageTime))
+// @OutputTimeUnit(TimeUnit.NANOSECONDS)
+// @Warmup(iterations = 2, time = 5, timeUnit = TimeUnit.SECONDS)
+// @Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+// @Fork(1)
+//   def generateComplexInlined(): Option[(Long,Long)] = {
+//     (complexGenInlined(Gen.Parameters.default,Seed.random()))(0)
+//   }
+// }
 
 
 
@@ -82,30 +114,20 @@ class GenBm {
 @Benchmark
 @BenchmarkMode(Array(Mode.AverageTime))
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 2, time = 5, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
 @Fork(1)
-  def generateComplexBase(): Option[(Long,Long)] = {
-    complexGen.sample
+  def generateBst(): Option[Bst] = {
+    SingleBespoke.gen.sample
   }
 
 @Benchmark
 @BenchmarkMode(Array(Mode.AverageTime))
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 2, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
 @Fork(1)
-  def generateComplexSt(): Option[(Long,Long)] = {
-    StGen.complexStGen(Gen.Parameters.default)(Seed.random())
-  }
-
-@Benchmark
-@BenchmarkMode(Array(Mode.AverageTime))
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 2, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
-  def generateComplexInlined(): Option[(Long,Long)] = {
-    (complexGenInlined(Gen.Parameters.default,Seed.random()))(0)
+  def generateBstStaged(): Bst = {
+    SingleBespokeStaged.gen(Gen.Parameters.default.size)(Seed.random())
   }
 }

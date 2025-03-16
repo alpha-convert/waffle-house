@@ -1,14 +1,15 @@
 package stagedgen
 
-import org.scalacheck.Gen
 import org.scalacheck.rng.Seed
 import scala.quoted.*
 import stagedgen.Cps
+import stagedgen.Splittable
+import stagedgen.SplittableCps.given
 
 class IllegalBoundsError[A](low: A, high: A)
     extends IllegalArgumentException(s"invalid bounds: low=$low, high=$high")
 
-private def chLng(l: Long, h: Long)(p: Gen.Parameters, seed: Seed): (Long,Seed) = {
+private def chLng(l: Long, h: Long)(size: Int, seed: Seed): (Long,Seed) = {
       if (h < l) {
         throw new IllegalBoundsError(l, h)
       } else if (h == l) {
@@ -48,57 +49,60 @@ private def chLng(l: Long, h: Long)(p: Gen.Parameters, seed: Seed): (Long,Seed) 
     }
 
 abstract class StGen[T] { self =>
-  def doApply(p : Expr[Gen.Parameters],seed:Expr[Seed]) : Cps[(Option[T],Expr[Seed])]
+  def doApply(p : Expr[Int],seed:Expr[Seed]) : Cps[(T,Expr[Seed])]
   
 
   def map[S](f : T => S) : StGen[S] = {
     StGen.gen((p,seed) =>
-        self.doApply(p,seed).map((ot,seed2) => (ot.map(f),seed2))
+        self.doApply(p,seed).flatMap((res,seed2) =>
+          Cps.pure((f(res),seed2))
+        )
     )
   }
 
   def flatMap[S](f : T => StGen[S]) : StGen[S] = {
-    StGen.gen((p,seed) =>
-        self.doApply(p,seed).flatMap((ot,seed2) =>
-          ot match {
-            case None => Cps.pure((None,seed))
-            case Some(t) => f(t).doApply(p,seed2)
-          }
-        )
+    StGen.gen((size,seed) =>
+        self.doApply(size,seed).flatMap((t,seed2) => f(t).doApply(size,seed2))
     )
   }
 }
 
 object StGen {
 
-  def gen[T](f : (Expr[Gen.Parameters],Expr[Seed]) => Cps[(Option[T],Expr[Seed])]) : StGen[T] = {
+  def gen[T](f : (Expr[Int],Expr[Seed]) => Cps[(T,Expr[Seed])]) : StGen[T] = {
     new StGen[T]{
-      def doApply(p : Expr[Gen.Parameters],seed:Expr[Seed]) = {
+      def doApply(p : Expr[Int],seed:Expr[Seed]) = {
         f(p,seed)
       }
     }
   }
   def pure[T](t: T): StGen[T] = new StGen[T] {
-    def doApply(p : Expr[Gen.Parameters],seed:Expr[Seed]) : Cps[(Option[T],Expr[Seed])] = {
-      Cps.pure((Some(t),seed))
+    def doApply(p : Expr[Int],seed:Expr[Seed]) : Cps[(T,Expr[Seed])] = {
+      Cps.pure((t,seed))
     }
   }
 
   def chooseLong(lo : Expr[Long],hi:Expr[Long])(using Quotes) : StGen[Expr[Long]] = {
     StGen.gen((p,seed) =>
         for {
-            (x,y) <- ('{chLng(${lo},${hi})(${p},${seed})}).split
-        } yield (Some(x),y)
+            (x,y) <- ('{chLng(${lo},${hi})(${p},${seed})}).splitCps
+        } yield (x,y)
     )
   }
 
-  def splat[T : Type](g : StGen[Expr[T]])(using Quotes) : Expr[Gen.Parameters => Seed => Option[T]] = {
+  def sized[T](f: Expr[Int] => StGen[T]): StGen[T] =
+    gen { (size, seed) => f(size).doApply(size, seed) }
+
+  def size : StGen[Expr[Int]] =
+    sized(x => pure(x))
+
+  def resize[T](size : Expr[Int], g : StGen[T]) : StGen[T] =
+    gen { (_,seed) => g.doApply(size,seed) }
+
+  def splat[T : Type](g : StGen[Expr[T]])(using Quotes) : Expr[Int => Seed => T] = {
     '{
-        (p : Gen.Parameters) => (seed : Seed) =>
-        ${Cps.run(g.doApply('{p},'{seed}).map((x,seed2) => x match {
-            case None => '{None}
-            case Some(value) => '{Some(${value})}
-        }))}
+        (size : Int) => (seed : Seed) =>
+        ${Cps.run(g.doApply('{size},'{seed}).map((x,seed2) => x))}
     }
   }
 
@@ -107,13 +111,55 @@ object StGen {
       println(s"Generator: $s")
   }
 
-  def complexStGenImpl (using q : Quotes): Expr[Gen.Parameters => Seed => Option[(Long,Long)]] = {
+
+  def recursive[A : Type,R : Type](using Quotes)(step : (Expr[R] => StGen[Expr[A]]) => Expr[R] => StGen[Expr[A]])(x0 : Expr[R]): StGen[Expr[A]]=  {
+    StGen.gen((size,random) =>
+      ('{
+        def go(x : R,size : Int,random: Seed) : (A,Seed) = {
+          ${
+            Cps.run(
+              step(xc => StGen.gen((size,random) => ('{go(${xc},${size},${random})}).splitCps)
+              )('{x}).doApply('{size},'{random}).flatMap((a,b) =>
+                Cps.pure('{(${a},${b})})
+              )
+            )
+          }
+        }
+        go(${x0},${size},${random})
+      }
+      ).splitCps
+    )
+  }
+  //   type ('a,'r) recgen = 'r code -> 'a code t
+  // let recurse f x = {
+  //   rand_gen = fun ~size_c ~random_c ->
+  //     Codecps.bind ((f x).rand_gen ~size_c ~random_c) @@ fun c ->
+  //     Codecps.let_insert c
+  // }
+
+  // let recursive (type a) (type r) (x0 : r code) (step : (a,r) recgen -> r code -> a code t) =
+  //   {
+  //     rand_gen = fun ~size_c ~random_c -> 
+  //       Codecps.bind (Codecps.let_insertv x0) @@ fun x0 ->
+  //       (* let%bind x0 = Codecps.let_insert x0 in *)
+  //       Codecps.let_insert @@ .< let rec go x ~size ~random = .~(
+  //           Codecps.code_generate @@
+  //             (step
+  //                 (fun xc' -> { rand_gen = fun ~size_c ~random_c -> Codecps.return .< go .~xc' ~size:.~size_c ~random:.~random_c >. })
+  //                 .<x>.
+  //             ).rand_gen ~size_c:.<size>. ~random_c:.<random>.
+  //         )
+  //         in
+  //           go .~(v2c x0) ~size:.~size_c ~random:.~random_c
+  //       >.
+  //   }
+
+  def complexStGenImpl (using q : Quotes): Expr[Int => Seed => (Long,Long)] = {
     val e = StGen.splat(for {
         x <- StGen.chooseLong('{1},'{1000})
         y <- StGen.chooseLong('{0},x)
     } yield '{(${x},${y})}
     )
-    q.reflect.report.info(s"Generated code: ${e.show}")
     e
   }
 
