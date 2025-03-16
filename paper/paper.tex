@@ -261,23 +261,30 @@ Property-based testing (PBT) is a software testing approach that verifies a syst
 
 %\jwc{``Property based testing is a race against time...''}
 
-Property-based testing (PBT) is a technique in which a \textit{generator} produces random inputs to a system under test, which is then evaluated against a set of properties the system is expected to satisfy.
-Recent studies on PBT usage have shown that practitioners often run tests with very short time budgets---typically between 50 milliseconds and 30 seconds. Given this constraint, generating inputs as quickly as possible is crucial for maximizing the odds of finding a bug in the limited time available. In other words, generators must be treated as performance-sensitive code.
+Property-based testing (PBT) is a technique in which a \textit{generator}
+produces random inputs to a system under test, which is then evaluated against a
+set of properties the system is expected to satisfy.  Recent studies on PBT
+usage have shown that practitioners often run tests with very short time
+budgets --- typically between 50 milliseconds and 30 seconds \cite{inpractice} \jwc{phrasing could suggest ``race against time'' aspect.}. Given this
+constraint, generating inputs as quickly as possible is crucial for maximizing
+the odds of finding a bug in the limited time available. In other words,
+generators must be treated as performance-sensitive code.
 A high-leverage way to improve the performance of generators is to optimize 
 \textit{generator libraries}: if
 programmers are provided with the tools to write fast generators, then they 
-do not themselves need to be performance engineers. 
+do not themselves need to be performance engineers. \jwc{... to find bugs fast}
 
 However, the performance of 
 existing generator libraries falls short of what is possible. This is due to two major 
 sources of inefficiency. First, the same high-level design that gives generator libraries their flexibility and expressiveness also introduces overhead:
-layered abstractions and indirections hinder the compiler's ability to optimize computations, shifting more work to runtime.
+layered abstractions and indirections hinder the compiler's ability to optimize computations, shifting more work to runtime. \jwc{Nice!!}
 Second, the process of 
-selecting random values (``random sampling'') can constitute an unexpectedly high proportion
+selecting random \proposechange{values}{numbers} \jwc{We should reserve ``values'' for BSTs/etc... otherwise this sentence is confusing. What else does would a generator's runtime consist of, except for generating values?}(``random sampling'') can constitute an unexpectedly high proportion
 of a generator's runtime, depending on one's choice of \rand and
-the number of samples needed. This raises a fundamental 
+the number of samples needed. This \jwc{Unclear referent here} raises a fundamental 
 question: can generator libraries produce code that is both expressive 
 \textit{and} efficient?
+\jwc{Love these first two paragraphs.}
 %In practice, PBT is used 
 %as a lightweight, ad hoc approach to software correctness,
 %\jwc{Move this bit about how it's used to the first sentence. I.e. PBT is a testing technqique where random data is fed to a system under test...}
@@ -293,14 +300,16 @@ question: can generator libraries produce code that is both expressive
 To answer this, we propose a two-pronged approach for designing generator libraries 
 that preserves their expressiveness while eliminating unnecessary overhead.
 First, we describe a method of optimizing
-generator libraries using \textit{staged metaprogramming}, or ``staging'', which has 
-long been used for optimizing idiomatic functional DSLs \todo{CITE!!!}.
-We extend this technique to generators, completely eliminating the overhead of many common generator abstractions. For example, in unstaged generator libraries, each call to monadic bind constructs and immediately executes a closure at runtime.
+generator libraries using \textit{multi-stage programming}, or ``staging'', which has 
+long been used for optimizing idiomatic functional DSLs \cn.
+We extend this technique to generators, completely eliminating the overhead of many common generator abstractions. For example, in unstaged generator libraries, each call to monadic bind constructs and immediately executes a closure at runtime \jwc{We should probably say ``usually'' here... in very simple scenarios the compiler can figure it out}.
+\jwc{Todo: joe --- cite some evidence for this}
 Meanwhile, a staged approach can resolve the bind at compile time, enabling the compiler to inline and eliminate these closures.
 Secondly, we demonstrate the
 impact of different choices of \rand on generator performance 
 by conducting a controlled comparison. Together, these insights provide a
 recipe for improving even state-of-the-art generator libraries.
+\jwc{Great, like this a lot.}
 
 
 %\jwc{I think we should use return/bind as the simplest example, since then you don't have to get into the weeds of allocation or closures. The functional abstractions of a monadic generator DSL block the compiler from generating fast code.}
@@ -322,18 +331,18 @@ recipe for improving even state-of-the-art generator libraries.
 To demonstrate the effectiveness of our technique, we apply it to \bq, the fastest property-based testing library in OCaml according to our tests.
 %\jwc{Unclear if this is true, I think we should just say that by our testing it's the fastest in OCaml.}
 Our staged version of this library,\\ \name, is a direct drop-in replacement for \bq that 
-is \textit{completely semantically equivalent}: that is, given identical random seeds, generators written using \\\name 
+is \textit{completely semantically equivalent}: that is, given identical random seeds, generators written using \name{}
 produce exactly the same values as those written in \bq. However, in \name, 
 the abstractions provided by the generator DSL are zero-cost, and the \rand is 
 highly-optimized. The direct equivalence between \name and \bq allows us to 
-perform extremely fine-grained comparisons, as generators 
+perform extremely fine-grained \propose{bug-finding} comparisons, as generators 
 implemented using both versions of the library will produce exactly the same 
-sequence of values. Therefore, differences in performance are directly 
-attributable to \name's speedup.
+sequence of values. Therefore, differences in \proposechange{performance}{bug-finding ability} are directly 
+attributable to \name's \proposechange{speedup}{??}.
 
-To evaluate \name's effectiveness, we
-implement a series of workloads in each generator library, and show that 
-\name runs faster and allocates less than \\\bq. Further, we show that this performance benefit
+To evaluate \name's effectiveness \jwc{This could flow better from the end of the last para --- we were just talking about evaluating \name{}'s effectivness.}, we
+implement a series of workloads \jwc{this is an etna term of art} in each generator library, and show that 
+\name runs faster \proposecut{and allocates less} than \\\bq. Further, we show that this performance benefit
 translates to bug-finding ability by running these workloads in Etna, a platform that 
 simulates real-world PBT usage by injecting bugs into a system and measuring how quickly various 
 generators detect them.
@@ -341,26 +350,20 @@ Finally, to demonstrate the generality of our technique, we implement \name in S
 and benchmark the same generators in the Scala port of the library---thereby highlighting 
 its portability
 to other strict functional languages.
+\jwc{I think we should more explicitly point out the portability earlier, maybe up where we say we're applying it to BQ.}
 
 In summary, we show that monadic PBT generator DSLs incur significant performance costs across languages, and present a general technique for improving their efficiency while preserving their idiomatic abstractions.
 We make the following contributions:
 \begin{enumerate}
     \item We identify two key sources of inefficiencies in PBT generator libraries, which can significantly impact performance: 
-    namely, \rand choice, and abstraction overhead. \secref{section:motiv}
-    \item We apply staged metaprogramming to the novel domain of generators. \secref{section:}
-    \item We implement a version of \bq, \name, that showcases our optimization technique while maintaining strict program equality. \secref{section:4}
+    namely, \rand choice, and abstraction overhead \jwc{Swap}. \secref{section:motiv}
+    \item We apply multi-stage programming to the novel domain of generators. \jwc{Less sure this should be a top-level conrib.} \secref{section:}
+    \item We implement a version of \bq, \name, that showcases our optimization technique \jwc{Calling it an ``optimization technique'' begs the ``so they just made a thing faster'' question} while maintaining strict program equality. \secref{section:4}
+    \jwc{We implement \emph{two} versions of \name{}! Once for BQ and once for ScalaCheck.}
     \item We evaluate \name by demonstrating the improved performance of generators constructed
     using our library in a controlled comparison, as well as its impact on bug-finding ability. \secref{section:eval}
 \end{enumerate}
 
-\jwc{
-  Things to ensure people come away with answers to:
-  \begin{itemize}
-    \item Is there generality?
-    \item Is this important?
-    \item Did they actually solve the problem?
-  \end{itemize}
-}
 
 \section{Background}
 
