@@ -294,10 +294,9 @@ To answer this, we propose a two-pronged approach for designing generator librar
 that preserves their expressiveness while eliminating unnecessary overhead.
 First, we describe a method of optimizing
 generator libraries using \textit{staged metaprogramming}, or ``staging'', which has 
-long been used to eliminating overhead 
+long been used for eliminating overhead 
 from idiomatic functional DSLs \todo{CITE!!!}.
-Using staging, it is possible to eliminate the overhead of many common 
-generator abstractions. For example, in unstaged generator libraries, each call to monadic bind constructs and immediately executes a closure at runtime.
+We extend this technique to generators. In unstaged generator libraries, each call to monadic bind constructs and immediately executes a closure at runtime.
 Meanwhile, a staged approach can resolve the bind at compile time, enabling the compiler to inline and eliminate these closures.
 Secondly, we demonstrate the
 impact of different choices of \rand on generator performance 
@@ -350,7 +349,8 @@ for eliminating that overhead while preserving their idiomatic abstractions.
 We make the following contributions:
 \begin{enumerate}
     \item We identify two key sources of inefficiencies in PBT generator libraries, which can significantly impact performance: 
-    namely, \rand choice, and abstraction overhead. We describe a general procedure to address the latter based on staged metaprogramming. \secref{section:motiv}
+    namely, \rand choice, and abstraction overhead. \secref{section:motiv}
+    \item We apply staged metaprogramming to the novel domain of generators. \secref{section:}
     \item We implement a version of \bq, \name, that showcases our optimization technique while maintaining strict program equality. \secref{section:4}
     \item We evaluate \name by demonstrating the improved performance of generators constructed
     using our library in a controlled comparison, as well as its impact on bug-finding ability. \secref{section:eval}
