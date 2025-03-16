@@ -279,7 +279,7 @@ Given these strict timelines, it is important to think of PBT as
 performance-sensitive process. One important locus for performance improvement
 is the \textit{generators} that produce random inputs to the properties under
 test. These generators are written with the help of \textit{generator
-libraries}, usually expressed as embedded domain-specific languages (DSLs) that
+libraries}, usually expressed as embedded domain-specific languages (eDSLs) that
 provide combinators for building and composing generators. Optimizing these
 libraries is a key opportunity to speed up PBT: if programmers are
 provided with the tools to write fast generators, then they do not themselves
@@ -480,22 +480,35 @@ let tree_of g = fixed_point (fun rg ->
 
 \jwc{I think this section should actually go later.}
 
-\jwc{
-  \begin{itemize}
-    \item In Muli-stage programming (also known more simply as staging), programs execute over the course of multiple stages,
+In Muli-stage programming (also known more simply as staging), programs execute over the course of multiple stages,
 with each stage producing the code to be run in the next.
-\item This is an old idea, with roots going back to quasiquotation in LISP, and picking up steam again in the 1990s with MetaML \cn{}.
-\item For the purposes of this paper, we will only consider two stages: compile time and run time. Staged programs thus execute twice: once at compile time,
+This is an old idea, with roots going back to quasiquotation in LISP \cn{}, and picking up steam again in the 1990s with MetaML \cn{}.
+For the purposes of this paper, we will primarily consider two stages: compile time and run time. Staged programs thus execute twice: once at compile time,
 which produces more code, which is then compiled and run at run time.
-\item Staging has many applications, but chief among them is its use for \emph{optimization}. We can write programs such that during the compile time stage, they are partially evaluated to eliminate
-abstraction overhead. 
-\item Many languages have some degree of staging functionality, either provided as a library \cn or build directly into the language's implementation \cn.
-\item For this paper, we use MetaOCaml \cn for OCaml staging, but all of the staging concepts are portable to any other language with multi-stage programming functionality.
-  \end{itemize}
-}
 
-\jwc{This section is going to need work.}
+\subsubsection{Staging in eDSL Construction}
 
+One of the primary uses of staging is in embedded DSL construction \cite{sheard99, lms, trattdsl}.
+While embedded DSLs are great \jwc{words}, they have well-known drawback: 
+the functional abstractions used to build eDSLs prevent compilers from generating efficient machine code \cn.
+In the literature, this effect is known as ``abstraction overhead'': the layers of abstraction that 
+make eDSLs so usable are precisely what prevents them from being fast.
+In light of this issue, staging is often used as a lightweight compiler for DSLs. The compile-time evaluation stage
+transforms the DSL code, eliminating abstractions to produce code that the host language compiler can generate fast machine code for.
+\jwc{This previous paragraph is peak ``shitty first draft''.}
+This recipe has been used to great effect across domains to stage eDSLs for stream processing \cn, parser combinators \cite{sspc, staged-parsers, krishnaswami19, flap},
+and query processing \cite{rhyme}.
+
+Many languages have some degree of staging functionality, though support varies
+from full native support (Scala 3 \cn, Haskell \cn) to experimental compiler extensions (OCaml \cite{metaocaml,macocaml}, Java \cite{mint}, Kotlin \cn).
+Moreover, many more languages have lighter-weight staging-like metaprogramming support in the form of macros.
+See Section~\ref{subsection:other-langs} for a full discussion of just how portable these ideas are. \jwc{this sentence is a placeholder lol}
+
+For this paper, we have implemented staged PBT libraries in both OCaml --- using the MetaOCaml fork of the OCaml compiler \cn --- and Scala 3 --- using
+\texttt{scala.quoted}. For presentation purposes, all staged code presented in the body of this paper is written in OCaml.
+However, we believe all of the concepts presented are portable across languages with staging support, and we have reimplemented \name in Scala 3.
+
+\subsubsection{Staging in MetaOCaml}
 MetaOCaml's staging functionality is exposed through a type \texttt{'a code}. A
 value of type \texttt{t code} at compile time is a (potentially open) OCaml term
 of type \texttt{t}.
@@ -593,7 +606,6 @@ can ensure that any overhead of using them is eliminated by run time.
 
 \subsection{Monadic DSL Abstraction Overhead}
 
-\cite{sheard99, lms, trattdsl}
 
 \jwc{
   \begin{itemize}
