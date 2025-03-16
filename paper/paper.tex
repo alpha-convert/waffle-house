@@ -648,25 +648,27 @@ However, almost no compilers (GHC is a notable exception) can figure this out an
 
 
 % \subsubsection{Function call overhead}
-\subsection{Choice of RNG}
+\subsection{Choice of Randomness Library}
 \jwc{We really need to have explained the effect ordering equivalence aspect of the evaluation before here.}
 
-The core of any PBT generator library is a random number generator: to generate
-random values, we need \hg{...}
-Different PBT libraries use a wide range of different RNGs.
+The core of any PBT generator library is a source of randomness: to generate
+random values of some datatype, we some access to random numbers!
+Different PBT libraries use different randomness libraries implementing different algorithms
+\footnote{The common term for such an algorithm or library is a ``Random Number
+Generator'' (RNG) we will avoid this term and instead say ``randomness library''
+to avoid confusing RNG implementations with the PBT gnenerator libraries that
+use them.}.
 Following the original Haskell QuickCheck implementation, \bq\ uses the SplitMix
-algorithm \cn,
-implemented as a (stateful) OCaml library called \texttt{Splittable\_random}. Meanwhile,
+algorithm \cn, implemented as a (stateful) OCaml library called \texttt{Splittable\_random}. Meanwhile,
 ScalaCheck uses the JSF algorithm \cn.
 % https://www.pcg-random.org/posts/bob-jenkins-small-prng-passes-practrand.html
 % https://burtleburtle.net/bob/rand/smallprng.html
 
-The RNG sits at the heart of the hot path.
-Even basic generators, like ones generating a single \texttt{int} or \texttt{float}, may sample from the RNG multiple times,
-and generator combinators like \texttt{list} call those basic generators.
-For instance, to generate a single list with 3 elements, 
-\hg{To generate a single list with 3 elements, \bq's list generator calls the RNG \dots times!}
-Because of this, the speed of a single RNG call matters a great deal. Unfortunately,
+The randomness library sits at the heart of the hot path.
+Even basic generators --- like ones generating a single \texttt{int} or \texttt{float} uniformly within a range --- can sample \emph{unboundedly many}
+random numbers, since they usually use versions of rejection sampling to find a value within the range \cn.
+Moreover, generator combinators like \texttt{list} usually make $O(n)$ calls to even those basic generators.
+Because of this, the speed of a single sample matters a great deal. Unfortunately,
 existing PBT libraries make relatively inefficient choices on this front,
 leading to worse bugfinding power than what is possible.
 
@@ -674,24 +676,24 @@ leading to worse bugfinding power than what is possible.
 of the RNGs used by a bunch of popular PBT frameworks and then argued that
 things like Lehmer are faster?}
 
-For example, significantly faster RNG algorithms than SplitMix or JSF exist,
-such as the Lehmer RNG \cn. In microbenchmarks, the Lehmer generator almost 2x as fast as SplitMix \cn.
+For example, significantly faster algorithms than SplitMix or JSF exist,
+such as the Lehmer algorithm\cn. In microbenchmarks, the Lehmer algorithm runs almost 2x as fast as SplitMix \cn.
 % https://github.com/lemire/testingRNG/tree/master
 Moreover, PBT libraries could even consider eschewing the requirement that a source of
-entropy pass statistical tests like BigCrush\cn.\hg{This needs more discussion}  This is common practice in other areas of testing already:
+entropy pass statistical tests like BigCrush\cn. \hg{This needs more discussion} 
+This is common practice in other areas of testing already:
 fuzzers often simply use a buffer full of arbitrary bytes as a source of entropy
 \cn. Such approaches are also faster than algorithms like SplitMix: bumping a
 pointer and reading from memory (which can be pipelined trivially) will always
-be faster on modern CPUs than any RNG with data-dependent arithmetic
+be faster on modern CPUs than any random sampling algorithm with data-dependent arithmetic
 instructions.\hg{Should we just always be doing this? I think we want to argue
 that this is a bridge too far because you still need to generate the buffer
 ahead of time and you can run out of randomness?}
 
-\hg{Alternative framing: ``'': \dots''}
-Of course, simply arguing that the RNG is on the hot
-path does not guarantee that a faster RNG leads to measurably faster
+Of course, simply arguing that the randomness library is on the hot
+path does not guarantee that a faster sampling leads to measurably faster
 generation; for that, we need an experiment. The most obvious experiment is to
-simply swap out the RNG for \bq\ with a totally different, faster one. But, as
+simply swap out the randomness library for \bq{} with a totally different, faster one. But, as
 discussed previously, generators with different generation orders can be
 difficult to compare. To get around this, we exploit a ``natural experiment:
 OCaml's \texttt{Splittable\_random} library is slow in a way that
@@ -703,17 +705,17 @@ values of the OCaml type \texttt{int64} are not machine words, but rather
 that \emph{all} \texttt{int64} operations (both arithmetic and bitwise) must
 allocate memory cells to contain their output, which has a significant performance benefit.
 By building a version that uses much faster ``unboxed'' 64-bit integer arithmetic, we can demonstrate just how much bug-finding
-performance can be improved just by using a more performant RNG.
+performance can be improved just by using a more performant randomness library.
 
-\section{Eliminating Abstraction Overhead of Generator DSLs by Staging and Faster RNG}
+\section{Eliminating Abstraction Overhead of Generator DSLs by Staging and Faster Randomness Libraries}
+\jwc{This section needs a much better title...}
 \jwc{Emphasize that this is an \emph{COMPLETELY EQUIVALENT drop in replacement!} We din't just build a different library with different distributions.}
 
 \jwc{Usual introduction to this section, corresponding to how we talked about it in the intro. ``We present a library that XYZ''.}
 
-\hg{TODO: Signposting --- I got a few paragraphs in and realized I wasn't sure
-what I was reading}
+\hg{TODO: Signposting --- I got a few paragraphs in and realized I wasn't sure what I was reading}
 
-\subsection{Basic Design}
+\subsection{Design of a Staged Generator DSL}
 \label{subsection:basic-design}
 Recall that staging a DSL involves changing the
 combinators to run at compile time by carefully annotating their types with \texttt{code}s.
@@ -748,7 +750,7 @@ Operationally, bind takes code for the size and seed, and returns code that (1) 
 (2) runs the spliced-in continuation \texttt{k}.
 Both function applications \texttt{g size\_c random\_c}
 and \texttt{k .<a>. size\_c random\_c} run at compile time.
-\texttt{Gen.int} is the generator that samples an int from the RNG.
+\texttt{Gen.int} is the generator that samples an int from the randomness library.
 Given any size and random seed, it returns a code block that calls \texttt{SR.int} with that random seed. Because the lower and upper bounds
 might not be known at compile time --- they may themselves be the results of calling \texttt{Gen.int} ---
 the arguments \texttt{lo} and \texttt{hi} are of type \texttt{int code}, and get spliced into the code block as arguments to \texttt{SR.int}.
@@ -990,7 +992,7 @@ We can then redefine our staged generator monad type to be
 This gives us the best of both worlds. First, we get a monad instance for \texttt{'a Gen.t} with the correct types, which lets us
 use the monadic syntactic sugar of our chosen language. Moreover, we also get to maintain the correct
 effect ordering: effectful combinators like \texttt{Gen.int} do their \emph{own} let-insertion, ensuring
-that a program like \texttt{Gen.bind Gen.int (fun x -> ...)} generates a let-binding for the result of sampling the RNG.
+that a program like \texttt{Gen.bind Gen.int (fun x -> ...)} generates a let-binding for the result of sampling the randomness library.
 For example, \texttt{bind (int .<0>. .<1.>) (fun cx -> return .<(.~cx,.~cx)>.)} now correctly generates
 \texttt{.< fun size random -> let x = SR.int random 0 1 in (x,x) >.}. \jwc{Should we do out the whole reduction sequence here? It might be explanatory, but it also might be boring.}
 
@@ -1144,19 +1146,19 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
 \label{subsection:faster-rng}
 
 \jwc{Unclear what we should call this section}
-As we discussed in Section~\ref{section:motiv}, inefficient RNG choice is
+As we discussed in Section~\ref{section:motiv}, choosing an inefficient randomness library is
 another bottleneck for finding bugs fast. While generator libraries by
-and large use sensible RNG algorithms, they are not explicitly chosen
-with performance in mind. Indeed, much faster RNGs \cn and fast sources
+and large use sensible sources of randomness, they are not explicitly chosen
+with performance in mind. Indeed, much faster randomness libraries\cn and fast sources
 of entropy \cn exist. \jwc{... more here?}
-To demonstrate that a faster RNG can significanty impact bugfinding power, we
+To demonstrate that faster random sampling can significanty impact bugfinding power, we
 use the natural experiment provided by OCaml's inefficient implementation of
-SplitMix. By replacing this slow RNG with a faster but extensionally equivalent
-implemetnation, we are able to precisely quantify the bugfinding speedup that using a RNG gives across a range of PBT scenarios.
+SplitMix. By replacing this slow randomness library with a faster but extensionally equivalent
+implemetnation, we are able to precisely quantify the bugfinding speedup that using a randomness library gives across a range of PBT scenarios.
 
-We emphasize that while we believe that the insight that faster RNG translates to faster bug finding
+We emphasize that while we believe that the insight that faster sampilng translates to faster bug finding
 is a cross-langauge one, the specific technical contents of this section are OCaml-specific.
-In most other PBT frameworks \cn, the RNG operates on by machine
+In the case of most other PBT frameworks \cn, the randomness library used operates on by machine
 integers, so this \emph{particular} inefficiency does not exist.
 
 The precise details of how the SplitMix algorithm works \cn are unimportant for the
