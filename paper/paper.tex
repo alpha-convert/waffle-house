@@ -269,7 +269,7 @@ practitioners interleave PBT with their software development process, sometimes
 testing their properties every time they save their code. This workflow makes
 sense because the developer who just wrote the code is often the best person to
 fix a potental bug; if a bug is found later, it will need to be fixed by someone
-with less context.  All of this means that PBT is often run with very short time
+with less context. \jwc{Not sure how the previous sentence is relevant. It delays us getting to the point.}  All of this means that PBT is often run with very short time
 budgets --- e.g., between 50 milliseconds and 30 seconds --- and it is important
 that bugs can be found in that time-frame.
 \jwc{phrasing could suggest ``race against time'' aspect.}\hg{Agree, can't see
@@ -290,10 +290,10 @@ is possible. This is due to two major sources of inefficiency.
 First, the same high-level design that gives generator libraries their
 flexibility and expressiveness also introduces overhead: layered abstractions
 and indirections hinder the compiler's optimizations, shifting more work to
-runtime.
+run time.
 Second, the \rand that underlies the generator's operation --- the source of
 random numbers that are used to make choices in the generator --- 
-can constitute an unexpectedly high proportion of a generator's runtime.
+can constitute an unexpectedly high proportion of a generator's running time.
 \iflater
 \hg{TODO later, I'm not 100\% sure it's clear how this particular question is
 raised by the above. We could strengthen that connection}
@@ -318,7 +318,7 @@ unnecessary overhead.
 First, we describe a method of optimizing generator libraries using
 \textit{multi-stage programming}, or ``staging,'' which has long been used for
 optimizing idiomatic functional DSLs~\cn.
-We extend this technique to generators, completely eliminating the overhead of
+We extend this technique to generators \jwc{``apply this technology to''? We're not extending staging, we're a client}, completely eliminating the overhead of
 many common generator abstractions. For example, in unstaged generator
 libraries, each call to monadic bind usually spends time constructing and
 immediately executing a closure at runtime. \jwc{Todo: joe --- cite some evidence for this}
@@ -353,8 +353,8 @@ is \textit{completely semantically equivalent}: that is, given identical random 
 produce exactly the same sequence of values as those written in \bq. However, in \name, 
 the abstractions provided by the generator DSL are zero-cost, and the \rand is 
 highly-optimized. The direct equivalence between \name and \bq allows us to 
-perform extremely fine-grained comparisons, differences in generation speed are
-directly attributable to the staging and \rand optimizations.
+perform extremely fine-grained comparisons, \propose{as} differences in \proposechange{generation speed}{bugfinding power} are
+\proposechange{directly}{solely} attributable to the staging and \rand optimizations.
 
 We evaluate the optimizations in \name with a series of case studies in each
 generator library, and show that \name runs faster than \bq.
