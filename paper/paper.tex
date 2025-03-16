@@ -5,7 +5,7 @@
     Bib\TeX}}}
 
 \newif\ifdraft\drafttrue{}
-\newif\iflater\latertrue{}
+\newif\iflater\laterfalse{}
 
 \PassOptionsToPackage{names,dvipsnames}{xcolor}
 
@@ -54,21 +54,21 @@
 %% values in them; it is your responsibility as an author to replace
 %% the commands and values with those provided to you when you
 %% complete the rights form.
-\setcopyright{acmlicensed}
-\copyrightyear{2025}
-\acmYear{2025}
-\acmDOI{XXXXXXX.XXXXXXX}
+\setcopyright{none}
+% \copyrightyear{2025}
+% \acmYear{2025}
+% \acmDOI{XXXXXXX.XXXXXXX}
 %% These commands are for a PROCEEDINGS abstract or paper.
-\acmConference[Conference acronym 'XX]{Make sure to enter the correct
-  conference title from your rights confirmation email}{June 03--05,
-  2018}{Woodstock, NY}
+% \acmConference[Conference acronym 'XX]{Make sure to enter the correct
+%   conference title from your rights confirmation email}{June 03--05,
+%   2018}{Woodstock, NY}
 %%
 %%  Uncomment \acmBooktitle if the title of the proceedings is different
 %%  from ``Proceedings of ...''!
 %%
 %%\acmBooktitle{Woodstock '18: ACM Symposium on Neural Gaze Detection,
 %%  June 03--05, 2018, Woodstock, NY}
-\acmISBN{978-1-4503-XXXX-X/2025/02}
+% \acmISBN{978-1-4503-XXXX-X/2025/02}
 
 
 %%
@@ -112,6 +112,7 @@
 %% The "title" command has an optional parameter,
 %% allowing the author to define a "short title" to be used in page headers.
 \title{Fail Faster}
+\subtitle{\hg{TODO: Subtitle}}
 
 %%
 %% The "author" command and its associated commands are used to define
@@ -160,8 +161,8 @@
 %%
 %% The abstract is a short summary of the work to be presented in the
 %% article.
-\begin{abstract} \tr{Abstract needs a lot of work.}
-Property-based testing (PBT) is a software testing approach that verifies a system against a large suite of automatically-generated inputs. Since testing pipelines typically run under strict time constraints, PBT generators must produce inputs as quickly as possible to maximize the likelihood of finding bugs in the time available. However, existing PBT libraries often prioritize generality at the cost of performance. We introduce \texttt{waffle\_house}, a high-performance generator library that uses staging, a lightweight compilation technique, to eliminate many common generator abstractions. To evaluate \texttt{waffle\_house}, we design a novel benchmarking methodology that compares generators based on program equivalence, isolating performance improvements from differences in input distribution. Using this methodology, we compare \texttt{waffle\_house} to a leading generator library, and, through extensive evaluation over a diverse range of generators, demonstrate that \texttt{waffle\_house} significantly improves generation speed and resource efficiency while matching \texttt{base\_quickcheck}'s expressiveness.
+\begin{abstract}
+  \hg{TODO: Abstract}
 \end{abstract}
 
 %%
@@ -202,7 +203,7 @@ Property-based testing (PBT) is a software testing approach that verifies a syst
 %%
 %% Keywords. The author(s) should pick words that accurately describe
 %% the work being presented. Separate the keywords with commas.
-\keywords{Property-based testing, Generators, Staging, Meta-programming}
+% \keywords{Property-based testing, Generators, Staging, Meta-programming}
 %% A "teaser" image appears between the author and affiliation
 %% information and the body of the document, and typically spans the
 %% page.
@@ -261,30 +262,44 @@ Property-based testing (PBT) is a software testing approach that verifies a syst
 
 %\jwc{``Property based testing is a race against time...''}
 
-Property-based testing (PBT) is a technique in which a \textit{generator}
-produces random inputs to a system under test, which is then evaluated against a
-set of properties the system is expected to satisfy.  Recent studies on PBT
-usage have shown that practitioners often run tests with very short time
-budgets --- typically between 50 milliseconds and 30 seconds \cite{inpractice} \jwc{phrasing could suggest ``race against time'' aspect.}. Given this
-constraint, generating inputs as quickly as possible is crucial for maximizing
-the odds of finding a bug in the limited time available. In other words,
-generators must be treated as performance-sensitive code.
-A high-leverage way to improve the performance of generators is to optimize 
-\textit{generator libraries}: if
-programmers are provided with the tools to write fast generators, then they 
-do not themselves need to be performance engineers. \jwc{... to find bugs fast}
+Property-based testing (PBT) is a technique for software testing which uses
+random test inputs to evaluate logical properties that the system is expected to
+satisfy.  Recent studies on PBT usage~\cite{inpractice} have shown that
+practitioners interleave PBT with their software development process, sometimes
+testing their properties every time they save their code. This workflow makes
+sense because the developer who just wrote the code is often the best person to
+fix a potental bug; if a bug is found later, it will need to be fixed by someone
+with less context.  All of this means that PBT is often run with very short time
+budgets --- e.g., between 50 milliseconds and 30 seconds --- and it is important
+that bugs can be found in that time-frame.
+\jwc{phrasing could suggest ``race against time'' aspect.}\hg{Agree, can't see
+how to fit this in yet}
 
-However, the performance of 
-existing generator libraries falls short of what is possible. This is due to two major 
-sources of inefficiency. First, the same high-level design that gives generator libraries their flexibility and expressiveness also introduces overhead:
-layered abstractions and indirections hinder the compiler's ability to optimize computations, shifting more work to runtime. \jwc{Nice!!}
-Second, the process of 
-selecting random \proposechange{values}{numbers} \jwc{We should reserve ``values'' for BSTs/etc... otherwise this sentence is confusing. What else does would a generator's runtime consist of, except for generating values?}(``random sampling'') can constitute an unexpectedly high proportion
-of a generator's runtime, depending on one's choice of \rand and
-the number of samples needed. This \jwc{Unclear referent here} raises a fundamental 
-question: can generator libraries produce code that is both expressive 
-\textit{and} efficient?
-\jwc{Love these first two paragraphs.}
+Given these strict timelines, it is important to think of PBT as
+performance-sensitive process. One important locus for performance improvement
+is the \textit{generators} that produce random inputs to the properties under
+test. These generators are written with the help of \textit{generator
+libraries}, usually expressed as embedded domain-specific languages (DSLs) that
+provide combinators for building and composing generators. Optimizing these
+libraries is a key opportunity to speed up PBT: if programmers are
+provided with the tools to write fast generators, then they do not themselves
+need to be experts in performance tuning. \jwc{... to find bugs fast}
+
+We find that the performance of existing generator libraries falls short of what
+is possible. This is due to two major sources of inefficiency.
+First, the same high-level design that gives generator libraries their
+flexibility and expressiveness also introduces overhead: layered abstractions
+and indirections hinder the compiler's optimizations, shifting more work to
+runtime.
+Second, the \rand that underlies the generator's operation --- the source of
+random numbers that are used to make choices in the generator --- 
+can constitute an unexpectedly high proportion of a generator's runtime.
+\iflater
+\hg{TODO later, I'm not 100\% sure it's clear how this particular question is
+raised by the above. We could strengthen that connection}
+\fi
+These observations together raise a fundamental question: can generator
+libraries produce code that is both expressive \textit{and} efficient?
 %In practice, PBT is used 
 %as a lightweight, ad hoc approach to software correctness,
 %\jwc{Move this bit about how it's used to the first sentence. I.e. PBT is a testing technqique where random data is fed to a system under test...}
@@ -297,20 +312,22 @@ question: can generator libraries produce code that is both expressive
 % The locus for improvement in this area \jwc{``This area'' sounds like it's talking about the whole area of PBT... Maybe ``a high-leverage way to improve the performance of generators is to...''} is \textit{generator libraries}: if 
 
   % in strict functionallanguages like OCaml and Scal
-To answer this, we propose a two-pronged approach for designing generator libraries 
-that preserves their expressiveness while eliminating unnecessary overhead.
-First, we describe a method of optimizing
-generator libraries using \textit{multi-stage programming}, or ``staging'', which has 
-long been used for optimizing idiomatic functional DSLs \cn.
-We extend this technique to generators, completely eliminating the overhead of many common generator abstractions. For example, in unstaged generator libraries, each call to monadic bind constructs and immediately executes a closure at runtime \jwc{We should probably say ``usually'' here... in very simple scenarios the compiler can figure it out}.
-\jwc{Todo: joe --- cite some evidence for this}
-Meanwhile, a staged approach can resolve the bind at compile time, enabling the compiler to inline and eliminate these closures.
-Secondly, we demonstrate the
-impact of different choices of \rand on generator performance 
-by conducting a controlled comparison. Together, these insights provide a
-recipe for improving even state-of-the-art generator libraries.
-\jwc{Great, like this a lot.}
-
+To address this question, we propose a two-pronged approach for designing
+generator libraries that preserves their expressiveness while eliminating
+unnecessary overhead.
+First, we describe a method of optimizing generator libraries using
+\textit{multi-stage programming}, or ``staging,'' which has long been used for
+optimizing idiomatic functional DSLs~\cn.
+We extend this technique to generators, completely eliminating the overhead of
+many common generator abstractions. For example, in unstaged generator
+libraries, each call to monadic bind usually spends time constructing and
+immediately executing a closure at runtime. \jwc{Todo: joe --- cite some evidence for this}
+Meanwhile, a staged approach can resolve the bind at compile time, enabling the
+compiler to inline and eliminate these closures.
+Secondly, we demonstrate the impact of different choices of \rand on generator
+performance by conducting a controlled comparison. \hg{More words here for
+parallelism?} Together, these insights provide a recipe for improving even
+state-of-the-art generator libraries.
 
 %\jwc{I think we should use return/bind as the simplest example, since then you don't have to get into the weeds of allocation or closures. The functional abstractions of a monadic generator DSL block the compiler from generating fast code.}
 %\jwc{Then present this case as ``more sophisticated use of staging'' or something?}
@@ -328,29 +345,32 @@ recipe for improving even state-of-the-art generator libraries.
 %the same values as its unoptimized counterpart, allowing us to directly 
 %measure the impact of this choice on generator performance. \jwc{Permute? I think staging \emph{then} randomness.} \jwc{Also, i don't love this as the first place we explain the drop-in equivalence of the RNG. It's unmotivated why wen want this.} 
 
-To demonstrate the effectiveness of our technique, we apply it to \bq, the fastest property-based testing library in OCaml according to our tests.
-%\jwc{Unclear if this is true, I think we should just say that by our testing it's the fastest in OCaml.}
-Our staged version of this library,\\ \name, is a direct drop-in replacement for \bq that 
+To demonstrate the effectiveness of our technique, we apply it to \bq, a
+high-quality PBT library in OCaml, authored by Jane Street.
+Our improved version, \name, is a direct drop-in replacement for
+\bq that 
 is \textit{completely semantically equivalent}: that is, given identical random seeds, generators written using \name{}
-produce exactly the same values as those written in \bq. However, in \name, 
+produce exactly the same sequence of values as those written in \bq. However, in \name, 
 the abstractions provided by the generator DSL are zero-cost, and the \rand is 
 highly-optimized. The direct equivalence between \name and \bq allows us to 
-perform extremely fine-grained \propose{bug-finding} comparisons, as generators 
-implemented using both versions of the library will produce exactly the same 
-sequence of values. Therefore, differences in \proposechange{performance}{bug-finding ability} are directly 
-attributable to \name's \proposechange{speedup}{??}.
+perform extremely fine-grained comparisons, differences in generation speed are
+directly attributable to the staging and \rand optimizations.
 
-To evaluate \name's effectiveness \jwc{This could flow better from the end of the last para --- we were just talking about evaluating \name{}'s effectivness.}, we
-implement a series of workloads \jwc{this is an etna term of art} in each generator library, and show that 
-\name runs faster \proposecut{and allocates less} than \\\bq. Further, we show that this performance benefit
-translates to bug-finding ability by running these workloads in Etna, a platform that 
-simulates real-world PBT usage by injecting bugs into a system and measuring how quickly various 
-generators detect them.
-Finally, to demonstrate the generality of our technique, we implement \name in Scala
-and benchmark the same generators in the Scala port of the library---thereby highlighting 
-its portability
-to other strict functional languages.
-\jwc{I think we should more explicitly point out the portability earlier, maybe up where we say we're applying it to BQ.}
+We evaluate the optimizations in \name with a series of case studies in each
+generator library, and show that \name runs faster than \bq.
+Further, we show that this performance benefit\hg{wc?} translates to bug-finding
+ability by running these case studies in the Etna framework~\cite{etna}, a
+platform that simulates real-world PBT usage\hg{Don't love this phrase, I'll
+think more about how we should talk about Etna} by injecting bugs into a system and
+measuring how quickly various generators detect them.
+Finally, to demonstrate the generality of our technique, we implement a version
+of \name in Scala \hg{(based on scalacheck?)} and benchmark the same generators
+in the Scala port of the library---thereby highlighting its portability to other
+strict functional languages.
+\iflater
+\jwc{I think we should more explicitly point out the portability earlier, maybe
+up where we say we're applying it to BQ.}\hg{Agree}
+\fi
 
 In summary, we show that monadic PBT generator DSLs incur significant performance costs across languages, and present a general technique for improving their efficiency while preserving their idiomatic abstractions.
 We make the following contributions:
