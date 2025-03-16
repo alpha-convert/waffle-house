@@ -313,3 +313,54 @@ keywords = {staged compilation, two-level type theory}
 	publisher = {Springer Berlin Heidelberg},
 	title = {Asymptotic Improvement of Computations over Free Monads},
 	year = {2008}}
+
+@inproceedings {sheard99,
+author = {Tim Sheard and Zine-el-abidine Benaissa and Emir Pasalic},
+title = {{DSL} Implementation Using Staging and Monads},
+booktitle = {2nd Conference on Domain-Specific Languages (DSL 99)},
+year = {1999},
+address = {Austin, TX },
+url = {https://www.usenix.org/conference/dsl-99/dsl-implementation-using-staging-and-monads},
+publisher = {USENIX Association},
+month = oct
+}
+
+@article{lms,
+author = {Rompf, Tiark and Odersky, Martin},
+title = {Lightweight modular staging: a pragmatic approach to runtime code generation and compiled DSLs},
+year = {2012},
+issue_date = {June 2012},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {55},
+number = {6},
+issn = {0001-0782},
+url = {https://doi.org/10.1145/2184319.2184345},
+doi = {10.1145/2184319.2184345},
+abstract = {Good software engineering practice demands generalization and abstraction, whereas high performance demands specialization and concretization. These goals are at odds, and compilers can only rarely translate expressive high-level programs to modern hardware platforms in a way that makes best use of the available resources.Generative programming is a promising alternative to fully automatic translation. Instead of writing down the target program directly, developers write a program generator, which produces the target program as its output. The generator can be written in a high-level, generic style and can still produce efficient, specialized target programs. In practice, however, developing high-quality program generators requires a very large effort that is often hard to amortize.We present lightweight modular staging (LMS), a generative programming approach that lowers this effort significantly. LMS seamlessly combines program generator logic with the generated code in a single program, using only types to distinguish the two stages of execution. Through extensive use of component technology, LMS makes a reusable and extensible compiler framework available at the library level, allowing programmers to tightly integrate domain-specific abstractions and optimizations into the generation process, with common generic optimizations provided by the framework.LMS is well suited to develop embedded domain-specific languages (DSLs) and has been used to develop powerful performance-oriented DSLs for demanding domains such as machine learning, with code generation for heterogeneous platforms including GPUs. LMS has also been used to generate SQL for embedded database queries and JavaScript for web applications.},
+journal = {Commun. ACM},
+month = jun,
+pages = {121–130},
+numpages = {10}
+}
+
+
+@article{trattdsl,
+author = {Tratt, Laurence},
+title = {Domain specific language implementation via compile-time meta-programming},
+year = {2008},
+issue_date = {October 2008},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {30},
+number = {6},
+issn = {0164-0925},
+url = {https://doi.org/10.1145/1391956.1391958},
+doi = {10.1145/1391956.1391958},
+abstract = {Domain specific languages (DSLs) are mini-languages that are increasingly seen as being a valuable tool for software developers and non-developers alike. DSLs must currently be created in an ad-hoc fashion, often leading to high development costs and implementations of variable quality. In this article, I show how expressive DSLs can be hygienically embedded in the Converge programming language using its compile-time meta-programming facility, the concept of DSL blocks, and specialised error reporting techniques. By making use of pre-existing facilities, and following a simple methodology, DSL implementation costs can be significantly reduced whilst leading to higher quality DSL implementations.},
+journal = {ACM Trans. Program. Lang. Syst.},
+month = oct,
+articleno = {31},
+numpages = {40},
+keywords = {domain specific languages, compile-time meta-programming, Syntax extension}
+}
