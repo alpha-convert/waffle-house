@@ -261,29 +261,21 @@ Property-based testing (PBT) is a software testing approach that verifies a syst
 
 %\jwc{``Property based testing is a race against time...''}
 
-Property-based testing (PBT) is a testing technique where random data
-produced by a \textit{generator} is fed
-to a system under test, which is then checked against a set of properties 
-it is expected to satisfy. Recent work on understanding how PBT is used in 
-practice has determined that practitioners often run PBT with very short time 
-budgets---typically 50 milliseconds to 30 seconds. Given this practical 
-constraint, it is imperative that inputs be generated as fast as possible; 
-in other words, generators must be treated as performance-sensitive code.
+Property-based testing (PBT) is a technique in which a \textit{generator} produces random inputs to a system under test, which is then evaluated against a set of properties the system is expected to satisfy.
+Recent studies on PBT usage have shown that practitioners often run tests with very short time budgets---typically between 50 milliseconds and 30 seconds. Given this constraint, generating inputs as quickly as possible is crucial for maximizing the odds of finding a bug in the limited time available. In other words, generators must be treated as performance-sensitive code.
 A high-leverage way to improve the performance of generators is to optimize 
 \textit{generator libraries}: if
 programmers are provided with the tools to write fast generators, then they 
-do not themselves need to be performance experts. 
+do not themselves need to be performance engineers. 
 
 However, the performance of 
-existing generator libraries falls short of what is possible due to two major 
-sources of inefficiency. The first of these is \textit{abstraction}: while 
-flexible and expressive, generator libraries rely on complex abstractions
-and indirections that are difficult for compilers to fully simplify, resulting
- in additional function calls and closure allocations.
-Our second insight involves the process of 
-selecting random values (``random sampling''), which, depending on one's choice of \rand and
-the number of samples needed, can constitute an unexpectedly high proportion
-of a generator's runtime. This raises a fundamental 
+existing generator libraries falls short of what is possible. This is due to two major 
+sources of inefficiency. First, the same high-level design that gives generator libraries their flexibility and expressiveness also introduces overhead:
+layered abstractions and indirections hinder the compiler's ability to optimize computations, shifting more work to runtime.
+Second, the process of 
+selecting random values (``random sampling'') can constitute an unexpectedly high proportion
+of a generator's runtime, depending on one's choice of \rand and
+the number of samples needed. This raises a fundamental 
 question: can generator libraries produce code that is both expressive 
 \textit{and} efficient?
 %In practice, PBT is used 
@@ -298,17 +290,16 @@ question: can generator libraries produce code that is both expressive
 % The locus for improvement in this area \jwc{``This area'' sounds like it's talking about the whole area of PBT... Maybe ``a high-leverage way to improve the performance of generators is to...''} is \textit{generator libraries}: if 
 
   % in strict functionallanguages like OCaml and Scal
-To answer this, we propose a two-pronged approach to designing generator libraries 
+To answer this, we propose a two-pronged approach for designing generator libraries 
 that preserves their expressiveness while eliminating unnecessary overhead.
-First, we propose a method of optimizing
+First, we describe a method of optimizing
 generator libraries using \textit{staged metaprogramming}, or ``staging'', which has 
-long been used across domains as a technique of eliminating the overhead 
-of idiomatic functional DSLs \todo{CITE!!!}.
+long been used to eliminating overhead 
+from idiomatic functional DSLs \todo{CITE!!!}.
 Using staging, it is possible to eliminate the overhead of many common 
-generator abstractions. For example,
-each call to monadic bind in \bq constructs and then immediately executes a 
-closure at runtime; meanwhile, in \name, bind resolves at compile time,
-allowing the compiler to inline away the closures. Secondly, we demonstrate the
+generator abstractions. For example, in unstaged generator libraries, each call to monadic bind constructs and immediately executes a closure at runtime.
+Meanwhile, a staged approach can resolve the bind at compile time, enabling the compiler to inline and eliminate these closures.
+Secondly, we demonstrate the
 impact of different choices of \rand on generator performance 
 by conducting a controlled comparison. Together, these insights provide a
 recipe for improving even state-of-the-art generator libraries.
@@ -330,32 +321,31 @@ recipe for improving even state-of-the-art generator libraries.
 %the same values as its unoptimized counterpart, allowing us to directly 
 %measure the impact of this choice on generator performance. \jwc{Permute? I think staging \emph{then} randomness.} \jwc{Also, i don't love this as the first place we explain the drop-in equivalence of the RNG. It's unmotivated why wen want this.} 
 
-To demonstrate the effectiveness of our technique, we apply it to \bq,
-which is the fastest property-based testing library in OCaml according to our tests.
+To demonstrate the effectiveness of our technique, we apply it to \bq, the fastest property-based testing library in OCaml according to our tests.
 %\jwc{Unclear if this is true, I think we should just say that by our testing it's the fastest in OCaml.}
-Our version of this library, \name, is a drop-in replacement for \bq that 
-is \textit{completely semantically equivalent}: that is, given identical random seeds, generators written using \name 
+Our staged version of this library,\\ \name, is a direct drop-in replacement for \bq that 
+is \textit{completely semantically equivalent}: that is, given identical random seeds, generators written using \\\name 
 produce exactly the same values as those written in \bq. However, in \name, 
 the abstractions provided by the generator DSL are zero-cost, and the \rand is 
 highly-optimized. The direct equivalence between \name and \bq allows us to 
-perform extremely fine-grained comparisons between generators, as generators 
+perform extremely fine-grained comparisons, as generators 
 implemented using both versions of the library will produce exactly the same 
 sequence of values. Therefore, differences in performance are directly 
-attributable to \name's speedup. 
+attributable to \name's speedup.
 
-To evaluate \name's effectiveness, 
-implement a series of workloads in each generator library, and demonstrate that 
-\name runs faster and allocates less than \bq. Further, we show that this performance benefit
-translates to bug-finding ability by running these workloads in Etna, a PBT platform that 
-simulates real-world usage by injecting bugs into a system and measuring how quickly different 
-generators can detect them.
+To evaluate \name's effectiveness, we
+implement a series of workloads in each generator library, and show that 
+\name runs faster and allocates less than \\\bq. Further, we show that this performance benefit
+translates to bug-finding ability by running these workloads in Etna, a platform that 
+simulates real-world PBT usage by injecting bugs into a system and measuring how quickly various 
+generators detect them.
 Finally, to demonstrate the generality of our technique, we implement \name in Scala
 and benchmark the same generators in the Scala port of the library---thereby highlighting 
 its portability
 to other strict functional languages and reinforcing its potential for widespread adoption.
 
-In summary, we demonstrate that, across languages, monadic PBT generator DSLs
-have a significant performance overhead, and present a cross-language technique
+In summary, we establish that monadic PBT generator DSLs
+have a significant performance overhead across languages, and present a cross-language technique
 for eliminating that overhead while preserving their idiomatic abstractions.
 We make the following contributions:
 \begin{enumerate}
