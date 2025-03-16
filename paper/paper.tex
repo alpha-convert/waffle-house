@@ -294,7 +294,7 @@ To answer this, we propose a two-pronged approach for designing generator librar
 that preserves their expressiveness while eliminating unnecessary overhead.
 First, we describe a method of optimizing
 generator libraries using \textit{staged metaprogramming}, or ``staging'', which has 
-long been used for opetimizing idiomatic functional DSLs \todo{CITE!!!}.
+long been used for optimizing idiomatic functional DSLs \todo{CITE!!!}.
 We extend this technique to generators, completely eliminating the overhead of many common generator abstractions. For example, in unstaged generator libraries, each call to monadic bind constructs and immediately executes a closure at runtime.
 Meanwhile, a staged approach can resolve the bind at compile time, enabling the compiler to inline and eliminate these closures.
 Secondly, we demonstrate the
