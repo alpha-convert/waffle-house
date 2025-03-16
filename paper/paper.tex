@@ -261,55 +261,69 @@ overhead is important, so is using the fastest RNG you can possibly use.
 
 \jwc{``Property based testing is a race against time...''}
 
-Property-based testing (PBT) uses generators of random data to produce inputs to a
-system under test, which is then checked against a set of properties the system is
- expected to satisfy.  In practice, PBT is used as a lightweight, ad hoc approach 
- to software correctness, aimed at detecting bugs within a short testing 
- window---typically 50 milliseconds to 30 seconds. Given this practical constraint, 
- it is imperative that inputs be generated as fast as possible; in other words, 
- generators must be treated as performance-sensitive code.
+Property-based testing (PBT) uses generators of random data to produce 
+inputs to a system under test, which is then checked against a set of 
+properties the system is expected to satisfy.  In practice, PBT is used 
+as a lightweight, ad hoc approach to software correctness, aimed at 
+detecting bugs within a short testing window---typically 50 milliseconds 
+to 30 seconds. Given this practical constraint, it is imperative that 
+inputs be generated as fast as possible; in other words, generators must be 
+treated as performance-sensitive code.
 
- The locus for improvement in this area is \textit{generator libraries}: if programmers are 
- provided with the tools to write fast generators, then they do not themselves 
- need to be performance experts. However, existing libraries fail to achieve good performance 
- due to two major sources of inefficiency. The first is \textit{random sampling}, or the process
- of selecting random values. (Another sentence here?)
- The second is abstraction: generator libraries are implemented as embedded DSLS, which are flexible
- and expressive, but also introduce significant overhead that is not necessarily optimized away by 
- the compiler. These costs compound in the aggregate, raising a fundamental
- question: can generator libraries produce code that is both expressive \textit{and} efficient?
+The locus for improvement in this area is \textit{generator libraries}: if 
+programmers are provided with the tools to write fast generators, then they 
+do not themselves need to be performance experts. However, existing generator 
+libraries fail to achieve good performance due to two major sources of 
+inefficiency. The first is \textit{random sampling}, or the process of 
+selecting random values, which, depending on one's choice of \rand and
+the number of samples needed, can constitute an unexpectedly high proportion
+of a generator's runtime. The second is \textit{abstraction}: while flexible 
+and expressive, generator libraries rely on dynamic control structures that
+allocate at runtime. Allocations compound in the aggregate, leading to costly
+garbage collection pauses. This raises a fundamental 
+question: can generator libraries produce code that is both expressive 
+\textit{and} efficient? 
 
   % in strict functionallanguages like OCaml and Scala
-We outline a fully general, two-stage approach to designing generator libraries, 
-which provide high-level combinator functions with dramatically reduced 
-overhead. First, \rand choice matters. We demonstrate that using a faster \rand
-significantly impacts generator performance by directly optimizing an existing RNG, which
-produces the same values as its unoptimized counterpart---but faster--thereby allowing us
-to compare the RNG's impact on an existing generator library. Second, we 
-describe a method of optimizing generator libraries using \textit{staged metaprogramming}, 
-or ``staging''. Staged metaprogramming allows for code generation, which can mitigate 
-performance challenges introduced by embedded DSLs. In particular, when a generator DSL 
-introduces overhead for dynamic control flow, staging can specialize that control flow
-and compile it statically. For example, when choosing between a list of options, a staged
-generator can avoid allocating the list of options at runtime by expanding to an 
-if-else. This approach is not tied to any particular PBT library---instead, it gives a recipe
-for improving even SOTA PBT libraries.
+We outline a fully general, two-stage approach to designing generator 
+libraries so that they retain their idiomatic abstractions with 
+significantly improved performance. First, we demonstrate the impact of
+RNG choice by optimizing an existing \rand. Our optimized RNG produces 
+exactly 
+the same values as its unoptimized counterpart, allowing us to directly 
+measure the impact of this choice on generator performance. Second, 
+we propose a method of streamlining generator libraries using 
+\textit{staged metaprogramming}, or ``staging''. \tr{Joe---maybe add
+a sentence here about parsing literature?} Using staging, it is possible
+to eliminate the overhead of many common generator abstractions. For example,
+where an unstaged generator DSL might represent a choice between
+a list of options as a dynamically-allocated array of closures, a staged 
+generator can expand to an if-else tree at compile 
+time---eliminating the allocation entirely. This approach is not tied to any
+particular PBT library, but rather provides a recipe for improving even
+state-of-the-art implementations.
 
-To demonstrate
-the effectiveness of our technique, we apply our technique to a leading PBT library, \bq, built with performance engineering in mind.
-Our version of this library, termed \name, is a direct drop-in replacement for the original that is completely
-semantically equivalent: generators written using it produce exactly the same values as 
-those written in the original version. However, in \name, the abstractions provided by the generator DSL are 
-zero-cost, and the \rand is highly-optimized. The direct equivalence between \name and \bq
-allows us to perform extremely fine-grained comparisons between generators---generators implemented with both versions of the
-library will produce exactly the same sequence of values, so differences in testing performance are directly attributable
-to \name's performance speedup.
+To demonstrate the effectiveness of our technique, we apply it to a leading PBT 
+library,\\ \bq, built with performance engineering in mind.
+Our version of this library, termed \name, is a drop-in replacement for \bq which 
+is completely semantically equivalent: that is,  generators written using \name 
+produce exactly the same values as those written in \bq. However, in \name, 
+the abstractions provided by the generator DSL are zero-cost, and the \rand is 
+highly-optimized. The direct equivalence between \name and \bq allows us to 
+perform extremely fine-grained comparisons between generators, as generators 
+implemented using both versions of the library will produce exactly the same 
+sequence of values; so, differences in testing performance are directly 
+attributable to \name's performance speedup.
+\tr{Not really done... }
 
 To test \name's effectiveness, we run a bunch of experiments to show that \name runs faster, allocates less, etc., than
 \bq on a variety of different workloads. We demonstrate the generality of the technique by implementing \name in
 Scala, and benchmarking the same generators in the Scala port of the library. Finally, as a sanity check, we demonstrate
 that \name allows you to find bugs significantly faster ... 
 
+In summary, we demonstrate that, across languages, monadic PBT generator DSLs can
+have a significant performance overhead, and present a cross-language technique
+for eliminating the overhead while preserving the idiomatic abstraction.
 We make the following contributions:
 \begin{enumerate}
     \item We identify two key sources of inefficiencies in PBT generator libraries, which can significantly impact performance: 
