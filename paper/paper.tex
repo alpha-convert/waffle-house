@@ -664,8 +664,8 @@ ScalaCheck uses the JSF algorithm \cn.
 The RNG sits at the heart of the hot path.
 Even basic generators, like ones generating a single \texttt{int} or \texttt{float}, may sample from the RNG multiple times,
 and generator combinators like \texttt{list} call those basic generators.
-\hg{To
-generate a single list with 3 elements, \bq's list generator calls the RNG \dots times!}
+For instance, to generate a single list with 3 elements, 
+\hg{To generate a single list with 3 elements, \bq's list generator calls the RNG \dots times!}
 Because of this, the speed of a single RNG call matters a great deal. Unfortunately,
 existing PBT libraries make relatively inefficient choices on this front,
 leading to worse bugfinding power than what is possible.
@@ -687,21 +687,14 @@ instructions.\hg{Should we just always be doing this? I think we want to argue
 that this is a bridge too far because you still need to generate the buffer
 ahead of time and you can run out of randomness?}
 
-\hg{Alternative framing: ``Of course, simply arguing that the RNG is on the hot
+\hg{Alternative framing: ``'': \dots''}
+Of course, simply arguing that the RNG is on the hot
 path does not guarantee that a faster RNG leads to measurably faster
 generation; for that, we need an experiment. The most obvious experiment is to
 simply swap out the RNG for \bq\ with a totally different, faster one. But, as
 discussed previously, generators with different generation orders can be
-difficult to compare. To get around this, we exploit a ``natural experiment'': \dots''}
-
-In the context of this paper, however, clearly demonstrating the benefits of any of the
-above faster options is tricky. Our bug-finding evaluation's power is predicated on
-the fact that all of the different versions of a generator we test are
-extensionally\hg{Is this how we're explaining this? I'm not sure that's quite right} identical: for a given seed and size parameter, they all produce
-the \emph{same} value.  Using a different random number generator or different
-source of entropy would break this property. In Section~\ref{eval}, we
-demonstrate that faster RNG matters for bugfinding by exploting a ``natural
-experiment'': OCaml's \texttt{Splittable\_random} library is slow in a way that
+difficult to compare. To get around this, we exploit a ``natural experiment:
+OCaml's \texttt{Splittable\_random} library is slow in a way that
 can be improved \emph{without} changing its extensional behavior.
 In particular,
 due to implementation details related to the OCaml garbage collector,
@@ -711,41 +704,6 @@ that \emph{all} \texttt{int64} operations (both arithmetic and bitwise) must
 allocate memory cells to contain their output, which has a significant performance benefit.
 By building a version that uses much faster ``unboxed'' 64-bit integer arithmetic, we can demonstrate just how much bug-finding
 performance can be improved just by using a more performant RNG.
-
-% \jwc{There are a few aspects of PBT that make it interesting when it comes to PBT choice.
-% \begin{itemize}
-%   \item Doesn't need to be cryptographic.
-%   \item doesn't even \emph{necessarily} need to pass sophisticated staistical
-%   tests.  \cn
-% \end{itemize}
-% }
-
-
-
-
-
-
-% \jwc{
-%   \begin{itemize}
-%     \item In this paper demonstrate this fact by noticing a ``natural experiment'': OCaml's splittable random library is
-%     slow in a way that can be improved \emph{without} changing the extensional behavior. By resolving this issue, we can demonstrate
-%     just how much you can improve bug-finding performance simply by speeding up the RNG.
-%   \end{itemize}
-% }
-
-% In Section~\ref{subsection:faster-rng}, we show how our library mitigates this
-% performance hit by using OCaml's FFI to reimplement the RNG in non-allocating C code.
-% We also discuss how the ``unboxed types'' extension to the OCaml compiler \cn could instead be used
-% to the same effect without leaving OCaml.
-
-% It is worth noting that the inefficiency of boxed \texttt{int64}s is not due to
-% the abstraction overhead of the generator DSL itself, but simply due to language
-% implementation and algorithm choices. We include this discussion --- and
-% the corresponding evaluation
-% --- to demonstrate the testing-time savings of taking seriously the notion that PBT libraries
-% should be engineered for performance.
-
-% \jwc{If you're not using the fasteest RNG possible, you're leaving RNG on the table.}
 
 \section{Eliminating Abstraction Overhead of Generator DSLs by Staging and Faster RNG}
 \jwc{Emphasize that this is an \emph{COMPLETELY EQUIVALENT drop in replacement!} We din't just build a different library with different distributions.}
