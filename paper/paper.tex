@@ -5,7 +5,7 @@
     Bib\TeX}}}
 
 \newif\ifdraft\drafttrue{}
-\newif\iflater\latertrue{}
+\newif\iflater\laterfalse{}
 
 \PassOptionsToPackage{names,dvipsnames}{xcolor}
 
@@ -14,7 +14,7 @@
 
 \usepackage{listings}
 \usepackage{subcaption}
-
+\usepackage{xspace}
 \lstset{
   mathescape=true,
   frame=none,
@@ -54,21 +54,21 @@
 %% values in them; it is your responsibility as an author to replace
 %% the commands and values with those provided to you when you
 %% complete the rights form.
-\setcopyright{acmlicensed}
-\copyrightyear{2025}
-\acmYear{2025}
-\acmDOI{XXXXXXX.XXXXXXX}
+\setcopyright{none}
+% \copyrightyear{2025}
+% \acmYear{2025}
+% \acmDOI{XXXXXXX.XXXXXXX}
 %% These commands are for a PROCEEDINGS abstract or paper.
-\acmConference[Conference acronym 'XX]{Make sure to enter the correct
-  conference title from your rights confirmation email}{June 03--05,
-  2018}{Woodstock, NY}
+% \acmConference[Conference acronym 'XX]{Make sure to enter the correct
+%   conference title from your rights confirmation email}{June 03--05,
+%   2018}{Woodstock, NY}
 %%
 %%  Uncomment \acmBooktitle if the title of the proceedings is different
 %%  from ``Proceedings of ...''!
 %%
 %%\acmBooktitle{Woodstock '18: ACM Symposium on Neural Gaze Detection,
 %%  June 03--05, 2018, Woodstock, NY}
-\acmISBN{978-1-4503-XXXX-X/2025/02}
+% \acmISBN{978-1-4503-XXXX-X/2025/02}
 
 
 %%
@@ -112,6 +112,7 @@
 %% The "title" command has an optional parameter,
 %% allowing the author to define a "short title" to be used in page headers.
 \title{Fail Faster}
+\subtitle{\hg{TODO: Subtitle}}
 
 %%
 %% The "author" command and its associated commands are used to define
@@ -160,8 +161,8 @@
 %%
 %% The abstract is a short summary of the work to be presented in the
 %% article.
-\begin{abstract} \tr{Abstract needs a lot of work.}
-Property-based testing (PBT) is a software testing approach that verifies a system against a large suite of automatically-generated inputs. Since testing pipelines typically run under strict time constraints, PBT generators must produce inputs as quickly as possible to maximize the likelihood of finding bugs in the time available. However, existing PBT libraries often prioritize generality at the cost of performance. We introduce \texttt{waffle\_house}, a high-performance generator library that uses staging, a lightweight compilation technique, to eliminate many common generator abstractions. To evaluate \texttt{waffle\_house}, we design a novel benchmarking methodology that compares generators based on program equivalence, isolating performance improvements from differences in input distribution. Using this methodology, we compare \texttt{waffle\_house} to a leading generator library, and, through extensive evaluation over a diverse range of generators, demonstrate that \texttt{waffle\_house} significantly improves generation speed and resource efficiency while matching \texttt{base\_quickcheck}'s expressiveness.
+\begin{abstract}
+  \hg{TODO: Abstract}
 \end{abstract}
 
 %%
@@ -202,7 +203,7 @@ Property-based testing (PBT) is a software testing approach that verifies a syst
 %%
 %% Keywords. The author(s) should pick words that accurately describe
 %% the work being presented. Separate the keywords with commas.
-\keywords{Property-based testing, Generators, Staging, Meta-programming}
+% \keywords{Property-based testing, Generators, Staging, Meta-programming}
 %% A "teaser" image appears between the author and affiliation
 %% information and the body of the document, and typically spans the
 %% page.
@@ -218,164 +219,171 @@ Property-based testing (PBT) is a software testing approach that verifies a syst
 
 \section{Introduction}
 
-\jwc{This paper is about ``Strict functional languages like OCaml and Scala'', but we'll focus on OCaml for presentation.}
+%\jwc{This paper is about ``Strict functional languages like OCaml and Scala'', but we'll focus on OCaml for presentation.}
 
-\bcp{The current introduction says, roughly, ``We took a look at
-  base.quickcheck, noticed some inefficiencies, applied known
-  techniques from staged metaprogramming to eliminate them, and
-  observed that speed went up.''  I think we can make much stronger
-  claims, but I'm not sure about exactly how strong or what belongs in
-  the foreground...
-  \begin{itemize}
-  \item One of the first serious uses of staging in anger?
-  \item A use of staging that is novel / challenging in
-  itself, in some way?
-  \item An analysis of sources of inefficiency across a range of PBT
-  frameworks (and a solution that applies to many of them)?
-  \item A usable tool that addresses and overcomes some significant
-  implementation challenges?
-  \item Careful measurements showing where the sources of inefficiency
-  are in existing PBT tools, and which ones matter most?
-  \item (Your claim here...)?
-  \end{itemize}
-}
+%\bcp{The current introduction says, roughly, ``We took a look at
+%  base.quickcheck, noticed some inefficiencies, applied known
+%  techniques from staged metaprogramming to eliminate them, and
+%  observed that speed went up.''  I think we can make much stronger
+%  claims, but I'm not sure about exactly how strong or what belongs in
+%  the foreground...
+%  \begin{itemize}
+%  \item One of the first serious uses of staging in anger?
+%  \item A use of staging that is novel / challenging in
+%  itself, in some way?
+%  \item An analysis of sources of inefficiency across a range of PBT
+%  frameworks (and a solution that applies to many of them)?
+%  \item A usable tool that addresses and overcomes some significant
+%  implementation challenges?
+%  \item Careful measurements showing where the sources of inefficiency
+%  are in existing PBT tools, and which ones matter most?
+%  \item (Your claim here...)?
+%  \end{itemize}
+%}
 
-\jwc{Agree: I think something like the 3rd is the best reframing. Something
-like: ``We demonstrate that, across languages, monadic PBT generator DSLs can
-have a significant performance overhead, and present a cross-language technique
-for eliminating the overhead while preserving the idiomatic abstraction.
-''}
+%\jwc{Agree: I think something like the 3rd is the best reframing. Something
+%like: ``We demonstrate that, across languages, monadic PBT generator DSLs can
+%have a significant performance overhead, and present a cross-language technique
+%for eliminating the overhead while preserving the idiomatic abstraction.
+%''}
 
-\jwc{People have been using staged metaprogrammign to eliminate abstraction
-overheads in parsing for a long time, we turn that lens on generation (Which looks like parsing)}
+%\jwc{People have been using staged metaprogrammign to eliminate abstraction
+%overheads in parsing for a long time, we turn that lens on generation (Which looks like parsing)}
 
-\jwc{Another angle that I'd argue needs to come out more is that we demonstrate that
-engineering PBT libraries with performance in mind has significant impact on testing power.
-}
+%\jwc{Another angle that I'd argue needs to come out more is that we demonstrate that
+%engineering PBT libraries with performance in mind has significant impact on testing power.
+%}
 
-\jwc{
-Let's lead on with the quote from PBT in practice: performance engineering
-matters.  De-emphasize the abstraction overhead framing. Eliminating abstraction
-overhead is important, so is using the fastest RNG you can possibly use.
-}
+%\jwc{
+%Let's lead on with the quote from PBT in practice: performance engineering
+%matters.  De-emphasize the abstraction overhead framing. Eliminating abstraction
+%overhead is important, so is using the fastest RNG you can possibly use.
+%}
 
-\jwc{``Property based testing is a race against time...''}
+%\jwc{``Property based testing is a race against time...''}
 
-Property-based testing (PBT) is a widely-used testing framework\hg{PBT isn't a
-framework, it's a ``technique'' or ``approach'' --- Base\_QuickCheck is a framework} consisting of
-two key components: a set of \textit{properties} that a system must satisfy, and
-a way of producing
-a large number of \textit{inputs} to that system. In contrast to traditional
-unit testing, where test inputs are hand-written, PBT users create a random input
-\textit{generator} that automatically produces inputs. Sometimes, this process
-can itself be automated through the use of PBT libraries that synthesize
-generators from type definitions; however, when inputs are required to maintain
-invariants not communicated by the type, users must write a custom generator (or
-filter out a broad class of invalid inputs).
+Property-based testing (PBT) is a technique for software testing which uses
+random test inputs to evaluate logical properties that the system is expected to
+satisfy.  Recent studies on PBT usage~\cite{inpractice} have shown that
+practitioners interleave PBT with their software development process, sometimes
+testing their properties every time they save their code. This workflow makes
+sense because the developer who just wrote the code is often the best person to
+fix a potental bug; if a bug is found later, it will need to be fixed by someone
+with less context.  All of this means that PBT is often run with very short time
+budgets --- e.g., between 50 milliseconds and 30 seconds --- and it is important
+that bugs can be found in that time-frame.
+\jwc{phrasing could suggest ``race against time'' aspect.}\hg{Agree, can't see
+how to fit this in yet}
 
-\hg{I think this paragraph buries the lede. I'd start the paragraph talking
-about performance and citing the 50ms number, and then jump right into what's
-slow.}
-Writing ``good'' generators—ones that successfully uncover bugs in the system under
-test—is challenging. Much effort has been dedicated to this problem, often by
-developing sophisticated domain-specific languages for specifying constrained
-generators. However, these approaches do not always reflect the needs of real
-PBT users. Under ideal conditions, a PBT suite would continue to run
-until it stopped finding bugs, real-world usage patterns are very different; a
-study of expert PBT users reported time budgets of between 50 milliseconds and
-30 seconds for their test suites~\cite{inpractice}. Consequently, generation
-time is a significant factor in PBT efficacy---that is, if a generator can
-produce inputs twice as fast, it has twice as many chances within a given time
-bound to find a bug. Therefore, it is imperative that PBT libraries are built
-with performance in mind.
+Given these strict timelines, it is important to think of PBT as
+performance-sensitive process. One important locus for performance improvement
+is the \textit{generators} that produce random inputs to the properties under
+test. These generators are written with the help of \textit{generator
+libraries}, usually expressed as embedded domain-specific languages (DSLs) that
+provide combinators for building and composing generators. Optimizing these
+libraries is a key opportunity to speed up PBT: if programmers are
+provided with the tools to write fast generators, then they do not themselves
+need to be experts in performance tuning. \jwc{... to find bugs fast}
 
-To better understand and address performance challenges in the landscape of PBT
-generators, we explore popular libraries across several widely-used programming
-languages.\hg{Again, this sentence also starts the paragraph too slowly; rather than
-focus on our exploration (which isn't really the point of the paper) lead with
-the result --- that abstraction overhead, boxing/unboxing, and allocations slow
-down QuickCheck ports} We find that the flexibility of these libraries comes at a cost to 
-performance,
-introducing abstraction overhead, frequent boxing and unboxing, and avoidable
-allocations (which lead to costly garbage collection pauses). We focus primarily 
-on OCaml's \bq, selected for its efficiency relative to other OCaml PBT libraries 
-and its integration with industrial build systems\hg{Let's not try to justify
-our choice of OCaml \bq here --- we should just talk about strict functional
-languages and justify this choice later}, where it is expected to run 
-within tight time constraints. These
-inefficiencies raise a fundamental question: how can PBT libraries produce code
-that is both efficient \textit{and} general? By analyzing
-\bq\ and similar libraries in other languages \tr{Rust?
-More?}, we provide a broader perspective on common performance challenges in PBT
-and explore potential strategies for more efficient generator implementations.
+We find that the performance of existing generator libraries falls short of what
+is possible. This is due to two major sources of inefficiency.
+First, the same high-level design that gives generator libraries their
+flexibility and expressiveness also introduces overhead: layered abstractions
+and indirections hinder the compiler's optimizations, shifting more work to
+runtime.
+Second, the \rand that underlies the generator's operation --- the source of
+random numbers that are used to make choices in the generator --- 
+can constitute an unexpectedly high proportion of a generator's runtime.
+\iflater
+\hg{TODO later, I'm not 100\% sure it's clear how this particular question is
+raised by the above. We could strengthen that connection}
+\fi
+These observations together raise a fundamental question: can generator
+libraries produce code that is both expressive \textit{and} efficient?
+%In practice, PBT is used 
+%as a lightweight, ad hoc approach to software correctness,
+%\jwc{Move this bit about how it's used to the first sentence. I.e. PBT is a testing technqique where random data is fed to a system under test...}
+%aimed at 
+%detecting bugs within a short testing window---typically 50 milliseconds 
+%to 30 seconds. \jwc{This sells us a little short: we should say something to the effect of ``Recent work on understanding how PBT is used in practice has determined that practitioners often run PBT with very short time budgets...''} Given this practical constraint, it is imperative that 
+%inputs be generated as fast as possible; in other words, generators must be 
+%treated as performance-sensitive code.
 
-Our solution is \name, a generator library\hg{Can we say ``an approach to PBT
-generator libraries'' or something more general like that?} that preserves
-\bq’s functionality while improving performance through
-\textit{multi-stage programming} (staging). Staging is a lightweight,
-domain-specific compilation technique that allows us to completely eliminate the
-runtime overhead of many common generator abstractions. \jwc{This relies on the fact that the code of generators is known statically at compile time} For instance, in
-\name, monadic operations are zero-cost.
-\name’s staged eliminates unnecessary allocations,
-generates static control structures, and leverages unboxed integer libraries to
-achieve performance improvements over \texttt{base\_quickcheck}, making it
-well-suited to real-world PBT applications.
+% The locus for improvement in this area \jwc{``This area'' sounds like it's talking about the whole area of PBT... Maybe ``a high-leverage way to improve the performance of generators is to...''} is \textit{generator libraries}: if 
 
-We \hg{also} present a new methodology for evaluating the relative effectiveness of PBT
-generators.\hg{Might be an over-claim, we'll need to write this carefully}
-Prior work has compared generators based on bug-finding ability: 
-generators are considered equally effective if they find bugs in a
-system at the same rate over a large number of trials ~\cite{etna}. However,
-because \name\ preserves the semantics of
-\bq, a \name\ generator produces exactly
-the same inputs as its \bq\ counterpart. By comparing
-generators based on \textit{program equality}, we ensure that any speedups in
-bug-finding ability stem from performance enhancements rather than variations in
-input distribution. This approach establishes a foundation for benchmarking
-optimizations that enhance performance without compromising expressiveness.
-\hg{I'm not totally convinced by this paragraph. Here's how I'd explain this:\\
-In order to justify the switching cost associated with using \name, we designed
-\name\ to be incredibly easy to benchmark: most PBT generator optimizations make
-changes up to {\em distributional equivalence}, allowing the precise sampling
-order to differ as long as the probability distribution is maintained, but
-\name's optimizations are correct up to {\em program equivalence}. This means
-that a \name\ generator produces precisely the same values in the same order as
-the original generator, only faster. With this setup, benchmarking becomes
-significantly easier than for prior work---our measurements have incredibly low
-variance, and performance gains from \name\ translate directly to improved
-bug-finding speed.}
+  % in strict functionallanguages like OCaml and Scal
+To address this question, we propose a two-pronged approach for designing
+generator libraries that preserves their expressiveness while eliminating
+unnecessary overhead.
+First, we describe a method of optimizing generator libraries using
+\textit{multi-stage programming}, or ``staging,'' which has long been used for
+optimizing idiomatic functional DSLs~\cn.
+We extend this technique to generators, completely eliminating the overhead of
+many common generator abstractions. For example, in unstaged generator
+libraries, each call to monadic bind usually spends time constructing and
+immediately executing a closure at runtime. \jwc{Todo: joe --- cite some evidence for this}
+Meanwhile, a staged approach can resolve the bind at compile time, enabling the
+compiler to inline and eliminate these closures.
+Secondly, we demonstrate the impact of different choices of \rand on generator
+performance by conducting a controlled comparison. \hg{More words here for
+parallelism?} Together, these insights provide a recipe for improving even
+state-of-the-art generator libraries.
 
-Finally, we conduct an extensive evaluation, implementing both type-derived and
-custom generators in \name\ and \bq. Our
-generators produce a diverse range of inputs, including recursive data
-structures, lambda calculus terms, and regular expressions. We benchmark
-generation time, resource usage, and time-to-failure for each pair of staged and
-unstaged generators, demonstrating that \name\ achieves
-significant gains in speed and resource.
+%\jwc{I think we should use return/bind as the simplest example, since then you don't have to get into the weeds of allocation or closures. The functional abstractions of a monadic generator DSL block the compiler from generating fast code.}
+%\jwc{Then present this case as ``more sophisticated use of staging'' or something?}
+%where an unstaged generator DSL might represent a choice between
+%a list of options as a dynamically-allocated array of closures, a staged 
+%generator can expand to an if-else tree at compile 
+%time---eliminating the allocation entirely.
+% This approach is not tied to any
+%particular PBT library, but rather provides a recipe for improving even
+%state-of-the-art implementations \jwc{Sentence structure doesn't follow. Instead maybe ``not any particular, but a recipe for improving in general''}.
 
-In summary, we dramatically improve the bug-finding effectiveness of PBT generators
-by optimizing them for speed. Specifically, we make the following contributions:
+%First, we demonstrate the impact of
+%RNG choice by optimizing an existing \rand. Our optimized RNG produces 
+%exactly 
+%the same values as its unoptimized counterpart, allowing us to directly 
+%measure the impact of this choice on generator performance. \jwc{Permute? I think staging \emph{then} randomness.} \jwc{Also, i don't love this as the first place we explain the drop-in equivalence of the RNG. It's unmotivated why wen want this.} 
+
+To demonstrate the effectiveness of our technique, we apply it to \bq, a
+high-quality PBT library in OCaml, authored by Jane Street.
+Our improved version, \name, is a direct drop-in replacement for
+\bq that 
+is \textit{completely semantically equivalent}: that is, given identical random seeds, generators written using \name{}
+produce exactly the same sequence of values as those written in \bq. However, in \name, 
+the abstractions provided by the generator DSL are zero-cost, and the \rand is 
+highly-optimized. The direct equivalence between \name and \bq allows us to 
+perform extremely fine-grained comparisons, differences in generation speed are
+directly attributable to the staging and \rand optimizations.
+
+We evaluate the optimizations in \name with a series of case studies in each
+generator library, and show that \name runs faster than \bq.
+Further, we show that this performance benefit\hg{wc?} translates to bug-finding
+ability by running these case studies in the Etna framework~\cite{etna}, a
+platform that simulates real-world PBT usage\hg{Don't love this phrase, I'll
+think more about how we should talk about Etna} by injecting bugs into a system and
+measuring how quickly various generators detect them.
+Finally, to demonstrate the generality of our technique, we implement a version
+of \name in Scala \hg{(based on scalacheck?)} and benchmark the same generators
+in the Scala port of the library---thereby highlighting its portability to other
+strict functional languages.
+\iflater
+\jwc{I think we should more explicitly point out the portability earlier, maybe
+up where we say we're applying it to BQ.}\hg{Agree}
+\fi
+
+In summary, we show that monadic PBT generator DSLs incur significant performance costs across languages, and present a general technique for improving their efficiency while preserving their idiomatic abstractions.
+We make the following contributions:
 \begin{enumerate}
-    \item An empirical analysis of the sources of inefficiency in PBT
-    generators. \jwc{And an argument that PBT generator libraries should be
-    engineered for performance}
-    \hg{Let's talk about this, I'm not sure I buy it}
-    \item A library, \name, which offers efficient \jwc{performant?} generator \proposechange{functions}{combinators} through the
-    use of multi-stage programming; this is the first known application of
-    staging to PBT.\hg{Let's also talk about this}
-    \item The insight that generators should be compared by program equality
-    \item An evaluation demonstrating the improved performance of generators constructed
-    using our library in a controlled comparison.
+    \item We identify two key sources of inefficiencies in PBT generator libraries, which can significantly impact performance: 
+    namely, \rand choice, and abstraction overhead \jwc{Swap}. \secref{section:motiv}
+    \item We apply multi-stage programming to the novel domain of generators. \jwc{Less sure this should be a top-level conrib.} \secref{section:}
+    \item We implement a version of \bq, \name, that showcases our optimization technique \jwc{Calling it an ``optimization technique'' begs the ``so they just made a thing faster'' question} while maintaining strict program equality. \secref{section:4}
+    \jwc{We implement \emph{two} versions of \name{}! Once for BQ and once for ScalaCheck.}
+    \item We evaluate \name by demonstrating the improved performance of generators constructed
+    using our library in a controlled comparison, as well as its impact on bug-finding ability. \secref{section:eval}
 \end{enumerate}
 
-\jwc{
-  Things to ensure people come away with answers to:
-  \begin{itemize}
-    \item Is there generality?
-    \item Is this important?
-    \item Did they actually solve the problem?
-  \end{itemize}
-}
 
 \section{Background}
 
@@ -383,7 +391,8 @@ by optimizing them for speed. Specifically, we make the following contributions:
 are portable to other languages: see Section~\ref{subsection:other-langs}}
 
 \subsection{Property-Based Testing}
-\jwc{Usual spiel about pbt and generators: here's the BQ generator library, it has return and bind, this is what they're for.}
+\jwc{Usual spiel about pbt and generators: here's a monadic generic generator library (but we're using BQ to illustrage), it has return and bind, this is what they're for.}
+\jwc{You often want generators to generate for sparse precoditions so you can exercise a property reasonably well}
 
 \begin{lstlisting}
 module Bq = struct
@@ -423,8 +432,52 @@ let int_pair : (int * int) Bq.t =
 \end{lstlisting}
 
 
+\jwc{
+Explain effect ordering here!!
+\begin{itemize}
+  \item \texttt{Bq.bind} has the CBV sampling semantics
+  \item If you \texttt{Bq.bind} \texttt{x} and then use it twice, both uses refer to the \emph{same} value.
+  \item Sampling is effectful: it mutates the internal state.
+  \item Permuting two independent binds gives you a generator that is distributionally equivalent, but not equivlaent when considered up to pointwise equality as \emph{functions} from seed to value.
+  \item Note that it's much more sensible to compare the bugfinding performance of two function-equivalent generators:
+\end{itemize}
+}
+
+\jwc{
+  \begin{itemize}
+    \item PBT generator libraries include more functions than just the monad interface and sampling, libraries include helper functions.
+    \item With \texttt{weighted\_union}, to make a weighted choices, and \texttt{fixed\_point} to define recursive generators.
+    \item Also \texttt{size} and \texttt{with\_size} to adjust the size parameter --- these are useful to ensure we terminate with recursive generators.
+  \end{itemize}
+}
+
+\jwc{This section needs to explain approximately how weighted union works --- compute a sum of the weights, sample between 0 and the sum, pick
+the first element where the partial sums to the left exceeds the sampled number.
+(This has been written about a billion times, cite one of the papers about this.)
+}
+
+\begin{lstlisting}
+let tree_of g = fixed_point (fun rg ->
+  let%bind n = size in
+  weighted_union [
+    (1, return E);
+    (n,
+      let%bind x = g in
+      let%bind l = with_size (n / 2) rg in
+      let%bind r = with_size (n / 2) rg in
+      return (Node (l,x,r))
+    )
+  ]
+)
+\end{lstlisting}
+
+\jwc{This generator generates binary trees using all the combinators, yay. Explain em.}
+
+
 \subsection{Multi-Stage Programming}
 \label{subsection:msp}
+
+\jwc{I think this section should actually go later.}
 
 \jwc{
   \begin{itemize}
@@ -452,7 +505,7 @@ example, the program \texttt{.< 5 + 1 >.} has type \texttt{int code}.  Note that
 this is not the same as \texttt{.< 6 >.}. Because brackets delay computation,
 the code is not \emph{executed} until the next stage (run time).
 Values of type \texttt{code} can be combined together using \emph{escape},
-written \texttt{.\~{}($\ldots$)}.  Escape lets you take a value of type
+written \texttt{.\~{}(e)} (or just \texttt{.\~{}x}, when \texttt{x} is a variable).  Escape lets you take a value of type
 \texttt{code}, and ``splice'' it directly into a quote.  For example, this
 program \texttt{let x = .<1 * 5>. in .< .\~{}(x) + .\~{}(x) >.} evaluates to
 \texttt{.<(1 * 5) + (1 * 5)>.}.  MetaOCaml ensures correct scoping and macro
@@ -530,12 +583,14 @@ can ensure that any overhead of using them is eliminated by run time.
   \end{itemize}
 }
 
-\section{Why are Monadic Generator Libraries Slow?}
+\section{Sources of Inefficiency in Monadic Generator Libraries}
+\label{section:motiv}
 \jwc{Why is a monadic generator library slow?}
 \jwc{NOTE: We can simplify this further by getting rid of the size parameter. Make the story even cleaner, I think!}
 
 \jwc{IMPORTANT: We are using OCaml because we have to pick a syntax for this section, but these abstraction overheads exist in other languages -- at least scala, rust.}
 
+\subsection{Monadic DSL Abstraction Overhead}
 \jwc{
   \begin{itemize}
     \item It's been long-known that clean functional abstractions have a runtime overhead (this should be familiar by this time in the paper).
@@ -611,169 +666,158 @@ This doesn't even account for more inlining we could do to eliminate the boxing/
 
 
 \jwc{
-The problem is plain: while the abstractions that PBT libraries like base quickcheck provide are indespensible for writing idiomatic generators, the performance overhead of using them is dramatic.
+The problem is plain: while the monadic abstraction that PBT libraries like base quickcheck provide are indespensible for writing idiomatic generators, the performance overhead of using them is dramatic.
 Modern compilers use heuristics to decide when to specialize and inline code \cn, and these heuristics cannot guarantee that generator abstractions are zero-cost.
 These heuristics are also necessarily conservative about inlining and specializing recursive functions, which all generators of recursive data types must be.
 }
 
 \tr{Each of these consist of an explanation of the problem and pseudocode outlining the solution.}
-\subsubsection{Monadic DSL Abstraction Overhead}
 
 \jwc{
   \begin{itemize}
     \item While it's the ``correct'' abstraction for generators, using a monadic interface prevents the compiler from specializing generator code. Using monadic bind and return obscures the control and data flow of a generator from the compiler. This is
     compounded when handling recursive functions.
     \item In cases where the compiler cannot statically eliminate them, running a monadic bind allocates a short-lived closure: we allocate a closure for the continuation, and then immediately jump into it.
-    \item Each closure allocation is relatively cheap (they're going to be minor allocations since they're short-lived), but doing lots of allocation in a generation hot loop adds up fast.
+    \item Each closure allocation is relatively cheap, but doing lots of allocation in a generation hot loop adds up fast.
     \item Similar things have been noticed about monadic parsing DSLs in the past.
   \end{itemize}
 }
 
-\subsubsection{Combinator Abstraction Overhead}
-\jwc{Many combinators like \texttt{union} and \texttt{weighted\_union} needlessly allocate large data structures in the generation hot path.
-Using a combination of staging and more careful algorithm design, we can avoid this overhead.
-}
-\jwc{Ensure this discussion is initially multi-language, but uses OCaml to demo.}
-
-\begin{lstlisting}
-  let of_weighted_list alist =
-  let weights, values = List.unzip alist in
-  let value_array = Array.of_list values in
-  let total_weight, cumulative_weight_array =
-    let array = Array.init (Array.length value_array) ~f:(fun _ -> 0.) in
-    let sum =
-      List.foldi weights ~init:0. ~f:(fun index acc weight ->
-        let acc' = acc +. weight in
-        array.(index) <- acc';
-        acc'
-      )
-    in
-    sum, array
-  in
-  create (fun ~size:_ ~random ->
-    let choice = Splittable_random.float random ~lo:0. ~hi:total_weight in
-    match
-      Array.binary_search
-        cumulative_weight_array
-        ~compare:Float.compare
-        `First_greater_than_or_equal_to
-        choice
-    with
-    | Some index -> value_array.(index)
-    | None -> assert false
-   )
-\end{lstlisting}
-
-\jwc{This builds the cdf of the distribution, samples from 0 to the total, and binary searches through the array to find the bucket.}
-\jwc{Allocating this array is unnecessary: we can simply compute the total weight, sample \texttt{x} between 0 and the total, and then walk the list accumulating the sum, until the accumulator exceeds \texttt{x}. Since in practice the list of possible options is quite small (usually at most 10 in practice), the linear time scan is going to be much faster.}
-\jwc{(The point of this para will just be to emphasize that it's almost always better to be allocation-aware, instead of algorithmically clever.)}
-
-\jwc{Moreover, the possible options is almost always statically known in practice: you use weightedunion to generate (say) a datatype with possible
-variants, whose options are known at compile time.
-Put more simply, you basically always call weighted union with an \emph{explicit list}: For this reason, you should not have to incur the cost of allocating this list at runtime.}
-
-\jwc{ofc, sometimes you only know the list at runtime (see the STLC generator for an example), so you the library also includes this.}
-
-% \subsubsection{Function call overhead}
-\subsubsection{Choice of RNG}
+\subsection{Combinator Abstraction Overhead}
 
 \jwc{
-  \begin{itemize}
-    \item Because the RNG sits at the heart of the generation hot path, RNG
-    speed matters enormously. Which RNG you pick matters...
-    \item Different PBT libraries use different RNGs --- QuickCheck and \bq use
-    splittable random, Scalacheck uses \href{https://burtleburtle.net/bob/rand/smallprng.html}{this one}.  These
-    are reasonably performant RNGs, but faster ones exist. Because this is the
-    core of the hot path of the generator, speeding up sampling just a little can
-    can dramatically speed up generation time.
-    \item Significantly faster RNGs that still pass pRNG benchmarks like BigCrush exist (like \href{https://github.com/lemire/testingRNG/blob/master/source/lehmer64.h}{this one}), and using them can 
-    speed up generation enormously.
-    \item However, showing this is tricky, because different RNGs have different sampling orders, but our
-    eval is made much stronger by the fact that all of our generators are functionally equivalent.
-    \item In this paper demonstrate this fact by noticing a ``natural experiment'': OCaml's splittable random library is
-    slow in a way that can be improved \emph{without} changing the extensional behavior. By resolving this issue, we can demonstrate
-    just how much you can improve bug-finding performance simply by speeding up the RNG.
-  \end{itemize}
+Aside from the usual fact that the compiler can't ``see through'' the abstraction boundary to specialize, combinators like union and weighted union
+necessarily allocate a lot in the generation hot path.
+Even without the dumb BQ array thing, to call union and weighted union, the types mean that you have to allocate a list.
+These allocations are extremely costly, and happen every sample from the generator. If the generator is recursive (like the tree generator), they occur at each recursive call.
 }
 
-\jwc{The inefficiency of BQ's RNG presents a ``natural experiment'' (in the
-sense of economics): we can demonstrate how using a faster RNG can improve
-bugfinding time, but while maintainign program equivlanece. (This should go in the last paragraph here...)}
+\jwc{In practice, the possible options are almost always statically known: in the binary tree generator from earlier, we can tell from the text of the code what
+the weights are, what the generators are, and how many there are.
+Put more simply, you basically always call weighted union with an \emph{explicit list}, which is then immediately traversed by the weighted union. For this reason, you should not have to incur the cost of allocating this list at runtime.
+However, almost no compilers (GHC is a notable exception) can figure this out and eliminate the list \cn (list fusion).
+}
 
-The core of any PBT generator library is a random-number generator. Following
-the original Haskell QuickCheck, \bq uses the SplitMix algorithm \cn,
-implemented as an OCaml library called \texttt{Splittable\_random}. The precise
-details of how SplitMix works are unimportant for the present paper, but the
-main operations are defined in terms of bitwise operations on 64-bit integers.
-However, due to implementation details related to the garbage collector, all
-runtime OCaml values are either (a) pointers to a block of memory, or (b) 63-bit ``immediate'' values.
-As such, the OCaml type of 64-bit ingeters, \texttt{int64}, is \emph{boxed}: it
-is a pointer to a block of memory that contains a 64-bit integer.  This means
+
+% \jwc{This builds the cdf of the distribution, samples from 0 to the total, and binary searches through the array to find the bucket.}
+% \jwc{Allocating this array is unnecessary: we can simply compute the total weight, sample \texttt{x} between 0 and the total, and then walk the list accumulating the sum, until the accumulator exceeds \texttt{x}. Since in practice the list of possible options is quite small (usually at most 10 in practice), the linear time scan is going to be much faster.}
+% \jwc{(The point of this para will just be to emphasize that it's almost always better to be allocation-aware, instead of algorithmically clever.)}
+
+
+% \subsubsection{Function call overhead}
+\subsection{Choice of Randomness Library}
+\jwc{We really need to have explained the effect ordering equivalence aspect of the evaluation before here.}
+
+The core of any PBT generator library is a source of randomness: to generate
+random values of some datatype, we some access to random numbers!
+Different PBT libraries use different randomness libraries implementing different algorithms
+\footnote{The common term for such an algorithm or library is a ``Random Number
+Generator'' (RNG) we will avoid this term and instead say ``randomness library''
+to avoid confusing RNG implementations with the PBT gnenerator libraries that
+use them.}.
+Following the original Haskell QuickCheck implementation, \bq\ uses the SplitMix
+algorithm \cn, implemented as a (stateful) OCaml library called \texttt{Splittable\_random}. Meanwhile,
+ScalaCheck uses the JSF algorithm \cn.
+% https://www.pcg-random.org/posts/bob-jenkins-small-prng-passes-practrand.html
+% https://burtleburtle.net/bob/rand/smallprng.html
+
+The randomness library sits at the heart of the hot path.
+Even basic generators --- like ones generating a single \texttt{int} or \texttt{float} uniformly within a range --- can sample \emph{unboundedly many}
+random numbers, since they usually use versions of rejection sampling to find a value within the range \cn.
+Moreover, generator combinators like \texttt{list} usually make $O(n)$ calls to even those basic generators.
+Because of this, the speed of a single sample matters a great deal. Unfortunately,
+existing PBT libraries make relatively inefficient choices on this front,
+leading to worse bugfinding power than what is possible.
+
+\hg{This paragraph feels a bit clumsy right now. What if we started with a table
+of the RNGs used by a bunch of popular PBT frameworks and then argued that
+things like Lehmer are faster?}
+
+For example, significantly faster algorithms than SplitMix or JSF exist,
+such as the Lehmer algorithm\cn. In microbenchmarks, the Lehmer algorithm runs almost 2x as fast as SplitMix \cn.
+% https://github.com/lemire/testingRNG/tree/master
+Moreover, PBT libraries could even consider eschewing the requirement that a source of
+entropy pass statistical tests like BigCrush\cn. \hg{This needs more discussion} 
+This is common practice in other areas of testing already:
+fuzzers often simply use a buffer full of arbitrary bytes as a source of entropy
+\cn. Such approaches are also faster than algorithms like SplitMix: bumping a
+pointer and reading from memory (which can be pipelined trivially) will always
+be faster on modern CPUs than any random sampling algorithm with data-dependent arithmetic
+instructions.\hg{Should we just always be doing this? I think we want to argue
+that this is a bridge too far because you still need to generate the buffer
+ahead of time and you can run out of randomness?}
+
+Of course, simply arguing that the randomness library is on the hot
+path does not guarantee that a faster sampling leads to measurably faster
+generation; for that, we need an experiment. The most obvious experiment is to
+simply swap out the randomness library for \bq{} with a totally different, faster one. But, as
+discussed previously, generators with different generation orders can be
+difficult to compare. To get around this, we exploit a ``natural experiment:
+OCaml's \texttt{Splittable\_random} library is slow in a way that
+can be improved \emph{without} changing its extensional behavior.
+In particular,
+due to implementation details related to the OCaml garbage collector,
+values of the OCaml type \texttt{int64} are not machine words, but rather
+\emph{pointers} to machine words. This means
 that \emph{all} \texttt{int64} operations (both arithmetic and bitwise) must
-allocate memory cells to contain their output.
+allocate memory cells to contain their output, which has a significant performance benefit.
+By building a version that uses much faster ``unboxed'' 64-bit integer arithmetic, we can demonstrate just how much bug-finding
+performance can be improved just by using a more performant randomness library.
 
-This has a significant impact on the performance of generators. A single call to
-one of the \bq library functions may sample from \texttt{Splittable\_random}
-multiple times, and each sample from \texttt{Splittable\_random} allocates 9
-words \jwc{this is a call to \texttt{next\_int64}}.  While seemingly small, we
-will see in Section~\ref{section:eval} that this amount of allocation has a
-significant impact on significant.
-
-In Section~\ref{subsection:faster-rng}, we show how our library mitigates this
-performance hit by using OCaml's FFI to reimplement the RNG in non-allocating C code.
-We also discuss how the ``unboxed types'' extension to the OCaml compiler \cn could instead be used
-to the same effect without leaving OCaml.
-
-It is worth noting that the inefficiency of boxed \texttt{int64}s is not due to
-the abstraction overhead of the generator DSL itself, but simply due to language
-implementation and algorithm choices. We include this discussion --- and
-the corresponding evaluation
---- to demonstrate the testing-time savings of taking seriously the notion that PBT libraries
-should be engineered for performance.
-
-\jwc{If you're not using the fasteest RNG possible, you're leaving RNG on the table.}
-
-\section{Eliminating Abstraction Overhead of Generator DSLs by Staging}
+\section{Eliminating Abstraction Overhead of Generator DSLs by Staging and Faster Randomness Libraries}
+\jwc{This section needs a much better title...}
 \jwc{Emphasize that this is an \emph{COMPLETELY EQUIVALENT drop in replacement!} We din't just build a different library with different distributions.}
 
 \jwc{Usual introduction to this section, corresponding to how we talked about it in the intro. ``We present a library that XYZ''.}
 
-\subsection{Basic Design}
+\hg{TODO: Signposting --- I got a few paragraphs in and realized I wasn't sure what I was reading}
 
-Recall that staging a DSL requires carefully changing some of the types and
-combinators to transform \texttt{code}s.  Deciding which types \texttt{t} can
-instead be \texttt{t code} is an art known as ``binding-time analysis'' \cn:
+\subsection{Design of a Staged Generator DSL}
+\label{subsection:basic-design}
+Recall that staging a DSL involves changing the
+combinators to run at compile time by carefully annotating their types with \texttt{code}s.
+Deciding which types \texttt{t} can
+instead be \texttt{t code} --- in other words,
 figuring out which parts of the DSL can be determined statically (and can be
 part of the compile-time stage), and which parts are only known dynamically (and
-hence must be \texttt{code}).
+hence must be \texttt{code}) --- is an art known as ``binding-time analysis'' \cn.
 
 The crux of our binding time analysis is that the particular random seed and
 size parameter \jwc{if explained} are only known at run time (the later stage),
-but the code of the generator itself is known at compile time. Generators ---
-values of type \texttt{'a Bq.t} --- are never constructed dynamically at run
-time in practice, so all of the combinators we use to build them can run at compile time.
+but the code of the generator itself is known at compile time.\hg{Are we going
+to talk more about how we did this analysis?} \jwc{Well it's sort of right here: you just think about it, it's the same thing as staging a parser too.}
+Generators ---
+values of type \texttt{'a Bq.t} --- are always constructed statically in practice,
+so all of the combinators we use to build them can run at compile time.
 
 This means our library's generator type \texttt{'a
-Gen.t} should be \texttt{int code -> SR.t code -> 'a code}: a compile-time
+Gen.t} should have the type \texttt{int code -> SR.t code -> 'a code}: a compile-time
 function from dynamically-known size and seed to dynamically-determined result.
 
 This type, along with basic monadic generator DSL functionality can be found in Figure~\ref{fig:gen-staged-basic}.
 The monadic interface is given by a return and bind, as usual.
-\texttt{return} is the constant generator, but this time it operates on codes. Given \texttt{cx : 'a code}, the code for a \texttt{'a}, it returns the generator which always generates that value.
+\texttt{Return} is the constant generator, but this time it 
+runs at compile time. Given \texttt{cx : 'a code}, the code for a \texttt{'a}, it
+returns the generator which always generates that value.
 \texttt{bind g k} sequences generators by passing the result of running the generator \texttt{g} to a continuation \texttt{k}. However, instead of getting access
 to the particular value generated by \texttt{g}, the continuation \texttt{k} gets access to \texttt{code} for the value sampled from \texttt{g}:
-at compile time, we only know \texttt{g} will generate \emph{some} \texttt{'a}, but not which one.
+at compile time, we only know \texttt{g} will generate \emph{some} \texttt{'a}, but not which one \footnote{Readers familiar with OCaml may notice that \texttt{return : 'a code -> 'a Gen.t} and \texttt{bind : 'a Gen.t -> ('a code -> 'b Gen.t) -> 'b Gen.t}
+do not have the correct types for a monad instance, preventing us from using \texttt{let\%bind} notation. We rectify this issue in Section~\ref{subsection:codecps} by importing some clever ideas from the staging literature.}.
 Operationally, bind takes code for the size and seed, and returns code that (1) let-binds a variable \texttt{a} to spliced-in code that runs \texttt{g}, and then
 (2) runs the spliced-in continuation \texttt{k}.
 Both function applications \texttt{g size\_c random\_c}
 and \texttt{k .<a>. size\_c random\_c} run at compile time.
-\texttt{Gen.int} is the generator that samples an int from the RNG.
+\texttt{Gen.int} is the generator that samples an int from the randomness library.
 Given any size and random seed, it returns a code block that calls \texttt{SR.int} with that random seed. Because the lower and upper bounds
 might not be known at compile time --- they may themselves be the results of calling \texttt{Gen.int} ---
 the arguments \texttt{lo} and \texttt{hi} are of type \texttt{int code}, and get spliced into the code block as arguments to \texttt{SR.int}.
-Lastly, \texttt{to\_bq} turns a staged generator into code for a normal \bq
+Lastly, \texttt{to\_bq} turns a staged generator into code for a normal \bq\
 generator. This function is just a 2-argument version of ``The Trick'' (\texttt{eta}
 from Section~\ref{subsection:msp}).
+\hg{TODO: Be really careful with formatting of the above paragraph. It's very
+easy for some inline code to get split weirdly over a line break or just be
+difficult to parse in general, and that could throw the reader off when the
+content is already pretty low-level}
 
 
 \begin{figure}
@@ -804,150 +848,218 @@ end
 \ref{fig:gen-staged-basic}
 \end{figure}
 
-Returning to our running example, we can define a staged generator for pairs of ints
+Returning to our running example, Figure~\ref{fig:running-staged} shows the
+int-pair example written with the staged \texttt{Gen.t} monad, as well as the
+inlined code that results from calling \texttt{Gen.to\_bq} (changing some identifier names for clarity).
+The code generated is identical to the manually inlined version from Section~\ref{section:motiv}, and of course runs equally fast.
 
+\begin{figure}
 \begin{lstlisting}
-let int_pair_staged : ((int * int) code) Gen.t =
+let int_pair_staged : (int * int) Gen.t =
   Gen.bind (Gen.int .<0>. .<100>.) (fun cx ->
     Gen.bind (Gen.int .<0> cx) (fun cy ->
       Gen.return .<(.~cx,.~cy)>.
     )
   )
+
 let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
-====
-.<
-  fun size random ->
-    let x = SR.int random 0 100 in
-    let y = SR.int random 0 x in
-    (x,y)
-.>
+(* .< fun size random ->
+        let x = SR.int random 0 100 in
+        let y = SR.int random 0 x in
+        (x,y)
+    >.
+*)
 \end{lstlisting}
+\caption{Pairs of Ints, Staged}
+\ref{fig:running-staged}
+\end{figure}
 
-\jwc{Changing some identifier names }
+\jwc{Is there anything more we need to say here?}
 
-\jwc{So if you write with the \texttt{Gen} combinators and then only call \texttt{to\_bq} at the end, you get something that inlines everything all the way down!}
+\subsection{Staging Combinators}
 
-\subsection{Staging More Combinators}
+In Section~\ref{section:motiv}, we noted that generator combinators like \texttt{weighted\_union}
+must allocate lists in the hot path of the generator. Even though these lists are often small ---
+usually at most a few dozen elements in practice --- each allocation takes us closer to the next garbage collection.
 
-\jwc{Weighted unions: recall that we should not need to materialize}
+This is an ideal opportunity to exercise another use of staging: compile-time specialization.
+Since we almost always know the particular list of choices at compile time, a staged version of \texttt{weighted\_union}
+can generate \emph{different code} depending on the number of generators in the union.
+If we use weighted union on a compile-time list of generators \texttt{g1}, \texttt{g2}, and \texttt{g3},
+we can emit code that picks between the generators without realizing the list at
+run time.
 
-% let rec genpick n ws =
-% match ws with
-% | [] -> { rand_gen = fun ~size_c:_ ~random_c:_ -> Codecps.return .< failwith "Fell of the end of pick list" >. }
-% | (k,g) :: ws' ->
-%       { rand_gen = 
-%         fun ~size_c ~random_c ->
-%           Codecps.bind (Codecps.split_bool .< Float.compare .~(v2c n) .~(v2c k) <= 0 >.) (fun leq ->
-%             if leq then
-%               g.rand_gen ~size_c ~random_c
-%             else
-%               Codecps.bind (Codecps.let_insertv .< .~(v2c n) -. .~(v2c k) >.) @@ fun n' ->
-%               (* let%bind n' =  in *)
-%               (genpick n' ws').rand_gen ~size_c ~random_c
-%         )
-%       }
-
+\begin{figure}
 \begin{lstlisting}
-  let weighted_union (weighted_elts : (float code * 'a code) list) : 'a t =
-    let sum_code = List.foldr _ in
-    let pick (rc : int code) (weighted_elts : (float code * 'a code) list) : 'a code =
-      match weighted_elts with
-      | [] -> .< failwith "Error" >.
-      | (wc,xc) :: elts' ->
-        .<
-          if .~rc <= .~wc then .~xc
-          else
-            let r' = .~rc - .~wc in
-            .~(go .<r'>. elts')
-        >.
+module Gen =
+$\dots$
+  let pick (acc : int code) (weighted_gens : (int code * 'a t) list) (size : int code) (random : Sr.t code) : 'a code =
+    match weighted_gens with
+    | [] -> .< failwith "Error" >.
+    | (wc,g) :: gens' ->
+      .<
+        if .~acc <= .~wc then .~(g size random)
+        else
+          let acc' = .~acc - .~wc in
+          .~(pick .<acc'>. gens' size random)
+      >.
 
-    fun size_c random_c ->
+  let weighted_union (weighted_gens : (int code * 'a t) list) : 'a t =
+    let sum_code = List.foldr (fun acc (w,_) -> .<.~acc + .~w>. ) .<0>. weighted_gens in
+    fun size random ->
       .<
         let sum = .~sum_code in
         let r = SR.int .~random_c 0 sum in
-        .~(pick .<r>. weighted_elts)
+        .~(pick .<r>. weighted_gens size random)
       >.
 \end{lstlisting}
+\caption{Staged Weighted Union}
+\label{fig:staged-weighted-union}
+\end{figure}
 
-Then, if we write
+Figure~\ref{fig:staged-weighted-union} shows the code for such a staged weighted union.
+Crucially, it takes a \emph{compile-time} list \texttt{weighted\_gens} of
+generators and weights. The weights themselves might only be known at run time --- it is
+common to use the current size parameter as a weight, for instance ---
+so they are \texttt{code}s.
+\texttt{Gen.weighted\_union} begins by computing \texttt{sum\_code}, an \texttt{int code}
+that is the sum of the weights. Note that this happens at compile time: we fold over a list
+known at compile time to produce another code value. 
+We then call \texttt{SR.int} to sample a random number \texttt{r} between \texttt{0} and the sum.
+Finally, we splice in the result of calling the helper function \texttt{pick}. \texttt{pick}
+produces a tree of \texttt{if}s by again traversing the list of generators at compile time.
+This tree of \texttt{ifs} ``searches'' for the generator corresponding to the
+sampled value \texttt{r}, and then runs it.
+\hg{I'm not sure this helps me. I think I'd prefer a less detailed explanation
+of the code that conveys the intuition and let the reader actually read the code
+if they want to know specifics. As it stands the explanation is just too dense
+for me to process}
 
+Figure~\ref{fig:staged-weighted-union-example} demonstrates a use of this staged weighted union.
+Given a list (in this case constant) generators with weights ``the current size parameter'', \texttt{2}, and \texttt{1},
+the generated code first computes the sum of these numbers, samples between \texttt{0} and the sum, and then
+traverses a tree of three \texttt{if}s to find the correct value to return.
+
+\begin{figure}
 \begin{lstlisting}
-let grades : charBq.t gen = to_bq (
-  weighted_union [
-    (.<3.0>., .<'a'>.);
-    (.<2.0>., .<'b'>.);
-    (.<1.0>., .<'c'>.);
-  ]
+let grades : char Bq.t = Gen.to_bq (
+  Gen.bind size (fun n ->
+    Gen.weighted_union [
+      (n, Gen.return .<'a'>.);
+      (.<2>., Gen.return .<'b'>.);
+      (.<1>., Gen.return .<'c'>.);
+    ]
+  )
 )
-===
-Bq.create (
-  fun size random ->
-    let sum = 3.0 + 2.0 + 1.0 in
+(*
+.< fun size random ->
+    let sum = size + 2 + 1 + 0 in
     let r = SR.int random 0 sum in
-    if r <= 3.0 then 'a'
+    if r <= size then 'a'
     else
-      let r' = r - 3.0 in
-      if r' <= 2.0 then 'b'
+      let r' = r - size in
+      if r' <= 2 then 'b'
       else
-        let r'' = r' - 2.0 in
-        if r'' <= 1.0 then 'c'
+        let r'' = r' - 2 in
+        if r'' <= 1 then 'c'
         else
           failwith "Error"
-)
-\end{lstlisting}
+>.
+*)
+\end{lstlisting} 
+\caption{Use of Staged Weighted Union}
+\label{fig:staged-weighted-union-example}
+\end{figure}
 
-\subsection{Effect Ordering, and Equivalence is Program Equality}
-\jwc{``Wait, why was the defintion of bind like that''?
-Careful readers might note that the definition of bind was a little strange. In particular, why not just do this?}
-\begin{lstlisting}
-  let bind (g : 'a gen) (k : 'a code -> 'b gen) : 'b gen =
-    fun size_c random_c ->
-      k (g size_c random_c) size_c random_c
-\end{lstlisting}
-\jwc{The answer is that this doesn't generate the right code! In particular, this definition of bind means that
-\texttt{bind (int 0 1) (fun x -> return .<(.~x,.~x)>.)} would generate \texttt{fun size random -> (int random 0 1, int random 0 1)},
-which is \emph{not} the desired behavior. (Cite cbn/cbv randomness here).
-A splice is a (hygenic) syntactic replacment, so
-if a function \texttt{f : 'a code -> 'b code} splices its argument multiple times into its output, the argument code will be directly copied in.
-This is why we insert a let-binding in the definition of bind, to ensure that
-the explicit sequencing of bind is preserved into explicit sequencing in the
-generated code.
-}
+\subsection{Let-Insertion and Effect Ordering}
+Careful readers might note that the definition of \texttt{bind} in Section~\ref{subsection:basic-design}
+was more complicated than one might expect. In particular, why not define bind in a more standard way: as
+\texttt{let bind' g k = fun size random -> k (g size random) size random}, without the code block
+that let-binds the spliced code \texttt{.\~{}(g size random)}?\hg{Need to spell
+this out --- the vast majority of readers won't have that precise question in
+their heads. Might even be worth comparing the two implementations here side by side}
+Unfortunately, using \texttt{Gen.bind'} leads to incorrect code being generated.
+For example, consider \texttt{Gen.bind' (Gen.int .<0>. .<1>.) (fun x -> Gen.return .<(.~x,.~x)>.)}.
+This generates the run time code \texttt{fun size random -> (SR.int random 0 1, int SR.random 0 1)},
+which is incorrect. 
+This is not equivalent to the behavior of writing the same code with base quickcheck \jwc{Which is a property we want to hold for our eval.}.
+Instead of generating a single integer and returning it twice, it samples two different integers.
 
-\jwc{
-The library is carefully design to preserve exactly the effect order of BQ. If
-you write the same generator in both, they run identically: for the same size
-and random seed, they produce the same value.
-}
+This problem is intimately related to nondeterministic effects in the presence of CBN/CBV evaluation ordering \cn.
+In essence, the behavior of splice \texttt{.\~{}cx} in a staged function \texttt{f(cx : 'a code) = ...} is to \emph{copy}
+the entire block of code, effects and all. To ensure that the randomness effects of the first generator are executed only once,
+but that the value can be used in the continuation multiple times, \texttt{bind} let-binds the result of generation to a variable,
+and then passes that to the continuation.
 
-\jwc{Note: tradeoff between maintaining the effect ordering and even more performance.}
+The library \jwc{ensure this is consistent with the way we talk about the project, cf cross-language} is careully designed to 
+preserve exactly the effect order of base quickcheck \jwc{and the scala version to preserve the effect ordering of ScalaCheck}.
+\jwc{This fact should go earlier. Not really sure about where this subsection should actually land, but it needs to be said somehwere.}
+\hg{+1, I think this feels sort of out of place here, but I also think moving it
+up would make that part harder to understand too. Is there a way to tie this in
+to our discussion about maintaining the precise set of choices? The two issues
+are different, but they're related}
 
-\bcp{How much faster could we go if we changed the effect ordering?
-  If it might be a lot, then should we measure this too?}
+\subsection{CodeCPS and a Monad Instance}
+\label{subsection:codecps}
+This is all great so far,\hg{too informal} but there's a subtle issue that prevents the version of the library design discussed so far
+from being used as a proper drop-in replacement for an existing generator DSL: the types of \texttt{return : 'a code -> 'a Gen.t}
+and \texttt{bind : 'a Gen.t -> ('a code -> 'b Gen.t) -> 'b Gen.t} aren't quite right.
+For the type \texttt{'a Gen.t} to actually be a monad, 
+the these types cannot mention \texttt{code}. This is not just a theoretical issue, it is a significant usability concern:
+the syntactic sugar for monadic programming (\texttt{let\%bind} in OCaml, \texttt{foreach} in Scala, \texttt{do} in Haskell, etc)
+that makes it so appealing can \emph{only} be used if the types involved are
+actually the proper monad function types.
+\hg{A pedantic reader may ask: Are we concerned with the monad {\em laws} as
+well, or just the type signature?}
 
-\subsection{Size Parameters, A Real Monad Instance, CPS, and Recursion}
+To support real monadic programming, we'll need to adjust the type of \texttt{'a Gen.t} slightly.
+An initial attempt is to try \texttt{type 'a t = int code -> SR.t code -> 'a}. If we strip the \texttt{code} off the result type,
+the functions \texttt{return (x : 'a) = fun \_ \_ -> x} and \texttt{bind (g : 'a t) (k : 'a -> 'b t) = fun size random -> k (g size random) size random}
+have the proper types for a monad instance. Then, any combinators of type \texttt{'a Gen.t} before simply become \texttt{'a code Gen.t} with this new version. \jwc{do we want a different name for the first cut?}
 
-\subsubsection{Size Parameters}
-\jwc{Introduce the size parameter here. (if you deleted it beforehand.)}
+However, this definition of bind doesn't have call-by value effect semantics, as
+discussed in the previous section!  And because the type of \texttt{g size random} is
+just \texttt{'a} (not necessarily \texttt{'a code}), we cannot perform the
+let-insertion needed to preserve the CBV effects. To solve this problem, we
+turn to a classic technique from the multistage programming literature: writing
+our staged programs in continuation-passing style \cite{bondorf92}.
+\hg{Slow down! This is all very interesting and very technical! Try making each
+of these sentences two sentences, add some citations, and maybe spell this out
+wiht an example}
+\jwc{I could, but i'm just not sure this is critical.}
 
-\subsubsection{CodeCPS and a Monad Instance}
-\jwc{
-  \begin{itemize}
-    \item Careful readers might note that the types of return and bind are not actually the right types.
-    \item This means that they aren't compatible with ppx-jane syntax.
-    \item We could try a different type, \texttt{type 'a gen = int code -> SR.t code -> 'a}. This has an actual monad instance (show), and ou can write teh combinators of before, with \texttt{'a code gen} everywhere you had \texttt{'a gen} before.
-    \item But because the result type isn't always in \texttt{code}, \texttt{bind} can't perform the let-insertion needed to preserve effect ordering.
-    \item Instead, we turn to a classic technique from the multistage programming literature: writing our staged program in continuation-passing style.
-    \item We define \texttt{type 'a codecps = 'z. ('a -> 'z code) -> 'z code}. This is the polymorphic CPS monad, with the continuation type always in `code'. (Footnote: this is an instance of the \emph{codensity} monad, cf ``Asymptotic Improvement of Computations over Free Monads'')
-    (Cite: ``improving binding times without explicit cps conversion'', ``Multi-stage programming with functors and monads: Eliminating abstraction overhead from generic code'', and ``Closure-Free Functional Programming in a Two-Level Type Theory'')
-    \item This lets us define the function \texttt{let\_insert : 'a code -> 'a codecps} as \texttt{let\_insert cx = fun k -> k .< let x = .~cx in .~(k .<x>.) >.}.
-    \item of course, \texttt{codecps} has the usual monad instance for the CPS monad with a polymorphic result type.
-    \item We then define \texttt{type 'a gen = int code -> SR.t code -> 'a codecps}, which lets us have it both ways. the effectful programs like \texttt{int} do their \emph{own} let-insertion, and we get a real monad instance.
-  \end{itemize}
-}
+In Figure~\ref{fig:codecps-and-final-gen}, we follow prior work \cite{kovacs24, carrette05} and define
+the type \texttt{'a CodeCps.t = 'z. ('a -> 'z code) -> 'z code}: a polymorphic continuation transformer with the result type
+always in \texttt{code}
+\footnote{This is an instance of the \emph{codensity} monad \cite{janis08}, a fact which deserves further investigation.}.
+The monad instance for this type is the standard instance for a CPS monad with polymorphic return type.
+In prior work, this type is often referred to as the ``code generation'' monad
+(and sometimes, ironically, called ``\texttt{Gen}'').
+This is because a value of type \texttt{('a code) CodeCps.t} is like an ``action'' that generates \texttt{code}:
+\texttt{CodeCps.run} passes the continuation transformer the identity continuation to produce a \texttt{'a code}.
+To avoid confusion with random data generators, we refer to this type as \texttt{CodeCps.t}.
+Most importantly, the \texttt{CodeCps} type supports a function \texttt{let\_insert}, which, given \texttt{cx : 'a code},
+let-binds \texttt{let x = .\~{}cx}, and then passes \texttt{.<x>.} to the
+continuation.
+\hg{I'm getting lost in the inline code again}
 
-\jwc{This gives us the final definitions:}
+We can then redefine our staged generator monad type to be
+\texttt{'a Gen.t = int code -> SR.t code -> 'a CodeCPS.t}, as shown in Figure~\ref{fig:codecps-and-final-gen}.
+\jwc{any types that were \texttt{'a Gen.t} before are now \texttt{'a code Gen.t}}.
+This gives us the best of both worlds. First, we get a monad instance for \texttt{'a Gen.t} with the correct types, which lets us
+use the monadic syntactic sugar of our chosen language. Moreover, we also get to maintain the correct
+effect ordering: effectful combinators like \texttt{Gen.int} do their \emph{own} let-insertion, ensuring
+that a program like \texttt{Gen.bind Gen.int (fun x -> ...)} generates a let-binding for the result of sampling the randomness library.
+For example, \texttt{bind (int .<0>. .<1.>) (fun cx -> return .<(.~cx,.~cx)>.)} now correctly generates
+\texttt{.< fun size random -> let x = SR.int random 0 1 in (x,x) >.}. \jwc{Should we do out the whole reduction sequence here? It might be explanatory, but it also might be boring.}
 
+This design is less obviously correct, and does require some care. Rather than \texttt{bind} ensuring correct evaluation order once and for all,
+individual combinators must be carefully written to ensure that \texttt{'a code} values that contian effects are \texttt{let\_insert}'d.
+In Section~\ref{subsection:pbt-for-pbt}, we discuss how we use PBT to ensure that the OCaml is written correctly.
+
+\jwc{... and all of this works identically in Scala, too.}
+
+\begin{figure}
 \begin{lstlisting}
 module CodeCps = struct
   type 'a t = { cps : 'z. ('a -> 'z code) -> 'z code }
@@ -957,7 +1069,7 @@ module CodeCps = struct
   let bind (x : 'a t) (f : 'a -> 'b t) : 'b t =
     {cps = fun k -> x.cps (fun a -> (f a).cps k)}
 
-  let run (t : 'a code t) : 'a code = t.cps (fun x -> x)
+  let run (t : ('a code) t) : 'a code = t.cps (fun x -> x)
 
   let let_insert (cx : 'a code) : 'a code t =
     {cps = fun k -> k .< let x = .~cx in .~(k .<x>.) >.}
@@ -975,46 +1087,164 @@ module Gen = struct
       )
   
   let int (lo : int code) (hi : int code) : int code t =
-    fun size random ->
-      let_insert .< SR.int .~random .~lo .~hi >.
+    fun size random -> let_insert .< SR.int .~random .~lo .~hi >.
+
 end
+\end{lstlisting} 
+\caption{CodeCPS and The Final Gen Monad}
+\label{fig:codecps-and-final-gen}
+\end{figure}
+
+
+\subsubsection{The Trick at Other Types}
+To write more interesting generators, we also need the ability to generate code that manipulates runtime values.
+For instance, consider this generator
+
+\jwc{need a better example here}
+
+\begin{figure}
+\begin{lstlisting}
+let int_or_zero : int Bq.t =
+  let%bind n = size in
+  if n <= 5 then return 0 else Bq.int
+
+let split_bool (b : bool code) : bool Gen.t =
+  fun _ _ ->  _
+
 \end{lstlisting}
-
-\jwc {
-And this has the desired effect that
-\texttt{bind (int .<0>. .<1.>) (fun x -> return .<(.~x,.~x)>.)} generates
-\texttt{fun size random -> let x = SR.int random 0 1 in (x,x)}
-}
+\caption{??}
+\label{fig:trick-example}
+\end{figure}
 
 
-\subsubsection{Recursive Generators}
-\jwc{Describe recursion and recurisve handles}
-
-\subsubsection{The Trick}
 \jwc{Describe split --- this section is approximately experts-only, but you can just point at the Andras paper and the things it cites.}
+
+\subsection{Recursive Generators}
+\jwc{Generating recursive datatypes requires recursive generators!}
+
+Different generator DSLs handle defining recursive generators differently. Some allow recursive generators
+to be defined as recursive functions (or in Haskell's case, recursive values), while others
+(like \bq) expose a fixpoint combinator to construct recursive generators.
+Generator fixpoint combinators are simliar to a usual \texttt{fix : ('a -> 'a) -> 'a} combinator,
+except that they operate at monadic type \texttt{fixed\_point : ('a Bq.t -> 'a Bq.t) -> 'a Bq.t}.
+Given a step function that takes a ``handle'' to sample from a recursive generator call, it
+ties the knot and builds a recursive generator.
+
+In our case, letting programmers define recursive generators as recursive functions is out of the question.
+With staged programming, recursion must be handled with care: it is far to easy to accidentally recursively
+define an infinite \texttt{code} value and have the program diverge at compile time, when trying to write
+a \texttt{code} representing a recursive program.
+To this end, we develop a staged recursive generator combinator\footnote{
+In reality, we actually have a more general API that allows programmers to define \emph{parameterized}
+recursive combinators, of type \texttt{'r code -> 'a code Gen.t}, for any type \texttt{'r}. See Appendix~\jwc{appendix} for details.
+}, whose API is shown in Figure~\ref{fig:staged-recursive-generator}.
+The code for this combinator can be found in Appendix~\jwc{appendix}.
+The recursion API consists of an opaque type \texttt{'a handle}, and a function \texttt{recurse} to perform recursive calls.
+Programmers can then define recursive generators by \texttt{fixed\_point}, which ties the recursive knot.
+
+% \begin{lstlisting}
+%   type ('a,'r) handle = 'r code -> 'a code t
+
+%   let recurse (f : ('a,'r) handle) (x : 'r code) : 'a code t =
+%     fun size random ->
+%       Codecps.bind ((f x) size random) @@ fun c ->
+%       Codecps.let_insert c
+
+%   let recursive (step : ('a,'r) handle -> 'r code -> 'a code t) (x0 : 'r code) : 'a code t =
+%     fun size_c random_c -> 
+%       Codecps.return @@
+%         .< let rec go x size random = .~(
+%               Codecps.code_generate @@
+%               (step (fun xc' -> fun ~size' ~random' -> Codecps.return .< go .~xc' .~size' .~random' >.) .<x>.) .<size>. .<random>.
+%             )
+%           in go .~x0 .~size_c .~random_c
+%         >.
+% end
+% \end{lstlisting}
+
+\begin{figure}
+\begin{lstlisting}
+type 'a handle
+val recurse : 'a handle -> 'a code Gen.t
+val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
+\end{lstlisting}
+\caption{Staged Recursive Generator Combinator API}
+\label{fig:staged-recursive-generator}
+\end{figure}
+
 
 \subsection{Staged Type-Derived Generators}
 
-\jwc{Todo: Thia}
-
-\jwc{This is 3-stage metaprogramming! There's PPX time, compile time, and run time.}
-
-\subsection{Fast Random Number Generators}
-\label{subsection:faster-rng}
-
 \jwc{
   \begin{itemize}
-    \item Using the fastest RNG possible is important.
-    \item In OCaml, the splittalbe random RNG is not as fast as it could be, because of the Ints issue.
-    \item In this section, we describe how to resolve the ints issue by calling out ot the FFI. 
-    \item All of this can be done with Jane Street bleeding-edge compiler extensions, though these are not yet compatible with MetaOCaml.
-    \item Because different libraries 
+    \item In PBT in practice, we learned that in many cases, programmers don't
+    even write custom generators, instead relying on type-derived generators.
+    \item These generators just produce arbitrary values of a given type, not necessarily enforcing validity conditions.
+    \item If 
+    \item Let's talk about how type-deriving works. In languages with typeclasses, it works
+    by typeclass resolution. In OCaml it works by PPX system, but the principle
+    is the same. You define rules to go from generators of a subtypes to a generator of the larger type, and then apply those rules to build up a full generator.
+    \item \begin{itemize}
+      \item For base types, you just call the associated generator
+      \item For product types, you sample from all the component gnerators, bind the values, and then tuple up the values, and return the tuple
+      \item For variant types, you use a weighted union to choose one of the component generators with a weighted union.
+      \item For recursive types, wrap the whole thing in a fixedpoint and then use the recusive handle as the ``component generator'' for all recursive instance of the type.
+    \end{itemize}
+    \item This kind of generic deriving of generators works just as well for
+    staged generators. Just replace the standard combinators in question with
+    staged ones!
+    \item We built this in OCaml, but you can easily use typeclasses to do it in scala too.
+    \item Note that this is (essentially) 3-stage metaprograming. You're using either the PPX mechanism or typeclass resolution to generate a bunch of staged combinator calls, which then run at compile time, which then run at run time.
   \end{itemize}
 }
+\jwc{Todo: Thia}
+
+\subsection{Faster SplitMix with Unboxed \texttt{int64}s}
+\label{subsection:faster-rng}
+
+\jwc{Unclear what we should call this section}
+As we discussed in Section~\ref{section:motiv}, choosing an inefficient randomness library is
+another bottleneck for finding bugs fast. While generator libraries by
+and large use sensible sources of randomness, they are not explicitly chosen
+with performance in mind. Indeed, much faster randomness libraries\cn and fast sources
+of entropy \cn exist. \jwc{... more here?}
+To demonstrate that faster random sampling can significanty impact bugfinding power, we
+use the natural experiment provided by OCaml's inefficient implementation of
+SplitMix. By replacing this slow randomness library with a faster but extensionally equivalent
+implemetnation, we are able to precisely quantify the bugfinding speedup that using a randomness library gives across a range of PBT scenarios.
+
+We emphasize that while we believe that the insight that faster sampilng translates to faster bug finding
+is a cross-langauge one, the specific technical contents of this section are OCaml-specific.
+In the case of most other PBT frameworks \cn, the randomness library used operates on by machine
+integers, so this \emph{particular} inefficiency does not exist.
+
+The precise details of how the SplitMix algorithm works \cn are unimportant for the
+present paper, but the critical component is that all of its operations are are
+defined in terms of arithmetic bitwise operations on 64-bit integers. In OCaml,
+because of details related to the garbage collector, the 64-bit integer type \texttt{int64} is represented
+at run time as a \emph{pointer} to an unscanned block of memory containing (among other things)
+a 64-bit integer \cn. This means that all operations that return an \texttt{int64} must allocate this block of memory.
+This has a significant impact on the performance of generators. A single call to
+one of the \bq library functions --- like generating an integer uniformly in a range --- may call the \texttt{splittable\_random}
+algorithm multiple times. Each sample from \texttt{splittable\_random} allocates 9
+times \jwc{this is a call to \texttt{next\_int64}}, and each allocation brings us closer
+to the next garbage collection pause. While small allocations like these are \emph{very} fast to perform and subsequently collect in OCaml,
+\footnote{The OCaml GC is a generational collector \cn, and since these allocations are small and mostly very short lived, they will all be minor allocations, never to be promoted.}, we will see in Section~\ref{section:eval} that this can have
+a large performance impact on some generators that spend most of their time sampling data.
+To circumvent this allocation and provide an equivalent version of \texttt{splittable\_random}, we
+reimplement SplitMix in C, and call out to it with the OCaml FFI. The C version of the library uses
+proper \texttt{int64\_t} arithmetic, only boxing and unboxing integers at the call boundaries between OCaml and C code.
+Ideally in the future, one would not need to call out to C for this: the Jane Street bleeding-edge OCaml compiler has support
+for unboxed types \cn, which (among other things) would let us implement a version of SplitMix that does not allocate, directly
+in OCaml. Unfortunately, the Jane Street branch of the compiler is incompatible with MetaOCaml, which we use to implement the metaprogramming
+discussed in the previous sections.
 
 \section{Evaluation}
+\label{section:eval}
+\subsection{Implementing and Testing Generators}
+\label{subsection:pbt-for-pbt}
+\jwc{Talk about the difftesting to ensure staging maintains semantics, and also different RNGs have identical semantics.}
 
-\subsubsection{Implementation}
 \subsection{Benchmarking speed \& resource usage}
 
 \jwc{NOTE: we should test generator speed across both languages, but speed -> bugfinding ability in only OCaml.}
@@ -1023,11 +1253,15 @@ And this has the desired effect that
   \begin{itemize}
     \item Single int
     \item Pair of ints, constrained
-    \item List of ints
+    \item List of ints without bind (use map): lots of sampling, minimal binds.
+    \item Unableled Trees of a fixed size (no weighted union) minimal sampling, lots of binds.
   \end{itemize}
 }
 \subsection{Impact on bug-finding ability}
+\jwc{Staging type-derived generators (which are the most commonly used ones) can turn a timeout into a found bug!}
 \section{Conclusion \& Future Work}
+\section{Related Work}
+\jwc{A generator is a parser of randomness, and people have implemented lots of staged parser libraries!}
 %%
 %% The next two lines define the bibliography style to be used, and
 %% the bibliography file.

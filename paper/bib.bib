@@ -232,3 +232,84 @@ numpages = {13},
 location = {Lisbon, Portugal},
 series = {ICSE '24}
 }
+
+@article{10.1145/141478.141483,
+author = {Bondorf, Anders},
+title = {Improving binding times without explicit CPS-conversion},
+year = {1992},
+issue_date = {Jan. 1992},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {V},
+number = {1},
+issn = {1045-3563},
+url = {https://doi.org/10.1145/141478.141483},
+doi = {10.1145/141478.141483},
+abstract = {A major obstacle in partial evaluation (program specialization) is the need for binding time improvements.  By reorganizing a source program, the residual programs obtained by specializing the source program may be improved: more computations can be done statically, that is, at specialization time.One well-known effective reorganization is (manual or automatic) conversion into continuation passing style (cps).  This conversion allows data consumers to be propagated through frozen expressions to the data producers.  In this paper we show how such improvements can be obtained without affecting the source program: by writing the   program specializer itself in cps;  traditionally, specialization has been formulated in direct style.The advantages of avoiding cps-converting source programs are: (1) no cps-conversion phase is needed; (2) the generated residual programs are not in cps; (3) since no source level continuations are added, there is no overhead of manipulating closure representations in the generating extensions (e.g. compilers) obtained by self-application; (4) manual “binding time debugging” is easier since binding time analysis is done on a non-converted program.We have implemented a cps-based program specializer; it is integrated in the partial evaluator Similix 4.0.Using a cps-specializer, partially static data  structures can be handled safely in a straightforward way.   The difficulty is to ensure automatically that residual expressions that become part of a partially static data structure are neither duplicated nor discarded.  This is achieved by binding such residual expressions in automatically inserted frozen let-expressions; cps is needed to propagate operations on the partially static data structure through these frozen let-expressions.  Based on this idea, we have implemented an extension of Similix 4.0 that handles partially static data structures.},
+journal = {SIGPLAN Lisp Pointers},
+month = jan,
+pages = {1–10},
+numpages = {10}
+}
+
+@inproceedings{bondorf92,
+author = {Bondorf, Anders},
+title = {Improving binding times without explicit CPS-conversion},
+year = {1992},
+isbn = {0897914813},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/141471.141483},
+doi = {10.1145/141471.141483},
+abstract = {A major obstacle in partial evaluation (program specialization) is the need for binding time improvements.  By reorganizing a source program, the residual programs obtained by specializing the source program may be improved: more computations can be done statically, that is, at specialization time.One well-known effective reorganization is (manual or automatic) conversion into continuation passing style (cps).  This conversion allows data consumers to be propagated through frozen expressions to the data producers.  In this paper we show how such improvements can be obtained without affecting the source program: by writing the   program specializer itself in cps;  traditionally, specialization has been formulated in direct style.The advantages of avoiding cps-converting source programs are: (1) no cps-conversion phase is needed; (2) the generated residual programs are not in cps; (3) since no source level continuations are added, there is no overhead of manipulating closure representations in the generating extensions (e.g. compilers) obtained by self-application; (4) manual “binding time debugging” is easier since binding time analysis is done on a non-converted program.We have implemented a cps-based program specializer; it is integrated in the partial evaluator Similix 4.0.Using a cps-specializer, partially static data  structures can be handled safely in a straightforward way.   The difficulty is to ensure automatically that residual expressions that become part of a partially static data structure are neither duplicated nor discarded.  This is achieved by binding such residual expressions in automatically inserted frozen let-expressions; cps is needed to propagate operations on the partially static data structure through these frozen let-expressions.  Based on this idea, we have implemented an extension of Similix 4.0 that handles partially static data structures.},
+booktitle = {Proceedings of the 1992 ACM Conference on LISP and Functional Programming},
+pages = {1–10},
+numpages = {10},
+location = {San Francisco, California, USA},
+series = {LFP '92}
+}
+
+
+
+@inproceedings{carrette05,
+	abstract = {With Gaussian Elimination as a representative family of numerical and symbolic algorithms, we use multi-stage programming, monads and Ocaml's advanced module system to demonstrate the complete elimination of the abstraction overhead while avoiding any inspection of the generated code. We parameterize our Gaussian Elimination code to a great extent (over domain, matrix representations, determinant tracking, pivoting policies, result types, etc) at no run-time cost. Because the resulting code is generated just right and not changed afterwards, we enjoy MetaOCaml's guaranty that the generated code is well-typed. We further demonstrate that various abstraction parameters (aspects) can be made orthogonal and compositional, even in the presence of name-generation for temporaries and other bindings and ``interleaving'' of aspects. We also show how to encode some domain-specific knowledge so that ``clearly wrong'' compositions can be statically rejected by the compiler when processing the generator rather than the generated code.},
+	address = {Berlin, Heidelberg},
+	author = {Carette, Jacques and Kiselyov, Oleg},
+	booktitle = {Generative Programming and Component Engineering},
+	editor = {Gl{\"u}ck, Robert and Lowry, Michael},
+	isbn = {978-3-540-31977-1},
+	pages = {256--274},
+	publisher = {Springer Berlin Heidelberg},
+	title = {Multi-stage Programming with Functors and Monads: Eliminating Abstraction Overhead from Generic Code},
+	year = {2005}}
+
+@article{kovacs24,
+author = {Kov\'{a}cs, Andr\'{a}s},
+title = {Closure-Free Functional Programming in a Two-Level Type Theory},
+year = {2024},
+issue_date = {August 2024},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {8},
+number = {ICFP},
+url = {https://doi.org/10.1145/3674648},
+doi = {10.1145/3674648},
+abstract = {Many abstraction tools in functional programming rely heavily on general-purpose        compiler optimization to achieve adequate performance. For example, monadic        binding is a higher-order function which yields runtime closures in the absence        of sufficient compile-time inlining and beta-reductions, thereby significantly        degrading performance. In current systems such as the Glasgow Haskell Compiler,        there is no strong guarantee that general-purpose optimization can eliminate        abstraction overheads, and users only have indirect and fragile control over        code generation through inlining directives and compiler options. We propose a        two-stage language to simultaneously get strong guarantees about code generation        and strong abstraction features. The object language is a simply-typed        first-order language which can be compiled without runtime closures. The        compile-time language is a dependent type theory. The two are integrated in a        two-level type theory.                We demonstrate two applications of the system. First, we develop monads and        monad transformers. Here, abstraction overheads are eliminated by staging and we        can reuse almost all definitions from the existing Haskell ecosystem. Second,        we develop pull-based stream fusion. Here we make essential use of dependent        types to give a concise definition of a concatMap operation with        guaranteed fusion. We provide an Agda implementation and a typed Template        Haskell implementation of these developments.},
+journal = {Proc. ACM Program. Lang.},
+month = aug,
+articleno = {259},
+numpages = {34},
+keywords = {staged compilation, two-level type theory}
+}
+
+@inproceedings{janis08,
+	abstract = {We present a low-effort program transformation to improve the efficiency of computations over free monads in Haskell. The development is calculational and carried out in a generic setting, thus applying to a variety of datatypes. An important aspect of our approach is the utilisation of type class mechanisms to make the transformation as transparent as possible, requiring no restructuring of code at all. There is also no extra support necessary from the compiler (apart from an up-to-date type checker). Despite this simplicity of use, our technique is able to achieve true asymptotic runtime improvements. We demonstrate this by examples for which the complexity is reduced from quadratic to linear.},
+	address = {Berlin, Heidelberg},
+	author = {Voigtl{\"a}nder, Janis},
+	booktitle = {Mathematics of Program Construction},
+	editor = {Audebaud, Philippe and Paulin-Mohring, Christine},
+	isbn = {978-3-540-70594-9},
+	pages = {388--403},
+	publisher = {Springer Berlin Heidelberg},
+	title = {Asymptotic Improvement of Computations over Free Monads},
+	year = {2008}}
