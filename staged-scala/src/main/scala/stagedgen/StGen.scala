@@ -5,6 +5,7 @@ import scala.quoted.*
 import stagedgen.Cps
 import stagedgen.Splittable
 import stagedgen.SplittableCps.given
+import stagedgen.Splittable.given
 
 class IllegalBoundsError[A](low: A, high: A)
     extends IllegalArgumentException(s"invalid bounds: low=$low, high=$high")
@@ -89,6 +90,57 @@ object StGen {
         } yield (x,y)
     )
   }
+
+  // def letInsert[T : Type](ex : Expr[T])(using Quotes) : Cps[Expr[T]] = new Cps[Expr[T]] {
+  //   def apply[Z : Type](cont: Expr[T] => Expr[Z]): Expr[Z] =
+  //     '{
+  //       val x = ${ex}
+  //       ${cont('{x})}
+  //     }
+  // }
+
+
+  private def letInsert[T : Type](ex : Expr[T])(using Quotes) : StGen[Expr[T]] = {
+    gen((_,seed) => Cps.letInsert(ex).map(u => (u,seed)))
+  }
+
+
+  def pick[T : Type](gs : (Expr[Int],StGen[Expr[T]])*)(acc : Expr[Long])(using Quotes) : StGen[Expr[T]] = {
+    gs.toList match {
+      case Nil => StGen.gen((_,_) => Cps.error('{"Fell off the end of pick list"}))
+      case (x,g)::gs2 =>
+        '{$acc <= $x}.split.flatMap(leq =>
+          if(leq){
+            g
+          } else {
+            letInsert('{$acc - $x}).flatMap(acc2 =>
+              pick(gs2*)(acc2)
+            )
+          }
+        )
+    }
+  }
+
+  def frequency[T : Type](gs : (Expr[Int],StGen[Expr[T]])*)(using Quotes) : StGen[Expr[T]] = {
+    val sum = gs.map(_._1).foldRight('{0L})((x,y) => '{${x}.toLong + ${y}})
+    chooseLong('{0L},sum).flatMap(pick(gs*))
+  }
+
+  //  def frequency[T](gs: (Int, Gen[T])*): Gen[T] = {
+  //   val filtered = gs.iterator.filter(_._1 > 0).toVector
+  //   if (filtered.isEmpty) {
+  //     throw new IllegalArgumentException("no items with positive weights")
+  //   } else {
+  //     var total = 0L
+  //     val builder = TreeMap.newBuilder[Long, Gen[T]]
+  //     filtered.foreach { case (weight, value) =>
+  //       total += weight
+  //       builder += ((total, value))
+  //     }
+  //     val tree = builder.result()
+  //     choose(1L, total).flatMap(r => tree.rangeFrom(r).head._2)
+  //   }
+  // }
 
   def sized[T](f: Expr[Int] => StGen[T]): StGen[T] =
     gen { (size, seed) => f(size).doApply(size, seed) }
