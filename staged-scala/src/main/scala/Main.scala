@@ -14,8 +14,8 @@ val wg2 = Gen.frequency(
 )
 
 @main def hello(): Unit =
-  val seed = Seed.apply(10)
-  val Some(a) = wg2.apply(Gen.Parameters.default,seed)
-  val b = StGen.wg(Gen.Parameters.default.size)(seed)
+  val seed = Seed.apply(11)
+  val Some(a) = STLC.Bespoke.gen.apply(Gen.Parameters.default,seed)
+  val b = STLC.BespokeStaged.gen(Gen.Parameters.default.size)(seed)
   println(s"Unsaged: ${a.toString}")
   println(s"Staged: ${b.toString}")

@@ -1,7 +1,5 @@
 package STLC
 
-package STLC
-
 import stagedgen.StGen
 import stagedgen.Splittable
 import stagedgen.Splittable.given
@@ -9,8 +7,7 @@ import stagedgen.SplittableCps.given
 import STLC.* 
 import scala.quoted.*
 
-
-object Staged {
+object BespokeStaged {
     def genTBool(using Quotes) = StGen.pure('{Typ.TBool})
 
     def genTyp(using Quotes) : StGen[Expr[Typ]] =
@@ -92,6 +89,16 @@ object Staged {
             )
 
         )('{($g,$t)})
+    }
+
+    def genStaged (using Quotes) = StGen.splat (
+        genTyp.flatMap(t =>
+            genExactTerm('{Nil},t)
+        )
+    )
+
+    inline def gen = {
+        ${genStaged}
     }
 
 }

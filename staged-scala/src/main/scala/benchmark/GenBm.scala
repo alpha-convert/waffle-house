@@ -10,6 +10,7 @@ import stagedgen.StGen
 import BST.Bst
 import BST.SingleBespoke
 import BST.SingleBespokeStaged
+import STLC.*
 
 def complexGen: Gen[(Long,Long)] = for {
     x <- Gen.choose(1,1000)
@@ -114,8 +115,8 @@ class GenBm {
 @Benchmark
 @BenchmarkMode(Array(Mode.AverageTime))
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
 @Fork(1)
   def generateBst(): Option[Bst] = {
     SingleBespoke.gen.sample
@@ -129,5 +130,25 @@ class GenBm {
 @Fork(1)
   def generateBstStaged(): Bst = {
     SingleBespokeStaged.gen(Gen.Parameters.default.size)(Seed.random())
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateTerm(): Option[Term] = {
+    STLC.Bespoke.gen.sample
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateTermStaged(): Term = {
+    STLC.BespokeStaged.gen(Gen.Parameters.default.size)(Seed.random())
   }
 }
