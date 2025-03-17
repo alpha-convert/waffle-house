@@ -649,11 +649,15 @@ Just how much runtime overhead does this monadic abstraction introduce? To
 illustrate, let's return to our running example of a constrained pair of
 integers, written in both \bq{} and ScalaCheck.
 Figure~\ref{fig:overhead-explanation-code} shows two versions of the generator, written in both languages.
-The first version (\texttt{int\_pair} in \bq{} and \texttt{intPair} in ScalaCheck) is written with monadic generator combinators.
+The first versions (\texttt{int\_pair} in \bq{} and \texttt{intPair} in ScalaCheck) are written with the monadic generator combinators from their respective libraries.
 \jwc{Maybe we can avoid rewriting these if we already showed them earlier? Also maybe we duplicate the tutorial discussion of monadic generator libraries to include Scala?}
-The second version (\texttt{int\_pair\_inlined} and \texttt{intPairInlined})
-is just the first version, with (a) all generator combinator definitions inlined, and (b)
-beta-redexes reduced.
+The second versions (\texttt{int\_pair\_inlined} and \texttt{intPairInlined})
+are semantically identical to the first, but have been rewritten
+by (1) inlining all generator combinator definitions, and then (2)
+repeatedly reducing simplifiable terms like \lstinline{(fun x -> e) e'} --- where an anonymous function is defined and then immediatly called~\footnote{This is usually known as a ``$\beta$-redex''.
+Note that when reducing, we do not reduce to \lstinline{e[e'/x]}, as this does not preserve the order of effects.
+}
+--- to \lstinline{let x = e' in e}.
 
 \begin{figure}
 \begin{lstlisting}
@@ -691,27 +695,29 @@ def intPairInlined : (Gen.Parameters, Seed) => (Option[(Long,Long)],Seed) = {
 \label{fig:overhead-explanation-code}
 \end{figure}
 
-The performance difference the two versions of this generator (Figure~\ref{fig:overhead-explanation-perf}) is stark. In both
-languages, the inlined version takes \textbf{half} as much time to generate a
-single pair of \texttt{int}s.
+The performance impact of this inling is large (Figure~\ref{fig:overhead-explanation-perf}). In both languages, the
+inlined version takes (on average) \textbf{half} as much time to generate a single pair of
+\texttt{int}s. 
+Microbenchmarks of more realistic generators (see Section~\ref{section:eval}
+\jwc{more precise ref}) show an even more dramatic performance boost for
+inlining in this manner.
+
+% Modern compilers use heuristics to decide when to specialize and inline code \cn, and these heuristics cannot guarantee that generator abstractions are zero-cost.
+% These heuristics are also necessarily conservative about inlining and specializing recursive functions, which all generators of recursive data types must be.
+% The 
+
 
 \begin{figure}
   \begin{tabular}{lll}
-  Library    & Generator          & Time per Generation (ns) \\
+  Library    & Generator          & Average Time per Generation (ns) \\
   \bq{}         & \texttt{int\_pair}          & 70                       \\
   \bq{}         & \texttt{int\_pair\_inlined} & 35                       \\
   ScalaCheck & \texttt{intPair}            & 458                      \\
   ScalaCheck & \texttt{intPairInlined}     & 266                     
   \end{tabular}
+\caption{Microbenchmarks of Generators in \bq{} (using \texttt{core\_bench} \cn) and ScalaCheck (using \texttt{jmh} \cn)}
 \label{fig:overhead-explanation-perf}
 \end{figure}
-
-% ┌───────┬──────────┬─────────┬────────────┐
-% │ Name  │ Time/Run │ mWd/Run │ Percentage │
-% ├───────┼──────────┼─────────┼────────────┤
-% │ bq    │  70.47ns │  78.00w │    100.00% │
-% │ fused │  35.86ns │  78.00w │     50.89% │
-% └───────┴──────────┴─────────┴────────────┘
 
 % \jwc{The overhead of the abstraction is 2x. The reality is actually worse: actual base-quickcheck includes even more indirection in its type.}
 
@@ -726,11 +732,9 @@ single pair of \texttt{int}s.
 % [info] GenBm.generateComplexInlined  avgt    3  266.035 ±  8.559  ns/op
 
 
-\jwc{
-The problem is plain: while the monadic abstraction that PBT libraries like base quickcheck provide are indespensible for writing idiomatic generators, the performance overhead of using them is dramatic.
-Modern compilers use heuristics to decide when to specialize and inline code \cn, and these heuristics cannot guarantee that generator abstractions are zero-cost.
-These heuristics are also necessarily conservative about inlining and specializing recursive functions, which all generators of recursive data types must be.
-}
+% \jwc{
+% 
+% }
 
 \tr{Each of these consist of an explanation of the problem and pseudocode outlining the solution.}
 
@@ -744,7 +748,7 @@ These heuristics are also necessarily conservative about inlining and specializi
   \end{itemize}
 }
 
-\subsection{Combinator Abstraction Overhead}
+\subsubsection{Overhead of Other Combinators}
 
 \jwc{
 Aside from the usual fact that the compiler can't ``see through'' the abstraction boundary to specialize, combinators like union and weighted union
@@ -855,8 +859,7 @@ This means our library's generator type \texttt{'a
 Gen.t} should have the type \texttt{int code -> SR.t code -> 'a code}: a compile-time
 function from dynamically-known size and seed to dynamically-determined result.
 
-This type, along with basic monadic generator DSL functionality can be found in Figure~\ref{fig:gen-staged-basic}.
-The monadic interface is given by a return and bind, as usual.
+This type, along with basic staged monadic generator DSL functionality can be found in Figure~\ref{fig:gen-staged-basic}.
 \texttt{Return} is the constant generator, but this time it 
 runs at compile time. Given \texttt{cx : 'a code}, the code for a \texttt{'a}, it
 returns the generator which always generates that value.
