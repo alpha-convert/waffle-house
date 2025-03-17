@@ -1315,7 +1315,10 @@ were run invoking \texttt{ocamlopt}, the native code compiler for OCaml. \todo{J
 
 \subsection{Implementing and Testing Generators}
 \label{subsection:pbt-for-pbt}
-\jwc{Talk about the difftesting to ensure staging maintains semantics, and also different RNGs have identical semantics.}
+To establish the equivalence of generators up to program equality, we use a PBT harness to compare their outputs. 
+Specifically, we generate random (size, seed) pairs and evaluate whether the generators under test produce equal results. 
+If the equality property fails, we report the unequal trees; if, over 1,000 trials, no ``counterexample'' is reported, we consider the
+behavior of the generators to be equivalent.
 \subsection{Benchmarking speed \& resource usage}
 
 \jwc{NOTE: we should test generator speed across both languages, but speed -> bugfinding ability in only OCaml.}
@@ -1332,8 +1335,7 @@ were run invoking \texttt{ocamlopt}, the native code compiler for OCaml. \todo{J
 We evaluate the bug-finding ability of three of our case studies---BST, RBT, and STLC---using Etna, a platform for assessing and comparing property-based testing (PBT) techniques. 
 Etna allows users to measure the effectiveness of different generator implementations by injecting bugs into the system under test and recording the time until a relevant 
 property fails in response. For example, in a tree with a property ensuring that the tree remains ordered, a bug might involve inserting a value that violates that ordering. 
-A \textit{task} consists of a bug-property pair, and each case study is associated with a diverse set of tasks that exercise different parts
-of the system. In particular, BST has 30 tasks, RBT has 46 tasks, and STLC has 18 tasks. 
+Each case study includes a diverse set of \textit{tasks}, where a task consists of a specific bug-property pair designed to test different aspects of the system. 
 
 For each case study, we construct both type-derived and custom generators.
 Each generator has four implementations, which are equivalent up to program equality:
