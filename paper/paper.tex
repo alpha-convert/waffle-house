@@ -480,27 +480,29 @@ let tree_of g = fixed_point (fun rg ->
 
 \jwc{I think this section should actually go later.}
 
-In Muli-stage programming (also known more simply as staging), programs execute over the course of multiple stages,
-with each stage producing the code to be run in the next.
-This is an old idea, with roots going back to quasiquotation in LISP \cn{}, and picking up steam again in the 1990s with MetaML \cn{}.
-For the purposes of this paper, we will primarily consider two stages: compile time and run time. Staged programs thus execute twice: once at compile time,
-which produces more code, which is then compiled and run at run time.
+In Muli-stage programming (also known more simply as staging), programs execute
+over the course of multiple stages, with each stage producing the code to be run
+in the next.  This is an old idea in programming languages, with roots going
+back to quasiquotation in LISP \cn{}.  For the purposes of this paper, we will
+primarily consider two stages: compile time and run time. Staged programs thus
+execute twice: once at compile time, which produces more code, which is then
+compiled and run at run time.
 
 \subsubsection{Staging in eDSL Construction}
 
 One of the primary uses of staging is in embedded DSL construction \cite{sheard99, lms, trattdsl}.
 While embedded DSLs are great \jwc{words}, they have well-known drawback: 
 the functional abstractions used to build eDSLs prevent compilers from generating efficient machine code \cn.
-In the literature, this effect is known as ``abstraction overhead'': the layers of abstraction that 
+In the literature, this effect is known as ``abstraction overhead'' \cite{carrette05, moller20}: the layers of abstraction that 
 make eDSLs so usable are precisely what prevents them from being fast.
 In light of this issue, staging is often used as a lightweight compiler for DSLs. The compile-time evaluation stage
 transforms the DSL code, eliminating abstractions to produce code that the host language compiler can generate fast machine code for.
 \jwc{This previous paragraph is peak ``shitty first draft''.}
-This recipe has been used to great effect across domains to stage eDSLs for stream processing \cn, parser combinators \cite{sspc, staged-parsers, krishnaswami19, flap},
+This recipe has been used to great effect across domains to stage eDSLs for stream processing \cite{moller20,strymonas}, parser combinators \cite{sspc, staged-parsers, krishnaswami19, flap},
 and query processing \cite{rhyme}.
 
 Many languages have some degree of staging functionality, though support varies
-from full native support (Scala 3 \cn, Haskell \cn) to experimental compiler extensions (OCaml \cite{metaocaml,macocaml}, Java \cite{mint}, Kotlin \cn).
+from full native support (Scala 3 \cite{scalamacros}, Haskell \cite{templatehaskell}) to compiler extensions (OCaml \cite{metaocaml,macocaml}, Java \cite{mint}).
 Moreover, many more languages have lighter-weight staging-like metaprogramming support in the form of macros.
 See Section~\ref{subsection:other-langs} for a full discussion of just how portable these ideas are. \jwc{this sentence is a placeholder lol}
 
@@ -895,10 +897,10 @@ let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
 \subsection{Staging Combinators}
 
 In Section~\ref{section:motiv}, we noted that generator combinators like \texttt{weighted\_union}
-must allocate lists in the hot path of the generator. Even though these lists are often small ---
-usually at most a few dozen elements in practice --- each allocation takes us closer to the next garbage collection.
+often allocate lists in the hot path of the generator. Even though these lists are usually small ---
+at most a few dozen elements in practice --- each allocation takes us closer to the next garbage collection.
 
-This is an ideal opportunity to exercise another use of staging: compile-time specialization.
+This is an ideal opportunity to exercise another feature of staging: compile-time specialization.
 Since we almost always know the particular list of choices at compile time, a staged version of \texttt{weighted\_union}
 can generate \emph{different code} depending on the number of generators in the union.
 If we use weighted union on a compile-time list of generators \texttt{g1}, \texttt{g2}, and \texttt{g3},
