@@ -489,7 +489,6 @@ execute twice: once at compile time, which produces more code, which is then
 compiled and run at run time.
 
 \subsubsection{Staging in eDSL Construction}
-
 One of the primary uses of staging is in embedded DSL construction \cite{sheard99, lms, trattdsl}.
 While embedded DSLs are great \jwc{words}, they have well-known drawback: 
 the functional abstractions used to build eDSLs prevent compilers from generating efficient machine code \cn.
@@ -738,7 +737,7 @@ running a monadic bind allocates a short-lived closure: we allocate a closure
 for the continuation, and then immediately jump into it.
 In strict functional languages like OCaml and Scala,
 Each individual closure allocation is relatively cheap, but doing lots of allocation in a generation
-loop is very costly because each allocation brings us closer to the next costly GC pause \cn.
+loop is very costly because each allocation brings us closer to the next costly GC pause \cn{}.
 
 \subsubsection{Overhead of Other Combinators}
 
@@ -759,6 +758,7 @@ However, almost no compilers (GHC is a notable exception) can figure this out an
 % \jwc{This builds the cdf of the distribution, samples from 0 to the total, and binary searches through the array to find the bucket.}
 % \jwc{Allocating this array is unnecessary: we can simply compute the total weight, sample \texttt{x} between 0 and the total, and then walk the list accumulating the sum, until the accumulator exceeds \texttt{x}. Since in practice the list of possible options is quite small (usually at most 10 in practice), the linear time scan is going to be much faster.}
 % \jwc{(The point of this para will just be to emphasize that it's almost always better to be allocation-aware, instead of algorithmically clever.)}
+
 
 
 % \subsubsection{Function call overhead}
