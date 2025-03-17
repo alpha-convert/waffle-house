@@ -20,9 +20,9 @@ object Bespoke {
             }
         )
 
-    def genVar(g : List[Typ],t : Typ) : Gen[Option[Expr]] = {
+    def genVar(g : List[Typ],t : Typ) : Gen[Option[Term]] = {
         val vars = g.zipWithIndex.flatMap { (t2, i) => 
-            if (t == t2) { Some(Some(Expr.Var(i))) } else { None }
+            if (t == t2) { Some(Some(Term.Var(i))) } else { None }
         }
         vars match {
             case Nil => Gen.const(None)
@@ -30,14 +30,14 @@ object Bespoke {
         }
     }
 
-    def genConst(t : Typ) : Gen[Expr] = {
+    def genConst(t : Typ) : Gen[Term] = {
         t match {
-            case Typ.TBool => Gen.oneOf(true,false).map(b => Expr.Bool(b))
-            case Typ.TFun(t1,t2) => genConst(t2).map(e => Expr.Abs(t1,e))
+            case Typ.TBool => Gen.oneOf(true,false).map(b => Term.Bool(b))
+            case Typ.TFun(t1,t2) => genConst(t2).map(e => Term.Abs(t1,e))
         }
     }
 
-    def genExactExpr(g : List[Typ], t : Typ) : Gen[Expr] = {
+    def genExactTerm(g : List[Typ], t : Typ) : Gen[Term] = {
         genVar(g,t).flatMap(me =>
             me match {
                 case Some(e) => Gen.const(e)
@@ -46,12 +46,12 @@ object Bespoke {
                         genConst(t)
                     } else {
                         t match {
-                            case Typ.TFun(t1, t2) => Gen.resize(n-1,genExactExpr(t1::g,t2)).map(e => Expr.Abs(t1,e))
+                            case Typ.TFun(t1, t2) => Gen.resize(n-1,genExactTerm(t1::g,t2)).map(e => Term.Abs(t1,e))
                             case _ => (for {
                                 t2 <- genTyp()
-                                e1 <- Gen.resize(n/2,genExactExpr(g,Typ.TFun(t2,t)))
-                                e2 <- Gen.resize(n/2,genExactExpr(g,t2))
-                            } yield (Expr.App(e1,e2)))
+                                e1 <- Gen.resize(n/2,genExactTerm(g,Typ.TFun(t2,t)))
+                                e2 <- Gen.resize(n/2,genExactTerm(g,t2))
+                            } yield (Term.App(e1,e2)))
                         }
                     }
                 )
@@ -59,5 +59,5 @@ object Bespoke {
         )
     }
 
-    val gen = genTyp().flatMap(t => genExactExpr(Nil,t))
+    val gen = genTyp().flatMap(t => genExactTerm(Nil,t))
 }

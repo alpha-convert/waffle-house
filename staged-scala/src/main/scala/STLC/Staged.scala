@@ -6,9 +6,9 @@ import stagedgen.StGen
 import stagedgen.Splittable
 import stagedgen.Splittable.given
 import stagedgen.SplittableCps.given
+import STLC.* 
 import scala.quoted.*
 
-import STLC.* 
 
 object Staged {
     def genTBool(using Quotes) = StGen.pure('{Typ.TBool})
@@ -34,35 +34,64 @@ object Staged {
                 )
         )('{()})
 
+
+    def genVar(g : Expr[List[Typ]],t : Expr[Typ])(using Quotes) : StGen[Expr[Option[Term]]] = {
+        val vars : Expr[List[Option[Term]]] = '{$g.zipWithIndex.flatMap { (t2, i) => 
+            if ($t == t2) { Some(Some(Term.Var(i))) } else { None }
+        }}
+        vars.split.flatMap(vs =>
+            vs match {
+                case Left(_) => StGen.pure('{None})
+                case Right(_) => StGen.oneOfDyn(vars)
+            }
+        )
+    }
+
+    def genConst(t : Expr[Typ])(using Quotes) : StGen[Expr[Term]] = {
+        StGen.recursive[Term,Typ](rh => tc =>
+            tc.split.flatMap(t =>
+                t match {
+                    case _ => StGen.oneOf('{true},'{false}).map(b => '{Term.Bool($b)})
+                    case (t1,t2) => rh(t2).map(e => '{Term.Abs($t1,$e)})
+                }
+            )
+        )(t)
+        
+    }
+
+    def genExactTerm(g : Expr[List[Typ]], t : Expr[Typ])(using Quotes) : StGen[Expr[Term]] = {
+        StGen.recursive[Term,(List[Typ],Typ)](rh => gt => 
+            gt.split.flatMap((g,t) =>
+                genVar(g,t).flatMap(mec =>
+                    mec.split.flatMap(me =>
+                        me match {
+                            case Some(e) => StGen.pure(e)
+                            case None => StGen.size.flatMap(n =>
+                                '{$n <= 1}.split.flatMap(leq =>
+                                    if(leq){
+                                        genConst(t)
+                                    } else {
+                                       t.split.flatMap(tf =>
+                                            tf match {
+                                                case (t1,t2) => StGen.resize('{$n-1},rh('{($t1::$g,$t2)})).map(e => '{Term.Abs($t1,$e)})
+                                                case _ => (for {
+                                                    t2 <- genTyp
+                                                    e1 <- StGen.resize('{$n/2},rh('{($g,Typ.TFun($t2,$t))}))
+                                                    e2 <- StGen.resize('{$n/2},rh('{($g,$t2)}))
+                                                } yield '{Term.App($e1,$e2)}
+                                                )
+                                            }
+                                       )
+                                    }
+                                )
+                            )
+                        }
+
+                    )
+                )
+            )
+
+        )('{($g,$t)})
+    }
+
 }
-
-// let genVar g t : expr option G.t =
-//   let vars = List.filter_mapi ~f:(fun i t' -> if Type_defn.equal t t' then Some (Some (Var i)) else None) g in
-//   match vars with
-//   | [] -> return None
-//   | _ -> of_list vars
-
-// let genConst t : expr G.t =
-//   recursive t @@ fun go t ->
-//     match t with
-//     | TBool -> map ~f:(fun b -> Bool b) bool
-//     | TFun(t1,t2) -> map ~f:(fun e -> Abs(t1,e)) (recurse go t2)
-
-// let genExactExpr n g t = recursive (n,g,t) @@ fun go (n,g,t) ->
-//   let%bind me = genVar g t in
-//   match me with
-//   | Some e -> return e
-//   | None -> if n <= 1 then genConst t else
-//             match t with
-//             | TFun (t1,t2) -> map ~f:(fun e -> Abs(t1,e)) (recurse go (n - 1,t1 :: g,t2))
-//             | _ -> let%bind t' = genTyp in
-//                    let%bind e1 = recurse go (n/2,g,TFun(t',t)) in
-//                    let%bind e2 = recurse go (n/2,g,t') in
-//                    return (App (e1,e2))
-
-// let genExpr =
-//   let%bind n = size in
-//   let%bind t = genTyp in
-//   genExactExpr n [] t
-
-// let quickcheck_generator = genExpr

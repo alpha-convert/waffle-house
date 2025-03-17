@@ -91,14 +91,8 @@ object StGen {
     )
   }
 
-  // def letInsert[T : Type](ex : Expr[T])(using Quotes) : Cps[Expr[T]] = new Cps[Expr[T]] {
-  //   def apply[Z : Type](cont: Expr[T] => Expr[Z]): Expr[Z] =
-  //     '{
-  //       val x = ${ex}
-  //       ${cont('{x})}
-  //     }
-  // }
-
+  def chooseInt(lo : Expr[Int], hi : Expr[Int])(using Quotes) : StGen[Expr[Int]] =
+    chooseLong('{$lo.toLong},'{$hi.toLong}).map(l => '{$l.toInt})
 
   private def letInsert[T : Type](ex : Expr[T])(using Quotes) : StGen[Expr[T]] = {
     gen((_,seed) => Cps.letInsert(ex).map(u => (u,seed)))
@@ -126,21 +120,16 @@ object StGen {
     chooseLong('{1L},sum).flatMap(pick(gs*))
   }
 
-  //  def frequency[T](gs: (Int, Gen[T])*): Gen[T] = {
-  //   val filtered = gs.iterator.filter(_._1 > 0).toVector
-  //   if (filtered.isEmpty) {
-  //     throw new IllegalArgumentException("no items with positive weights")
-  //   } else {
-  //     var total = 0L
-  //     val builder = TreeMap.newBuilder[Long, Gen[T]]
-  //     filtered.foreach { case (weight, value) =>
-  //       total += weight
-  //       builder += ((total, value))
-  //     }
-  //     val tree = builder.result()
-  //     choose(1L, total).flatMap(r => tree.rangeFrom(r).head._2)
-  //   }
-  // }
+  def oneOf[T : Type](xs : T*)(using Quotes) : StGen[T] = {
+
+  }
+
+  def oneOfDyn[T : Type](xs : Expr[List[T]])(using Quotes) : StGen[Expr[T]] = {
+    for {
+      vec <- StGen.letInsert('{$xs.toVector})
+      i <- chooseInt('{0},'{$vec.size - 1})
+    } yield ('{$vec($i)})
+  }
 
   def sized[T](f: Expr[Int] => StGen[T]): StGen[T] =
     gen { (size, seed) => f(size).doApply(size, seed) }
@@ -182,29 +171,6 @@ object StGen {
       ).splitCps
     )
   }
-  //   type ('a,'r) recgen = 'r code -> 'a code t
-  // let recurse f x = {
-  //   rand_gen = fun ~size_c ~random_c ->
-  //     Codecps.bind ((f x).rand_gen ~size_c ~random_c) @@ fun c ->
-  //     Codecps.let_insert c
-  // }
-
-  // let recursive (type a) (type r) (x0 : r code) (step : (a,r) recgen -> r code -> a code t) =
-  //   {
-  //     rand_gen = fun ~size_c ~random_c -> 
-  //       Codecps.bind (Codecps.let_insertv x0) @@ fun x0 ->
-  //       (* let%bind x0 = Codecps.let_insert x0 in *)
-  //       Codecps.let_insert @@ .< let rec go x ~size ~random = .~(
-  //           Codecps.code_generate @@
-  //             (step
-  //                 (fun xc' -> { rand_gen = fun ~size_c ~random_c -> Codecps.return .< go .~xc' ~size:.~size_c ~random:.~random_c >. })
-  //                 .<x>.
-  //             ).rand_gen ~size_c:.<size>. ~random_c:.<random>.
-  //         )
-  //         in
-  //           go .~(v2c x0) ~size:.~size_c ~random:.~random_c
-  //       >.
-  //   }
 
   def wgImpl (using q : Quotes): Expr[Int => Seed => Int] = {
     val e = StGen.splat(
