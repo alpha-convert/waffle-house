@@ -687,7 +687,7 @@ allocate memory cells to contain their output, which has a significant performan
 By building a version that uses much faster ``unboxed'' 64-bit integer arithmetic, we can demonstrate just how much bug-finding
 performance can be improved just by using a more performant randomness library.
 
-\section{Eliminating Abstraction Overhead of Generator DSLs by Staging and Faster Randomness Libraries}
+\section{Speeding up Generator DSLs by Staging and Faster Randomness Libraries}
 \jwc{This section needs a much better title...}
 \jwc{Emphasize that this is an \emph{COMPLETELY EQUIVALENT drop in replacement!} We din't just build a different library with different distributions.}
 
@@ -796,11 +796,11 @@ can ensure that any overhead of using them is eliminated by run time.
 %   \end{itemize}
 % }
 
-
-
 \subsection{Design of a Staged Generator DSL}
 \label{subsection:basic-design}
-Recall that staging a DSL involves changing the
+\jwc{Needs a lot more signposting at the top here.}
+
+Recall \jwc{did we talk about this} that staging a DSL involves changing the
 combinators to run at compile time by carefully annotating their types with \texttt{code}s.
 Deciding which types \texttt{t} can
 instead be \texttt{t code} --- in other words,
