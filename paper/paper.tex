@@ -400,6 +400,14 @@ module Bq : sig
   val return : 'a -> 'a t
   val bind : 'a t -> ('a -> 'b t) -> 'b t
   val gen_int : lo:int -> hi:int -> int t
+
+  val weighted_union : (int * 'a t) list -> 'a t
+
+  val size : int t
+  val with_size : int -> 'a t -> 'a t
+
+  val fixed_point : ('a t -> 'a t) -> 'a t
+  $\dots$
 end
 \end{lstlisting}
 
