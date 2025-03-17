@@ -1,4 +1,4 @@
-package BST
+package Nat
 
 import org.scalacheck.Gen
 import org.scalacheck.Arbitrary

@@ -1,5 +1,6 @@
 package BST
 
+import Nat.*
 
 enum Bst:
   case E

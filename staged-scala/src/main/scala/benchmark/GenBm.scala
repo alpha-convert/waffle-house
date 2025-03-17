@@ -8,8 +8,7 @@ import org.scalacheck.Gen
 import org.scalacheck.rng.*
 import stagedgen.StGen
 import BST.Bst
-import BST.SingleBespoke
-import BST.SingleBespokeStaged
+import RBT.Rbt
 import STLC.*
 
 def complexGen: Gen[(Long,Long)] = for {
@@ -118,8 +117,8 @@ class GenBm {
 @Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
 @Fork(1)
-  def generateBst(): Option[Bst] = {
-    SingleBespoke.gen.sample
+  def generateBstType(): Option[Bst] = {
+    BST.TypeDerived.gen.sample
   }
 
 @Benchmark
@@ -128,8 +127,48 @@ class GenBm {
 @Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
 @Fork(1)
-  def generateBstStaged(): Bst = {
-    SingleBespokeStaged.gen(Gen.Parameters.default.size)(Seed.random())
+  def generateBstTypeStaged(): Bst = {
+    BST.TypeDerivedStaged.gen(Gen.Parameters.default.size)(Seed.random())
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBstBespoke(): Option[Bst] = {
+    BST.SingleBespoke.gen.sample
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBstBespokeStaged(): Bst = {
+    BST.SingleBespokeStaged.gen(Gen.Parameters.default.size)(Seed.random())
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateRbtType(): Option[Rbt] = {
+    RBT.TypeDerived.gen.sample
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateRbtTypeStaged(): Rbt = {
+    RBT.TypeDerivedStaged.gen(Gen.Parameters.default.size)(Seed.random())
   }
 
 @Benchmark

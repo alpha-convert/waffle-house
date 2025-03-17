@@ -3,6 +3,7 @@ import org.scalacheck.Gen
 import org.scalacheck.Arbitrary
 
 import Bst.*
+import Nat.*
 
 object SingleBespoke {
   def go (lo : Long, hi : Long): Gen[Bst] = {

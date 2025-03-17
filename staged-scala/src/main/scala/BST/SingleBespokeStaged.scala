@@ -5,6 +5,7 @@ import stagedgen.Splittable
 import stagedgen.Splittable.given
 import stagedgen.SplittableCps.given
 import scala.quoted.*
+import Nat.*
 
 object SingleBespokeStaged {
     def go(using Quotes)(lo : Expr[Long], hi : Expr[Long]) : StGen[Expr[Bst]] = {
