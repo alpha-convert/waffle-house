@@ -898,7 +898,7 @@ In Section~\ref{section:motiv}, we noted that generator combinators like \texttt
 must allocate lists in the hot path of the generator. Even though these lists are often small ---
 usually at most a few dozen elements in practice --- each allocation takes us closer to the next garbage collection.
 
-This is an ideal opportunity to exercise another use of staging: compile-time specialization.
+This is an ideal opportunity to exercise another feature of staging: compile-time specialization.
 Since we almost always know the particular list of choices at compile time, a staged version of \texttt{weighted\_union}
 can generate \emph{different code} depending on the number of generators in the union.
 If we use weighted union on a compile-time list of generators \texttt{g1}, \texttt{g2}, and \texttt{g3},
