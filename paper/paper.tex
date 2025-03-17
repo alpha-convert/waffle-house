@@ -386,28 +386,20 @@ We make the following contributions:
 
 \jwc{Ensure we have a signposting table-of-contents-ish few sentences here, if it's not covered by the contribs.}
 
-\section{Background}
+\section{Sources of Inefficiency in Monadic Generator Libraries}
+\label{section:motiv}
+\jwc{In this section we answer: ``What are monadic generator libraries, and why are they slow?''}
 
-\jwc{In this paper, we'll use OCaml to illustrate the ideas, but the concepts
-are portable to other languages: see Section~\ref{subsection:other-langs}}
-
-\subsection{Property-Based Testing}
+\subsection{Background: Monadic Generator DSLs}
 \jwc{Usual spiel about pbt and generators: here's a monadic generic generator library (but we're using BQ to illustrage), it has return and bind, this is what they're for.}
 \jwc{You often want generators to generate for sparse precoditions so you can exercise a property reasonably well}
 
 \begin{lstlisting}
-module Bq = struct
-  type 'a t = int -> SR.t -> 'a
-
-  let return (x : 'a) : 'a t = fun size seed -> x
-
-  let bind (g : 'a t) (f : 'a -> 'b t) : 'b t =
-    fun size seed ->
-      let x = g size seed in
-      (f x) size seed
-
-  let gen_int (lo : int) (hi : int) : int t =
-    fun size seed -> SR.int seed lo hi
+module Bq : sig
+  type 'a t
+  val return : 'a -> 'a t
+  val bind : 'a t -> ('a -> 'b t) -> 'b t
+  val gen_int : lo:int -> hi:int -> int t
 end
 \end{lstlisting}
 
@@ -475,136 +467,10 @@ let tree_of g = fixed_point (fun rg ->
 \jwc{This generator generates binary trees using all the combinators, yay. Explain em.}
 
 
-\subsection{Multi-Stage Programming}
-\label{subsection:msp}
-
-\jwc{I think this section should actually go later.}
-
-In Muli-stage programming (also known more simply as staging), programs execute
-over the course of multiple stages, with each stage producing the code to be run
-in the next.  This is an old idea in programming languages, with roots going
-back to quasiquotation in LISP \cn{}.  For the purposes of this paper, we will
-primarily consider two stages: compile time and run time. Staged programs thus
-execute twice: once at compile time, which produces more code, which is then
-compiled and run at run time.
-
-\subsubsection{Staging in eDSL Construction}
-One of the primary uses of staging is in embedded DSL construction \cite{sheard99, lms, trattdsl}.
-While embedded DSLs are great \jwc{words}, they have well-known drawback: 
-the functional abstractions used to build eDSLs prevent compilers from generating efficient machine code \cn.
-In the literature, this effect is known as ``abstraction overhead'' \cite{carrette05, moller20}: the layers of abstraction that 
-make eDSLs so usable are precisely what prevents them from being fast.
-In light of this issue, staging is often used as a lightweight compiler for DSLs. The compile-time evaluation stage
-transforms the DSL code, eliminating abstractions to produce code that the host language compiler can generate fast machine code for.
-\jwc{This previous paragraph is peak ``shitty first draft''.}
-This recipe has been used to great effect across domains to stage eDSLs for stream processing \cite{moller20,strymonas}, parser combinators \cite{sspc, staged-parsers, krishnaswami19, flap},
-and query processing \cite{rhyme}.
-
-Many languages have some degree of staging functionality, though support varies
-from full native support (Scala 3 \cite{scalamacros}, Haskell \cite{templatehaskell}) to compiler extensions (OCaml \cite{metaocaml,macocaml}, Java \cite{mint}).
-Moreover, many more languages have lighter-weight staging-like metaprogramming support in the form of macros.
-See Section~\ref{subsection:other-langs} for a full discussion of just how portable these ideas are. \jwc{this sentence is a placeholder lol}
-
-For this paper, we have implemented staged PBT libraries in both OCaml --- using the MetaOCaml fork of the OCaml compiler \cn --- and Scala 3 --- using
-\texttt{scala.quoted}. For presentation purposes, all staged code presented in the body of this paper is written in OCaml.
-However, we believe all of the concepts presented are portable across languages with staging support, and we have reimplemented \name in Scala 3.
-
-\subsubsection{Staging in MetaOCaml}
-MetaOCaml's staging functionality is exposed through a type \texttt{'a code}. A
-value of type \texttt{t code} at compile time is a (potentially open) OCaml term
-of type \texttt{t}.
-
-Values of \texttt{code} type are introduced by \emph{quotes}, written
-\texttt{.<$\ldots$>.}. Brackets delay execution of a program until run time. For
-example, the program \texttt{.< 5 + 1 >.} has type \texttt{int code}.  Note that
-this is not the same as \texttt{.< 6 >.}. Because brackets delay computation,
-the code is not \emph{executed} until the next stage (run time).
-Values of type \texttt{code} can be combined together using \emph{escape},
-written \texttt{.\~{}(e)} (or just \texttt{.\~{}x}, when \texttt{x} is a variable).  Escape lets you take a value of type
-\texttt{code}, and ``splice'' it directly into a quote.  For example, this
-program \texttt{let x = .<1 * 5>. in .< .\~{}(x) + .\~{}(x) >.} evaluates to
-\texttt{.<(1 * 5) + (1 * 5)>.}.  MetaOCaml ensures correct scoping and macro
-hygiene, ensuring that variables are not shadowed when open terms are spliced.
-
-The power of staging for optimization away abstraction overheads comes from
-defining functions that accept and return \texttt{code} values.  A function
-\texttt{f : 'a code -> 'b code} is a function that takes a program computing a
-run-time \texttt{'a} and transforms it into a program computing a run-time
-\texttt{'b}. In particular, because \texttt{f} itself runs at compile time, the
-abstraction of using \texttt{f} is necessarily completely eliminated by
-run time.
-A code-transforming function \texttt{'a code -> 'b code} can also be converted \emph{code for a function} --- a value of type
-\texttt{('a -> 'b) code} --- with the following program:
-\begin{lstlisting}
-let eta (f : 'a code -> 'b code) : ('a -> 'b) code = .<fun x -> .\~(f .<x>.)>.
-\end{lstlisting}
-
-This program is known as ``the trick'' in the partial evaluation and multi-stage programming literature.
-\cn{} 
-% USE THIS: https://arxiv.org/pdf/2309.08207
-It returns a code for a function that takes an argument \texttt{x}, and then it splats in the result of calling \texttt{f} on just
-the quoted \texttt{x}.
-\jwc{Does this make any sense?}
-
-The trick is best illustrated by an example. The following program reduces to \texttt{.< fun x -> (1 + x) mod 2 == 0 >}.
-\begin{lstlisting}
-let is_even x = .< .~x mod 2 == 0 >. in
-let succ x = .< 1 + .~x >. in
-eta (succ . is_even)
-\end{lstlisting}
-By composing the two code-transforming functions together at compile time, and only then turning them into a run-time function,
-the functions are fused together... \jwc{words}.
-This is the basis of how staging is used to eliminate the abstraction of DSLs
-(like a generator DSL). By writing DSL combinators as compile-time functions ---
-and only calling \texttt{eta} at the end on the completed DSL program ---  we
-can ensure that any overhead of using them is eliminated by run time.
-
-% \jwc{
-%   \begin{itemize}
-%     \item The \texttt{'a code} type, quote, escape or ``splice'', stage distinction.
-%     \item MetaOCaml ensures correct scoping and hygene by preventing alpha-collision when you splice open terms.
-%     \item The difference between \texttt{('a -> 'b) code} and \texttt{'a code -> 'b code}
-%     \item We can convert one way, but not the other.
-%     \item Functions \texttt{'a code -> 'b code} ``fuse''.
-%     \begin{itemize}
-%       \item Consider writing \texttt{even . succ}. This
-%       \item Consider \texttt{even\_c : int code -> bool code = fun cx -> .<.~cx mod 2 == 0>.} and \texttt{succ\_c : int code -> int code = fun cx -> .< .~x + 1 >.}
-%       \item If you do \texttt{to\_dyn (even\_c . succ\_c)}, you get \texttt{fun x -> (x + 1) mod 2 == 0}. Composing functions from code to code, and then \emph{only at the end} stamping out
-%       a dynamic function value eliminates the function abstraction.
-%     \end{itemize}
-%     \item This is the basis of (WORD). By defining a library with functions with types like \texttt{'a code -> 'b code}, we can ensure that the
-%     abstractions the library introduces are fully eliminated at compile time.
-%   \end{itemize}
-% }
-
-\subsection{Other Languages and Libraries}
-\label{subsection:other-langs}
-
-\jwc{TODO: Move this section later (cf conversation in WH meeting 3/7/25)}
-
-\tr{Here's where we talk about what's going on in the world, and ultimately make the argument that \bq{} is the best tool to reproduce.}
-
-\jwc{Note that this explanation require some prior note of exactly *why* BQ is slow... i.e. the abstraction overhead of the library is high.}
-
-\jwc{
-  \begin{itemize}
-    \item Scala. Functional abstractions like QC generators are known to be costly in Scala, that's why they have LMS (in Scala 2, and Macros in Scala 3). Example: parser combinators (``On Staged Parser Combinators for Efficient Data Processing''), functional data structures (\href{https://ppl.stanford.edu/papers/popl13_rompf.pdf}{Link}), web programming (``Efficient High-Level Abstractions for Web Programming'').
-    Al of this should still work in scala. Could easily be incorporated into ScalaCheck, with minor modification: ScalaCheck uses a state monad to thread around the seed, instead of a stateful one (like BQ), or a splittable one (like Haskell). So you have to adapt to that. But same diff.
-    \item Python. Maybe could do it?? Hypothesis + MacroPy
-    \item Haskell: GHC does a lot of these optimizations already, since the code is pure. Since QC generators are relatively small programs,
-    GHC has little trouble specializing them. Of course, this is not guaranteed. A version of this idea can easily be ported to the original QC with template haskell, to guarantee
-    the highest-performance generators.
-    \item Rust: Not GC'd, so no alloc overhead but bind'd generators still dispatch through runtime data.
-  \end{itemize}
-}
-
-\section{Sources of Inefficiency in Monadic Generator Libraries}
-\label{section:motiv}
-\jwc{In this section we answer: ``Why are monadic generator libraries slow?''}
 
 \jwc{IMPORTANT: We are using OCaml because we have to pick a syntax for this section, but these abstraction overheads exist in other languages -- at least scala, rust.}
 
-\subsection{Monadic DSL Abstraction Overhead}
+\subsection{Abstraction Overhead of Generator DSLs}
 Just how large is the abstraction overhead of monadic generator DSLs, and where does it come from?
 Figure~\ref{fig:bq-internals} shows the internals of (a simplified version of) \bq{}.
 A generator \texttt{'a Bq.t} is just a function of type~\texttt{int -> SR.t -> 'a},
@@ -739,7 +605,7 @@ In strict functional languages like OCaml and Scala,
 Each individual closure allocation is relatively cheap, but doing lots of allocation in a generation
 loop is very costly because each allocation brings us closer to the next costly GC pause \cn{}.
 
-\subsubsection{Overhead of Other Combinators}
+\subsubsection{Overhead of Choice Combinators}
 
 \jwc{
 Aside from the usual fact that the compiler can't ``see through'' the abstraction boundary to specialize, combinators like union and weighted union
@@ -762,7 +628,7 @@ However, almost no compilers (GHC is a notable exception) can figure this out an
 
 
 % \subsubsection{Function call overhead}
-\subsection{Choice of Randomness Library}
+\subsection{Inefficient Randomness Libraries}
 \jwc{We really need to have explained the effect ordering equivalence aspect of the evaluation before here.}
 
 The core of any PBT generator library is a source of randomness: to generate
@@ -828,6 +694,109 @@ performance can be improved just by using a more performant randomness library.
 \jwc{Usual introduction to this section, corresponding to how we talked about it in the intro. ``We present a library that XYZ''.}
 
 \hg{TODO: Signposting --- I got a few paragraphs in and realized I wasn't sure what I was reading}
+
+\subsection{Background: Multi-Stage Programming}
+\label{subsection:msp}
+
+In Muli-stage programming (also known more simply as staging), programs execute
+over the course of multiple stages, with each stage producing the code to be run
+in the next.  This is an old idea in programming languages, with roots going
+back to quasiquotation in LISP \cn{}.  For the purposes of this paper, we will
+primarily consider two stages: compile time and run time. Staged programs thus
+execute twice: once at compile time, which produces more code, which is then
+compiled and run at run time.
+
+\subsubsection{Uses of Staging in eDSL Construction}
+One of the primary uses of staging is in embedded DSL construction \cite{sheard99, lms, trattdsl}.
+While embedded DSLs are great \jwc{words}, they have well-known drawback: 
+the functional abstractions used to build eDSLs prevent compilers from generating efficient machine code \cn.
+As alluded to previously \jwc{This sentence here because of the section-ordering transpose... may need to mention this earlier.}, this effect is known as ``abstraction overhead'' \cite{carrette05, moller20}: the layers of abstraction that 
+make eDSLs so usable are precisely what prevents them from being fast.
+\jwc{Something to the effect of ``the issues we noticed in BQ and SC exist across many eDSLs''}
+In light of this issue, staging is often used as a lightweight compiler for DSLs. The compile-time evaluation stage
+transforms the DSL code, eliminating abstractions to produce code that the host language compiler can generate fast machine code for.
+\jwc{This previous paragraph is peak ``shitty first draft''.}
+This recipe has been used to great effect across domains to stage eDSLs for stream processing \cite{moller20,strymonas}, parser combinators \cite{sspc, staged-parsers, krishnaswami19, flap},
+and query processing \cite{rhyme}.
+
+Many languages have some degree of staging functionality, though support varies
+from full native support (Scala 3 \cite{scalamacros}, Haskell \cite{templatehaskell}) to compiler extensions (OCaml \cite{metaocaml,macocaml}, Java \cite{mint}).
+Moreover, many more languages have lighter-weight staging-like metaprogramming support in the form of macros.
+See Section~\ref{subsection:other-langs} for a full discussion of just how portable these ideas are. \jwc{this sentence is a placeholder lol}
+
+For this paper, we have implemented staged PBT libraries in both OCaml --- using the MetaOCaml fork of the OCaml compiler \cn --- and Scala 3 --- using
+\texttt{scala.quoted}. For presentation purposes, all staged code presented in the body of this paper is written in OCaml.
+However, we believe all of the concepts presented are portable across languages with staging support, and we have reimplemented \name in Scala 3.
+
+\subsubsection{Staging in MetaOCaml}
+MetaOCaml's staging functionality is exposed through a type \texttt{'a code}. A
+value of type \texttt{t code} at compile time is a (potentially open) OCaml term
+of type \texttt{t}.
+
+Values of \texttt{code} type are introduced by \emph{quotes}, written
+\texttt{.<$\ldots$>.}. Brackets delay execution of a program until run time. For
+example, the program \texttt{.< 5 + 1 >.} has type \texttt{int code}.  Note that
+this is not the same as \texttt{.< 6 >.}. Because brackets delay computation,
+the code is not \emph{executed} until the next stage (run time).
+Values of type \texttt{code} can be combined together using \emph{escape},
+written \texttt{.\~{}(e)} (or just \texttt{.\~{}x}, when \texttt{x} is a variable).  Escape lets you take a value of type
+\texttt{code}, and ``splice'' it directly into a quote.  For example, this
+program \texttt{let x = .<1 * 5>. in .< .\~{}(x) + .\~{}(x) >.} evaluates to
+\texttt{.<(1 * 5) + (1 * 5)>.}.  MetaOCaml ensures correct scoping and macro
+hygiene, ensuring that variables are not shadowed when open terms are spliced.
+
+The power of staging for optimization away abstraction overheads comes from
+defining functions that accept and return \texttt{code} values.  A function
+\texttt{f : 'a code -> 'b code} is a function that takes a program computing a
+run-time \texttt{'a} and transforms it into a program computing a run-time
+\texttt{'b}. In particular, because \texttt{f} itself runs at compile time, the
+abstraction of using \texttt{f} is necessarily completely eliminated by
+run time.
+A code-transforming function \texttt{'a code -> 'b code} can also be converted \emph{code for a function} --- a value of type
+\texttt{('a -> 'b) code} --- with the following program:
+\begin{lstlisting}
+let eta (f : 'a code -> 'b code) : ('a -> 'b) code = .<fun x -> .\~(f .<x>.)>.
+\end{lstlisting}
+
+This program is known as ``the trick'' in the partial evaluation and multi-stage programming literature.
+\cn{} 
+% USE THIS: https://arxiv.org/pdf/2309.08207
+It returns a code for a function that takes an argument \texttt{x}, and then it splats in the result of calling \texttt{f} on just
+the quoted \texttt{x}.
+\jwc{Does this make any sense?}
+
+The trick is best illustrated by an example. The following program reduces to \texttt{.< fun x -> (1 + x) mod 2 == 0 >}.
+\begin{lstlisting}
+let is_even x = .< .~x mod 2 == 0 >. in
+let succ x = .< 1 + .~x >. in
+eta (succ . is_even)
+\end{lstlisting}
+By composing the two code-transforming functions together at compile time, and only then turning them into a run-time function,
+the functions are fused together... \jwc{words}.
+This is the basis of how staging is used to eliminate the abstraction of DSLs
+(like a generator DSL). By writing DSL combinators as compile-time functions ---
+and only calling \texttt{eta} at the end on the completed DSL program ---  we
+can ensure that any overhead of using them is eliminated by run time.
+
+% \jwc{
+%   \begin{itemize}
+%     \item The \texttt{'a code} type, quote, escape or ``splice'', stage distinction.
+%     \item MetaOCaml ensures correct scoping and hygene by preventing alpha-collision when you splice open terms.
+%     \item The difference between \texttt{('a -> 'b) code} and \texttt{'a code -> 'b code}
+%     \item We can convert one way, but not the other.
+%     \item Functions \texttt{'a code -> 'b code} ``fuse''.
+%     \begin{itemize}
+%       \item Consider writing \texttt{even . succ}. This
+%       \item Consider \texttt{even\_c : int code -> bool code = fun cx -> .<.~cx mod 2 == 0>.} and \texttt{succ\_c : int code -> int code = fun cx -> .< .~x + 1 >.}
+%       \item If you do \texttt{to\_dyn (even\_c . succ\_c)}, you get \texttt{fun x -> (x + 1) mod 2 == 0}. Composing functions from code to code, and then \emph{only at the end} stamping out
+%       a dynamic function value eliminates the function abstraction.
+%     \end{itemize}
+%     \item This is the basis of (WORD). By defining a library with functions with types like \texttt{'a code -> 'b code}, we can ensure that the
+%     abstractions the library introduces are fully eliminated at compile time.
+%   \end{itemize}
+% }
+
+
 
 \subsection{Design of a Staged Generator DSL}
 \label{subsection:basic-design}
@@ -1365,9 +1334,32 @@ To account for these edge cases, we repeated the above process for 10 seeds and 
 Although the variance \textit{between} seeds in Etna can be very vast, timing results are replicable for a given seed. Across 1,000 trials on the same seed, 
 the observed variance in time-to-failure was less than a nanosecond. \tr{Do we need this?}
 
-\section{Conclusion \& Future Work}
+
+\section{Other Languages and Libraries}
+\label{subsection:other-langs}
+
+\jwc{TODO: Move this section later (cf conversation in WH meeting 3/7/25)}
+
+\tr{Here's where we talk about what's going on in the world, and ultimately make the argument that \bq{} is the best tool to reproduce.}
+
+\jwc{Note that this explanation require some prior note of exactly *why* BQ is slow... i.e. the abstraction overhead of the library is high.}
+
+\jwc{
+  \begin{itemize}
+    \item Scala. Functional abstractions like QC generators are known to be costly in Scala, that's why they have LMS (in Scala 2, and Macros in Scala 3). Example: parser combinators (``On Staged Parser Combinators for Efficient Data Processing''), functional data structures (\href{https://ppl.stanford.edu/papers/popl13_rompf.pdf}{Link}), web programming (``Efficient High-Level Abstractions for Web Programming'').
+    Al of this should still work in scala. Could easily be incorporated into ScalaCheck, with minor modification: ScalaCheck uses a state monad to thread around the seed, instead of a stateful one (like BQ), or a splittable one (like Haskell). So you have to adapt to that. But same diff.
+    \item Python. Maybe could do it?? Hypothesis + MacroPy
+    \item Haskell: GHC does a lot of these optimizations already, since the code is pure. Since QC generators are relatively small programs,
+    GHC has little trouble specializing them. Of course, this is not guaranteed. A version of this idea can easily be ported to the original QC with template haskell, to guarantee
+    the highest-performance generators.
+    \item Rust: Not GC'd, so no alloc overhead but bind'd generators still dispatch through runtime data.
+  \end{itemize}
+}
+
 \section{Related Work}
 \jwc{A generator is a parser of randomness, and people have implemented lots of staged parser libraries!}
+
+\section{Conclusion \& Future Work}
 
 %%
 %% The next two lines define the bibliography style to be used, and
