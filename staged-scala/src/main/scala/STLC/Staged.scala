@@ -51,8 +51,8 @@ object Staged {
         StGen.recursive[Term,Typ](rh => tc =>
             tc.split.flatMap(t =>
                 t match {
-                    case _ => StGen.oneOf('{true},'{false}).map(b => '{Term.Bool($b)})
-                    case (t1,t2) => rh(t2).map(e => '{Term.Abs($t1,$e)})
+                    case TypS.TFunS(t1,t2) => rh(t2).map(e => '{Term.Abs($t1,$e)})
+                    case TypS.TBoolS => StGen.oneOf('{true},'{false}).map(b => '{Term.Bool($b)})
                 }
             )
         )(t)
@@ -73,8 +73,8 @@ object Staged {
                                     } else {
                                        t.split.flatMap(tf =>
                                             tf match {
-                                                case (t1,t2) => StGen.resize('{$n-1},rh('{($t1::$g,$t2)})).map(e => '{Term.Abs($t1,$e)})
-                                                case _ => (for {
+                                                case TypS.TFunS(t1 : Expr[Typ],t2 : Expr[Typ]) => StGen.resize('{$n-1},rh('{($t1::$g,$t2)})).map(e => '{Term.Abs($t1,$e)})
+                                                case TypS.TBoolS => (for {
                                                     t2 <- genTyp
                                                     e1 <- StGen.resize('{$n/2},rh('{($g,Typ.TFun($t2,$t))}))
                                                     e2 <- StGen.resize('{$n/2},rh('{($g,$t2)}))

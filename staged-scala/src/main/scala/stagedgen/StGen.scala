@@ -121,7 +121,26 @@ object StGen {
   }
 
   def oneOf[T : Type](xs : T*)(using Quotes) : StGen[T] = {
+    val ys = xs.toList
+    val n = ys.length
+    def go(ys : List[T], i : Expr[Int]) : Cps[T] = {
+      ys match
+        case Nil => Cps.error('{"impossible"})
+        case x :: zs =>
+          '{$i == 0}.splitCps.flatMap(eqz =>
+            if(eqz) {
+              Cps.pure(x)
+            } else {
+              Cps.letInsert('{$i - 1}).flatMap(pred =>
+                go(zs,pred)
+              )
+            }
+          )
+    }
 
+    chooseInt('{0},'{${Expr(n)} - 1}).flatMap(i =>
+      gen((_,seed) => go(ys,i).map((_,seed)))
+    )
   }
 
   def oneOfDyn[T : Type](xs : Expr[List[T]])(using Quotes) : StGen[Expr[T]] = {

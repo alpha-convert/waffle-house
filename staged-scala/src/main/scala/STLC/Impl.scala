@@ -9,12 +9,16 @@ enum Typ:
     case TBool
     case TFun(dom : Typ, cod : Typ)
 
-given [A : Type](using Quotes) : SplittableCps[Typ,Unit | (Expr[Typ],Expr[Typ])] with
+enum TypS:
+    case TBoolS
+    case TFunS(dom : Expr[Typ], cod : Expr[Typ])
+
+given [A : Type](using Quotes) : SplittableCps[Typ,TypS] with
     extension (a : Expr[Typ])
-        def splitCps(using Quotes) : Cps[Unit | (Expr[Typ],Expr[Typ])] = Cps.cps([Z : Type] => k => '{
+        def splitCps(using Quotes) : Cps[TypS] = Cps.cps([Z : Type] => k => '{
             ${a} match {
-                case Typ.TBool => ${k(())}
-                case Typ.TFun(dom,cod) => ${k(('{dom},'{cod}))}
+                case Typ.TBool => ${k(TypS.TBoolS)}
+                case Typ.TFun(dom,cod) => ${k(TypS.TFunS('{dom},'{cod}))}
             }
         })
 
