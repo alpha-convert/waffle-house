@@ -35,6 +35,8 @@ object Cps {
     }
   }
 
+  def error[T](s : Expr[String])(using Quotes) : Cps[T] = cps[T]([Z : Type] => (f : (T => Expr[Z])) => '{throw new Exception(${s})})
+
   def run[T : Type](c : Cps[Expr[T]]) : Expr[T] = {
     c.apply(x => x)
   }

@@ -5,6 +5,7 @@ import scala.quoted.*
 import stagedgen.Cps
 import stagedgen.Splittable
 import stagedgen.SplittableCps.given
+import stagedgen.Splittable.given
 
 class IllegalBoundsError[A](low: A, high: A)
     extends IllegalArgumentException(s"invalid bounds: low=$low, high=$high")
@@ -90,6 +91,65 @@ object StGen {
     )
   }
 
+  def chooseInt(lo : Expr[Int], hi : Expr[Int])(using Quotes) : StGen[Expr[Int]] =
+    chooseLong('{$lo.toLong},'{$hi.toLong}).map(l => '{$l.toInt})
+
+  private def letInsert[T : Type](ex : Expr[T])(using Quotes) : StGen[Expr[T]] = {
+    gen((_,seed) => Cps.letInsert(ex).map(u => (u,seed)))
+  }
+
+
+  def pick[T : Type](gs : (Expr[Int],StGen[Expr[T]])*)(acc : Expr[Long])(using Quotes) : StGen[Expr[T]] = {
+    gs.toList match {
+      case Nil => StGen.gen((_,_) => Cps.error('{"Fell off the end of pick list"}))
+      case (x,g)::gs2 =>
+        '{$acc <= $x}.split.flatMap(leq =>
+          if(leq){
+            g
+          } else {
+            letInsert('{$acc - $x}).flatMap(acc2 =>
+              pick(gs2*)(acc2)
+            )
+          }
+        )
+    }
+  }
+
+  def frequency[T : Type](gs : (Expr[Int],StGen[Expr[T]])*)(using Quotes) : StGen[Expr[T]] = {
+    val sum = gs.map(_._1).foldRight('{0L})((x,y) => '{${x}.toLong + ${y}})
+    chooseLong('{1L},sum).flatMap(pick(gs*))
+  }
+
+  def oneOf[T : Type](xs : T*)(using Quotes) : StGen[T] = {
+    val ys = xs.toList
+    val n = ys.length
+    def go(ys : List[T], i : Expr[Int]) : Cps[T] = {
+      ys match
+        case Nil => Cps.error('{"impossible"})
+        case x :: zs =>
+          '{$i == 0}.splitCps.flatMap(eqz =>
+            if(eqz) {
+              Cps.pure(x)
+            } else {
+              Cps.letInsert('{$i - 1}).flatMap(pred =>
+                go(zs,pred)
+              )
+            }
+          )
+    }
+
+    chooseInt('{0},'{${Expr(n)} - 1}).flatMap(i =>
+      gen((_,seed) => go(ys,i).map((_,seed)))
+    )
+  }
+
+  def oneOfDyn[T : Type](xs : Expr[List[T]])(using Quotes) : StGen[Expr[T]] = {
+    for {
+      vec <- StGen.letInsert('{$xs.toVector})
+      i <- chooseInt('{0},'{$vec.size - 1})
+    } yield ('{$vec($i)})
+  }
+
   def sized[T](f: Expr[Int] => StGen[T]): StGen[T] =
     gen { (size, seed) => f(size).doApply(size, seed) }
 
@@ -130,41 +190,19 @@ object StGen {
       ).splitCps
     )
   }
-  //   type ('a,'r) recgen = 'r code -> 'a code t
-  // let recurse f x = {
-  //   rand_gen = fun ~size_c ~random_c ->
-  //     Codecps.bind ((f x).rand_gen ~size_c ~random_c) @@ fun c ->
-  //     Codecps.let_insert c
-  // }
 
-  // let recursive (type a) (type r) (x0 : r code) (step : (a,r) recgen -> r code -> a code t) =
-  //   {
-  //     rand_gen = fun ~size_c ~random_c -> 
-  //       Codecps.bind (Codecps.let_insertv x0) @@ fun x0 ->
-  //       (* let%bind x0 = Codecps.let_insert x0 in *)
-  //       Codecps.let_insert @@ .< let rec go x ~size ~random = .~(
-  //           Codecps.code_generate @@
-  //             (step
-  //                 (fun xc' -> { rand_gen = fun ~size_c ~random_c -> Codecps.return .< go .~xc' ~size:.~size_c ~random:.~random_c >. })
-  //                 .<x>.
-  //             ).rand_gen ~size_c:.<size>. ~random_c:.<random>.
-  //         )
-  //         in
-  //           go .~(v2c x0) ~size:.~size_c ~random:.~random_c
-  //       >.
-  //   }
-
-  def complexStGenImpl (using q : Quotes): Expr[Int => Seed => (Long,Long)] = {
-    val e = StGen.splat(for {
-        x <- StGen.chooseLong('{1},'{1000})
-        y <- StGen.chooseLong('{0},x)
-    } yield '{(${x},${y})}
+  def wgImpl (using q : Quotes): Expr[Int => Seed => Int] = {
+    val e = StGen.splat(
+      StGen.frequency(
+        '{2} -> StGen.pure('{999}),
+        '{3} -> StGen.pure('{111})
+      )
     )
     e
   }
 
-  inline def complexStGen = {
-    ${complexStGenImpl}
+  inline def wg = {
+    ${wgImpl}
   }
 }
 
