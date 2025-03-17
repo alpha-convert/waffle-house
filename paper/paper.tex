@@ -715,13 +715,8 @@ transformations of this form.}.  Even in cases as simple as
 Figure~\ref{fig:overhead-explanation-code}, the indirection of \texttt{return}
 and \texttt{bind} causes these heuristics to not fire.  Moreover, the story is
 even worse for recursive generators, as the heuristics are necessarily even more
-conservative for optimizing recursive functions.
+conservative for optimizing recursive functions. \jwc{unclear if we need this sentence, it's sorta obvious}
 
-
-
-% Modern compilers use heuristics to decide when to specialize and inline code \cn, and these heuristics cannot guarantee that generator abstractions are zero-cost.
-% These heuristics are also necessarily conservative about inlining and specializing recursive functions, which all generators of recursive data types must be.
-% The 
 
 
 \begin{figure}
@@ -736,32 +731,14 @@ conservative for optimizing recursive functions.
 \label{fig:overhead-explanation-perf}
 \end{figure}
 
-% \jwc{The overhead of the abstraction is 2x. The reality is actually worse: actual base-quickcheck includes even more indirection in its type.}
-
-% \jwc{The native code OCaml compiler, even with -O3, fails to specialize this code and eliminate the overhead of this abstraction --- inlining all of the funciton definitions and then performing beta-reductions speeds up sampling by a factor of 2.}
-
-% \jwc{Same story in scala. 
-% Approximately 2x difference for the same generator (though an order of magnitude slower overall than bq)... (scala uses a slightly different generator type, but the principles are the same)
-% This doesn't even account for more inlining we could do to eliminate the boxing/unboxing of results. (Scalacheck generators can fail, though this adds significant overhead)
-% }
-
-% [info] GenBm.generateComplexBase     avgt    3  458.325 ± 67.214  ns/op
-% [info] GenBm.generateComplexInlined  avgt    3  266.035 ±  8.559  ns/op
-
-
-% \jwc{
-% 
-% }
-
-\tr{Each of these consist of an explanation of the problem and pseudocode outlining the solution.}
-
-\jwc{
-  \begin{itemize}
-    \item In cases where the compiler cannot statically eliminate them, running a monadic bind allocates a short-lived closure: we allocate a closure for the continuation, and then immediately jump into it.
-    \item Each closure allocation is relatively cheap, but doing lots of allocation in a generation hot loop adds up fast.
-    \item Similar things have been noticed about monadic parsing DSLs in the past.
-  \end{itemize}
-}
+While neither of these microbenchmarks exhibit this behavior, more complex
+generators suffer further performance penalties due to \emph{closure
+allocation}. In cases where the compiler cannot statically eliminate it \jwc{``it'' = ``the allocation''},
+running a monadic bind allocates a short-lived closure: we allocate a closure
+for the continuation, and then immediately jump into it.
+In strict functional languages like OCaml and Scala,
+Each individual closure allocation is relatively cheap, but doing lots of allocation in a generation
+loop is very costly because each allocation brings us closer to the next costly GC pause \cn.
 
 \subsubsection{Overhead of Other Combinators}
 
