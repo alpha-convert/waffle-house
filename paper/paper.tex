@@ -321,7 +321,7 @@ optimizing idiomatic functional DSLs~\cn.
 We extend this technique to generators \jwc{``apply this technology to''? We're not extending staging, we're a client}, completely eliminating the overhead of
 many common generator abstractions. For example, in unstaged generator
 libraries, each call to monadic bind usually spends time constructing and
-immediately executing a closure at runtime. \jwc{Todo: joe --- cite some evidence for this}
+immediately executing a closure at run time. \jwc{Todo: joe --- cite some evidence for this}
 Meanwhile, a staged approach can resolve the bind at compile time, enabling the
 compiler to inline and eliminate these closures.
 Secondly, we demonstrate the impact of different choices of \rand on generator
@@ -510,7 +510,7 @@ end
 \label{fig:bq-internals}
 \end{figure}
 
-Just how much runtime overhead does this monadic abstraction introduce? To
+Just how much run-time overhead does this monadic abstraction introduce? To
 illustrate, let's return to our running example of a constrained pair of
 integers, written in both \bq{} and ScalaCheck.
 Figure~\ref{fig:overhead-explanation-code} shows two versions of the generator, written in both languages.
@@ -616,7 +616,7 @@ These allocations are extremely costly, and happen every sample from the generat
 
 \jwc{In practice, the possible options are almost always statically known: in the binary tree generator from earlier, we can tell from the text of the code what
 the weights are, what the generators are, and how many there are.
-Put more simply, you basically always call weighted union with an \emph{explicit list}, which is then immediately traversed by the weighted union. For this reason, you should not have to incur the cost of allocating this list at runtime.
+Put more simply, you basically always call weighted union with an \emph{explicit list}, which is then immediately traversed by the weighted union. For this reason, you should not have to incur the cost of allocating this list at run time.
 However, almost no compilers (GHC is a notable exception) can figure this out and eliminate the list \cn (list fusion).
 }
 
@@ -669,6 +669,9 @@ be faster on modern CPUs than any random sampling algorithm with data-dependent 
 instructions.\hg{Should we just always be doing this? I think we want to argue
 that this is a bridge too far because you still need to generate the buffer
 ahead of time and you can run out of randomness?}
+\jwc{HG: talk about the tradeoffs here.}
+
+\jwc{The point here is that ``you should be thinking about using a more performant RNG, we'll show you that it does have real benefits (and quantify them). But there are tradeoffs here.'}
 
 Of course, simply arguing that the randomness library is on the hot
 path does not guarantee that a faster sampling leads to measurably faster
@@ -1122,7 +1125,7 @@ end
 
 
 \subsubsection{The Trick at Other Types}
-To write more interesting generators, we also need the ability to generate code that manipulates runtime values.
+To write more interesting generators, we also need the ability to generate code that manipulates run-time values.
 For instance, consider this generator
 
 \jwc{need a better example here}
@@ -1166,6 +1169,7 @@ recursive combinators, of type \texttt{'r code -> 'a code Gen.t}, for any type \
 The code for this combinator can be found in Appendix~\jwc{appendix}.
 The recursion API consists of an opaque type \texttt{'a handle}, and a function \texttt{recurse} to perform recursive calls.
 Programmers can then define recursive generators by \texttt{fixed\_point}, which ties the recursive knot.
+\jwc{don't want to handle GADTs}
 
 % \begin{lstlisting}
 %   type ('a,'r) handle = 'r code -> 'a code t
@@ -1352,7 +1356,7 @@ the observed variance in time-to-failure was less than a nanosecond. \tr{Do we n
     \item Haskell: GHC does a lot of these optimizations already, since the code is pure. Since QC generators are relatively small programs,
     GHC has little trouble specializing them. Of course, this is not guaranteed. A version of this idea can easily be ported to the original QC with template haskell, to guarantee
     the highest-performance generators.
-    \item Rust: Not GC'd, so no alloc overhead but bind'd generators still dispatch through runtime data.
+    \item Rust: Not GC'd, so no alloc overhead but bind'd generators still dispatch through run-time data.
   \end{itemize}
 }
 
@@ -1360,6 +1364,7 @@ the observed variance in time-to-failure was less than a nanosecond. \tr{Do we n
 \jwc{A generator is a parser of randomness, and people have implemented lots of staged parser libraries!}
 
 \section{Conclusion \& Future Work}
+\jwc{Why we stopped where we stopped: can you squeeze more out of this?}
 
 %%
 %% The next two lines define the bibliography style to be used, and
