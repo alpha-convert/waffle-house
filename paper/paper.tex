@@ -1321,20 +1321,22 @@ discussed in the previous sections.
 \section{Evaluation}
 \label{section:eval}
 \begin{itemize}
-  \item RQ1: Do generators written using \name run faster than those written using base quickcheck?
-  \item RQ2: Do performance speedups translate to better bug-finding ability?
-  \item RQ3: Does our technique generalize to other strict functional languages?
+  \item \textbf{RQ1}: Do generators written using \name run faster than those written using base quickcheck?
+  \item \textbf{RQ2}: Do performance speedups translate to better bug-finding ability?
+  \item \textbf{RQ3}: Does our technique generalize to other strict functional languages?
 \end{itemize}
 
 All experiments were run on a 64-bit Linux machine with 264 GB RAM and an Intel Xeon Platinum 8375C CPU, running Ubuntu 24.04.1 LTS.
 The \name library was implemented using the
 4.14.1+BER MetaOCaml compiler variant.  All OCaml benchmarks
-were run invoking \texttt{ocamlopt}, the native code compiler for OCaml. \todo{Joe : Scala info ...}
+were run invoking \texttt{ocamlopt}, the native code compiler for OCaml, using compiler flags \texttt{-flamda -o3}.
+
+. \todo{Joe : Scala info ...}
 
 \subsection{Implementing and Testing Generators}
 \label{subsection:pbt-for-pbt}
 To establish the equivalence of generators up to program equality, we use a PBT harness to compare their outputs. 
-Specifically, we generate random (size, seed) pairs and evaluate whether the generators under test produce equal results. 
+Specifically, we generate random sizes and seeds and evaluate whether the generators under test produce equal results. 
 If the equality property fails, we report the unequal trees; if, over 1,000 trials, no ``counterexample'' is reported, we consider the
 behavior of the generators to be equivalent.
 \subsection{Benchmarking speed \& resource usage}
@@ -1350,12 +1352,14 @@ behavior of the generators to be equivalent.
   \end{itemize}
 }
 \subsection{Impact on bug-finding ability}
-We evaluate the bug-finding ability of three of our case studies---BST, RBT, and STLC---using Etna, a platform for assessing and comparing property-based testing (PBT) techniques. 
-Etna allows users to measure the effectiveness of different generator implementations by injecting bugs into the system under test and recording the time until a relevant 
-property fails in response. For example, in a tree with a property ensuring that the tree remains ordered, a bug might involve inserting a value that violates that ordering. 
-Each case study includes a diverse set of \textit{tasks}, where a task consists of a specific bug-property pair designed to test different aspects of the system. 
+To answer \textbf{RQ2}, we evaluate the bug-finding ability of three of our case studies---BST, RBT, and STLC---using Etna, a platform for assessing and comparing property-based testing (PBT) techniques. 
+Etna allows users to measure the effectiveness of different generator implementations by injecting bugs into the system under test and recording the time taken for a relevant 
+property to fail in response. For example, in a tree with an ordering property, a bug injection might consist of inserting a value that violates that ordering. 
 
-For each case study, we construct both type-derived and custom generators.
+Each case study includes a diverse set of \textit{tasks}, where a task consists of a specific bug-property pair designed to test different aspects of the system (e.g., BST
+includes tasks that test insertion, deletion, and union operations on binary search trees).
+
+We evaluate each case study with both type-derived and custom generators.
 Each generator has four implementations, which are equivalent up to program equality:
 \begin {itemize}
   \item The original \bq generator (``BQ'').
@@ -1368,8 +1372,11 @@ To ensure a fair comparison, we initialize each of these generators with the sam
 
 \subsubsection{Variance between seeds}
 The time-to-failure of a given strategy on a given seed is not necessarily representative of 
-the strategy's average time-to-fail over a large number of trials, but one might expect the speedup to be. This is true in most cases, but not all. For example, it is theoretically possible
-to choose a seed such that the \textit{first} value produced by a generator discovers the bug, which would elide any differential speedup between staged and unstaged generators.
+the strategy's average time-to-fail over a large number of trials, so we normalize by computing the
+timing \textit{differential} between optimized and unoptimized generators (the ``speedup''). While this is true in most cases,
+it is not perfect.
+For example, it is theoretically possible
+to choose a seed such that the \textit{first} value produced by a generator discovers the bug, which would elide any differential speedup.
 To account for these edge cases, we repeated the above process for 10 seeds and computed the geometric average of their speedups.
 
 % To produce \todo{FIG}, we repeated the above process for 10 seeds and computed the geometric average of their speedups. 
@@ -1378,10 +1385,9 @@ To account for these edge cases, we repeated the above process for 10 seeds and 
 %to choose a seed such that the \textit{first} value produced by a generator discovers the bug, but it would be misleading to report this result.
 
 \subsubsection{Variance between trials}
-With a fixed random seed, a given strategy in Etna consistently finds a bug in the same amount of time---across 1,000 trials on the same seed, 
-the observed variance in time-to-failure was less than a nanosecond.
+Although the variance \textit{between} seeds in Etna can be very vast, timing results are replicable for a given seed. Across 1,000 trials on the same seed, 
+the observed variance in time-to-failure was less than a nanosecond. \tr{Do we need this?}
 
-\jwc{Staging type-derived generators (which are the most commonly used ones) can turn a timeout into a found bug!}
 \section{Conclusion \& Future Work}
 \section{Related Work}
 \jwc{A generator is a parser of randomness, and people have implemented lots of staged parser libraries!}
