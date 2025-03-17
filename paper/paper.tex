@@ -686,6 +686,7 @@ def intPairInlined : (Gen.Parameters, Seed) => (Option[(Long,Long)],Seed) = {
       }
     }
 }
+\end{lstlisting}
 \caption{Int Pair Generators in \bq{} and ScalaCheck}
 \label{fig:overhead-explanation-code}
 \end{figure}
@@ -695,7 +696,6 @@ languages, the inlined version takes \textbf{half} as much time to generate a
 single pair of \texttt{int}s.
 
 \begin{figure}
-\end{lstlisting}
   \begin{tabular}{lll}
   Library    & Generator          & Time per Generation (ns) \\
   \bq{}         & \texttt{int\_pair}          & 70                       \\
