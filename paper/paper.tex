@@ -610,24 +610,39 @@ allocation}. In cases where the compiler cannot statically eliminate it \jwc{``i
 running a monadic bind allocates a short-lived closure: we allocate a closure
 for the continuation, and then immediately jump into it.
 In strict functional languages like OCaml and Scala,
-Each individual closure allocation is relatively cheap, but doing lots of allocation in a generation
-loop is very costly because each allocation brings us closer to the next costly GC pause \cn{}.
+Each individual closure allocation is relatively cheap, but doing lots of allocation in a
+generator is very costly because each allocation brings us closer to the next costly GC pause \cn{}.
+Similarly to \jwc{the previous one} this effect is magnified in recursive generators: each iteration
+through the recursive loop re-allocates closures for \texttt{bind}s, so the amount of allocation
+\emph{per generated value} scales linearly with the number of recursive generator calls.
 
 \subsubsection{Overhead of Choice Combinators}
+The monad functions \texttt{return} and \texttt{bind} aren't the only combinators that incur an
+abstraction overhead: all of them do! \jwc{I'm so bad at starting new sections...} ``Choice'' combinators like \texttt{weighted\_union}, however
+are particularly costly, because they unavoidably allocate a lot.
 
 \jwc{
-Aside from the usual fact that the compiler can't ``see through'' the abstraction boundary to specialize, combinators like union and weighted union
-necessarily allocate a lot in the generation hot path.
-Even without the dumb BQ array thing, to call union and weighted union, the types mean that you have to allocate a list.
-These allocations are extremely costly, and happen every sample from the generator. If the generator is recursive (like the tree generator), they occur at each recursive call.
+Aside from the usual fact that the compiler can't ``see through'' the
+abstraction boundary to specialize, combinators like union and weighted union
+necessarily allocate a lot in the generation hot path.  Even without the dumb BQ
+array thing, to call union and weighted union, the types mean that you have to
+allocate a list.  These allocations are extremely costly, and happen every
+sample from the generator. If the generator is recursive (like the tree
+generator), they occur at each recursive call.
 }
 
-\jwc{In practice, the possible options are almost always statically known: in the binary tree generator from earlier, we can tell from the text of the code what
-the weights are, what the generators are, and how many there are.
-Put more simply, you basically always call weighted union with an \emph{explicit list}, which is then immediately traversed by the weighted union. For this reason, you should not have to incur the cost of allocating this list at run time.
-However, almost no compilers (GHC is a notable exception) can figure this out and eliminate the list \cn (list fusion).
-}
-
+In practice, \texttt{weighted\_union}s is almost always\footnote{
+There are some generators where \texttt{weighted\_union} is passed a list which
+was itself the result of a generator: the well-typed STLC term generator used in Section~\ref{section:eval} is an example of this.
+} passed an explicitly constructed list, like
+\texttt{weighted\_union [(3,g); (1,g'); (2,g'')]}. 
+This is because the most common use case for \texttt{weighted\_union} is
+to choose between one of the different constructors of an algebraic datatype,
+the options for which are always known.
+The list passed to \texttt{weighted\_union} allocated at the call site, and then \emph{immediately}
+destructed by the function. In principle, since the elements of the list and its length $n$ are known statically,
+a compiler could unroll the loops in \texttt{weighted\_union} to depth $n$ and specialize the function to avoid allocating the list.
+In practice however almost~\jwc{Once again, GHC is a notable exception here \cn{}} no compilers perform this kind of optimization.
 
 % \jwc{This builds the cdf of the distribution, samples from 0 to the total, and binary searches through the array to find the bucket.}
 % \jwc{Allocating this array is unnecessary: we can simply compute the total weight, sample \texttt{x} between 0 and the total, and then walk the list accumulating the sum, until the accumulator exceeds \texttt{x}. Since in practice the list of possible options is quite small (usually at most 10 in practice), the linear time scan is going to be much faster.}
