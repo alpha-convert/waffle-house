@@ -601,59 +601,73 @@ can ensure that any overhead of using them is eliminated by run time.
 
 \section{Sources of Inefficiency in Monadic Generator Libraries}
 \label{section:motiv}
-\jwc{Why is a monadic generator library slow?}
-\jwc{NOTE: We can simplify this further by getting rid of the size parameter. Make the story even cleaner, I think!}
+\jwc{In this section we answer: ``Why are monadic generator libraries slow?''}
 
 \jwc{IMPORTANT: We are using OCaml because we have to pick a syntax for this section, but these abstraction overheads exist in other languages -- at least scala, rust.}
 
 \subsection{Monadic DSL Abstraction Overhead}
+Just how large is the abstraction overhead of monadic generator DSLs, and where does it come from?
+Figure~\ref{fig:bq-internals} shows the internals of (a simplified version of) \bq{}.
+A generator \texttt{'a Bq.t} is just a function of type~\texttt{int -> SR.t -> 'a},
+taking an \texttt{int} representing the current size parameter and a random seed \texttt{SR.t},
+and returning a generated value \texttt{'a}. It is an invariant of the library that function of this type are
+deterministic: for a fixed size and seed, it will return the same value. All of the randomness in testing comes from varying the initial seed.
+The monad functions \texttt{return} and \texttt{bind} are defined in the usual way
+for an instance of the reader monad \cn{}. \texttt{Return x} ignores the size and seed and just returns
+\texttt{x}, while \texttt{bind g k} first runs \texttt{g} and then passes the generated value to the continuation \texttt{k}.
+\bq{} uses a mutable seed, so the \texttt{random} passed to \texttt{(k a)} will be different from the one passed to \texttt{g}.
+The \texttt{gen\_int} combinator simply calls out to the randomness library \texttt{Splittable\_random}, aliased as \texttt{SR} here.
+\jwc{Should we do this?}
+
+Different PBT libraries use variations on this basic design. Haskell's QuickCheck uses a reader monad with an immutable state
+that is ``split'' at \texttt{bind}s \cn. Meanwhile, ScalaCheck (a) uses an immutable state type and state monad \cn{} to thread
+the state through, and (b) has an \texttt{Option} as its return type, to allow generation to fail.
+\jwc{However, the principles are the same, and we will use \bq{} to illustrate.}
 
 
-\jwc{
-  \begin{itemize}
-    \item It's been long-known that clean functional abstractions have a runtime overhead (this should be familiar by this time in the paper).
-    \item How does (simplified) BQ work?
-    \begin{itemize}
-      \item The basic generator type: \texttt{'a generator = int -> SR.t -> 'a}. Size and random seed to deterministic value. (note: \texttt{SR.t} is a mutable seed)
-      \item This gets a monad intance in the obvious way (show code).
-      \item Also show the code for \texttt{int}, how it calls the underlying SR function.
-    \end{itemize}
-    % \item Note that \emph{extensionally} \texttt{generate (create (fun size random -> e)) size random = e}, but the OCaml compiler does not always perform this optimization, or do the inlining required to expose it.
-    % (When sufficiently obfuscated behind returns and binds ...) This program compiles to code that (1) allocates the closure for `e', (2) passes it to create (which returns the closure), and then calls (3) generate, which immediately jumps into the closure.
-    \item Show benchmarks of the running example, versus the version where you inline everything. ()
-    \item Let's look at the running example: inline it all the way.
-  \end{itemize}
-}
+\begin{figure}
+\begin{lstlisting}
+module Bq = struct
+  type 'a t = int -> SR.t -> 'a
 
+  let return (x : 'a) : 'a t = fun _ _ -> x
+
+  let bind (g : 'a t) (k : 'a -> 'b t) : 'b t =
+    fun size random ->
+      let a = g size random in
+      (k a) size random
+
+  let gen_int (lo : int) (hi : int) : int t =
+    fun _ random -> SR.int random lo hi
+end
+\end{lstlisting}
+\caption{Internals of a Monadic Generator eDSL}
+\label{fig:bq-internals}
+\end{figure}
+
+Just how much runtime overhead does this monadic abstraction introduce? To
+illustrate, let's return to our running example of a constrained pair of
+integers, written in both \bq{} and ScalaCheck.
+Figure~\ref{fig:overhead-explanation-code} shows two versions of the generator, written in both languages.
+The first version (\texttt{int\_pair} in \bq{} and \texttt{intPair} in ScalaCheck) is written with monadic generator combinators.
+\jwc{Maybe we can avoid rewriting these if we already showed them earlier? Also maybe we duplicate the tutorial discussion of monadic generator libraries to include Scala?}
+The second version (\texttt{int\_pair\_inlined} and \texttt{intPairInlined})
+is just the first version, with (a) all generator combinator definitions inlined, and (b)
+beta-redexes reduced.
+
+\begin{figure}
 \begin{lstlisting}
 let int_pair : (int * int) Bq.t =
   let%bind x = (Bq.gen_int 0 100) in
   let%bind y = (Bq.gen_int 0 x) in
   Bq.return (x,y)
 
-let int_pair_inlined : (int * int) Bq.t
-  fun sr ->
+let int_pair_inlined : int -> SR.t -> int * int =
+  fun _ sr ->
     let x = Splittable_random.int sr ~lo:0 ~hi:100 in
     let y = Splittable_random.int sr ~lo:0 ~hi:x in
     (x,y)
-\end{lstlisting}
 
-\jwc{Show benchmark difference between these two generators: the benchmark is in \texttt{waffle-house/handwritten-ocaml/bin/basic-compare.ml}. It's about 2x. (see comment in latex here.)}
-
-% ┌───────┬──────────┬─────────┬────────────┐
-% │ Name  │ Time/Run │ mWd/Run │ Percentage │
-% ├───────┼──────────┼─────────┼────────────┤
-% │ bq    │  70.47ns │  78.00w │    100.00% │
-% │ fused │  35.86ns │  78.00w │     50.89% │
-% └───────┴──────────┴─────────┴────────────┘
-
-\jwc{The overhead of the abstraction is 2x.
-The reality is actually worse: actual base-quickcheck includes even more indirection in its type.}
-
-\jwc{The native code OCaml compiler, even with -O3, fails to specialize this code and eliminate the overhead of this abstraction --- inlining all of the funciton definitions and then performing beta-reductions speeds up sampling by a factor of 2.}
-
-
-\begin{lstlisting}
 def intPair : Gen[(Long,Long)] = for {
   x <- Gen.choose(0,1000)
   y <- Gen.choose(0,x)
@@ -672,12 +686,41 @@ def intPairInlined : (Gen.Parameters, Seed) => (Option[(Long,Long)],Seed) = {
       }
     }
 }
-\end{lstlisting}
+\caption{Int Pair Generators in \bq{} and ScalaCheck}
+\label{fig:overhead-explanation-code}
+\end{figure}
 
-\jwc{Same story in scala. 
-Approximately 2x difference for the same generator (though an order of magnitude slower overall than bq)... (scala uses a slightly different generator type, but the principles are the same)
-This doesn't even account for more inlining we could do to eliminate the boxing/unboxing of results. (Scalacheck generators can fail, though this adds significant overhead)
-}
+The performance difference the two versions of this generator (Figure~\ref{fig:overhead-explanation-perf}) is stark. In both
+languages, the inlined version takes \textbf{half} as much time to generate a
+single pair of \texttt{int}s.
+
+\begin{figure}
+\end{lstlisting}
+  \begin{tabular}{lll}
+  Library    & Generator          & Time per Generation (ns) \\
+  \bq{}         & \texttt{int\_pair}          & 70                       \\
+  \bq{}         & \texttt{int\_pair\_inlined} & 35                       \\
+  ScalaCheck & \texttt{intPair}            & 458                      \\
+  ScalaCheck & \texttt{intPairInlined}     & 266                     
+  \end{tabular}
+\label{fig:overhead-explanation-perf}
+\end{figure}
+
+% ┌───────┬──────────┬─────────┬────────────┐
+% │ Name  │ Time/Run │ mWd/Run │ Percentage │
+% ├───────┼──────────┼─────────┼────────────┤
+% │ bq    │  70.47ns │  78.00w │    100.00% │
+% │ fused │  35.86ns │  78.00w │     50.89% │
+% └───────┴──────────┴─────────┴────────────┘
+
+% \jwc{The overhead of the abstraction is 2x. The reality is actually worse: actual base-quickcheck includes even more indirection in its type.}
+
+% \jwc{The native code OCaml compiler, even with -O3, fails to specialize this code and eliminate the overhead of this abstraction --- inlining all of the funciton definitions and then performing beta-reductions speeds up sampling by a factor of 2.}
+
+% \jwc{Same story in scala. 
+% Approximately 2x difference for the same generator (though an order of magnitude slower overall than bq)... (scala uses a slightly different generator type, but the principles are the same)
+% This doesn't even account for more inlining we could do to eliminate the boxing/unboxing of results. (Scalacheck generators can fail, though this adds significant overhead)
+% }
 
 % [info] GenBm.generateComplexBase     avgt    3  458.325 ± 67.214  ns/op
 % [info] GenBm.generateComplexInlined  avgt    3  266.035 ±  8.559  ns/op
