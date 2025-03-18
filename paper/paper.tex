@@ -585,7 +585,6 @@ even worse for recursive generators, as the heuristics are necessarily even more
 conservative for optimizing recursive functions. \jwc{unclear if we need this sentence, it's sorta obvious}
 
 
-
 \begin{figure}
   \begin{tabular}{lll}
   Library    & Generator          & Average Time per Generation (ns) \\
@@ -594,7 +593,7 @@ conservative for optimizing recursive functions. \jwc{unclear if we need this se
   ScalaCheck & \texttt{intPair}            & 458                      \\
   ScalaCheck & \texttt{intPairInlined}     & 266                     
   \end{tabular}
-\caption{Microbenchmarks of Generators in \bq{} (using \texttt{core\_bench} \cn) and ScalaCheck (using \texttt{jmh} \cn)}
+\caption{Microbenchmarks of Generators in \bq{} (using \texttt{core\_bench} \cn) and ScalaCheck (using \texttt{jmh} \cn). Average over 10000 generations with random seeds, and a fixed size}
 \label{fig:overhead-explanation-perf}
 \end{figure}
 
@@ -615,33 +614,35 @@ After the \texttt{return}, \texttt{bind}, and base-type generation combinators
 (such as \texttt{gen\_int}), the most frequently used combinators are ``choice''
 combinators like \texttt{weighted\_union} which randomly select between
 sub-generators.
-
 Like \texttt{return} and \texttt{bind}, these combinators incur a performance penalty
-at run time.
-
-\jwc{
-Aside from the usual fact that the compiler can't ``see through'' the
-abstraction boundary to specialize, combinators like union and weighted union
-necessarily allocate a lot in the generation hot path.  Even without the dumb BQ
-array thing, to call union and weighted union, the types mean that you have to
-allocate a list.  These allocations are extremely costly, and happen every
-sample from the generator. If the generator is recursive (like the tree
-generator), they occur at each recursive call.
-}
+at run time. Aside from the previously-discussed issues that compilers
+cannot see through the abstraction boundary to optimize these programs,
+choice combinators come with their own particular abstraction overhead.
 
 In practice, \texttt{weighted\_union}s is almost always\footnote{
 There are some generators where \texttt{weighted\_union} is passed a list which
 was itself the result of a generator: the well-typed STLC term generator used in Section~\ref{section:eval} is an example of this.
-} passed an explicitly constructed list, like
-\texttt{weighted\_union [(3,g); (1,g'); (2,g'')]}. 
+} called with an explicitly constructed list, like
+\texttt{weighted\_union [(w1,g1); (w2,g2); (w3,g3)]}. 
 This is because the most common use case for \texttt{weighted\_union} is
 to choose between one of the different constructors of an algebraic datatype,
 the options for which are always known.
-The list passed to \texttt{weighted\_union} allocated at the call site, and then \emph{immediately}
+This list is allocated at the call site, and then \emph{immediately}
 destructed by the function. In principle, since the elements of the list and its length $n$ are known statically,
 a compiler could unroll the loops in \texttt{weighted\_union} to depth $n$ and specialize the function to avoid allocating the list.
-In practice however almost~\jwc{Once again, GHC is a notable exception here \cn{}} no compilers perform this kind of optimization.
+Unfortunately, almost~\jwc{Once again, GHC is a notable exception here \cn{}} no compilers perform this kind of optimization.
+This allocation (or rather, its tendency to cause GC pauses) --- as well as the cost of running the code 
+to traverse arbitrary lists compared to unrolled loops --- has a significant impact on 
+performance.
 
+Last, many PBT libraries --- including both \bq and ScalaCheck --- implement their \texttt{weighted\_union} combinators
+in ways that are asymptotically more efficient but slower in practice than the naive algorithm.
+Weighted union works by the Fitness Proportionate Selection algorithm \cn{}, which (1) samples a number $r$
+between $0$ and the sum of the weights, and then (2) finds the first generator for which the cumulative
+weights in the list before it exceeds $r$. This second part can be accomplished in $O(\log_2 n)$ time by
+binary searching the list. However, since the lists are short in practice, a linear scan is almost always faster \cn{}.
+Moreover, both \bq{} and ScalaCheck allocate auxiliary data structures (an array in \bq{} and a BST in ScalaCheck) to
+perform this search, which incurs further run time overhead.
 
 % \subsubsection{Function call overhead}
 \subsection{Inefficient Randomness Libraries}
