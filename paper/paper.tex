@@ -611,9 +611,13 @@ through the recursive loop re-allocates closures for \texttt{bind}s, so the amou
 \emph{per generated value} scales linearly with the number of recursive generator calls.
 
 \subsubsection{Overhead of Choice Combinators}
-The monad functions \texttt{return} and \texttt{bind} aren't the only combinators that incur an
-abstraction overhead: all of them do! \jwc{I'm so bad at starting new sections...} ``Choice'' combinators like \texttt{weighted\_union}, however
-are particularly costly, because they unavoidably allocate a lot.
+After the \texttt{return}, \texttt{bind}, and base-type generation combinators
+(such as \texttt{gen\_int}), the most frequently used combinators are ``choice''
+combinators like \texttt{weighted\_union} which randomly select between
+sub-generators.
+
+Like \texttt{return} and \texttt{bind}, these combinators incur a performance penalty
+at run time.
 
 \jwc{
 Aside from the usual fact that the compiler can't ``see through'' the
@@ -637,11 +641,6 @@ The list passed to \texttt{weighted\_union} allocated at the call site, and then
 destructed by the function. In principle, since the elements of the list and its length $n$ are known statically,
 a compiler could unroll the loops in \texttt{weighted\_union} to depth $n$ and specialize the function to avoid allocating the list.
 In practice however almost~\jwc{Once again, GHC is a notable exception here \cn{}} no compilers perform this kind of optimization.
-
-% \jwc{This builds the cdf of the distribution, samples from 0 to the total, and binary searches through the array to find the bucket.}
-% \jwc{Allocating this array is unnecessary: we can simply compute the total weight, sample \texttt{x} between 0 and the total, and then walk the list accumulating the sum, until the accumulator exceeds \texttt{x}. Since in practice the list of possible options is quite small (usually at most 10 in practice), the linear time scan is going to be much faster.}
-% \jwc{(The point of this para will just be to emphasize that it's almost always better to be allocation-aware, instead of algorithmically clever.)}
-
 
 
 % \subsubsection{Function call overhead}
