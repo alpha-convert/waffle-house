@@ -11,7 +11,9 @@
 
 \settopmatter{printfolios=false,printccs=false,printacmref=false}
 \setcopyright{none}
-
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\pgfplotsset{compat=1.17}
 \usepackage{listings}
 \usepackage{subcaption}
 \usepackage{xspace}
@@ -262,44 +264,38 @@
 
 %\jwc{``Property based testing is a race against time...''}
 
-Property-based testing (PBT) is a technique for software testing which uses
-random test inputs to evaluate logical properties that the system is expected to
-satisfy.  Recent studies on PBT usage~\cite{inpractice} have shown that
-practitioners interleave PBT with their software development process, sometimes
-testing their properties every time they save their code. This workflow makes
-sense because the developer who just wrote the code is often the best person to
-fix a potental bug; if a bug is found later, it will need to be fixed by someone
-with less context. \jwc{Not sure how the previous sentence is relevant. It delays us getting to the point.}  All of this means that PBT is often run with very short time
-budgets --- e.g., between 50 milliseconds and 30 seconds --- and it is important
-that bugs can be found in that time-frame.
+Property-based testing (PBT) is a software testing technique which uses
+random test inputs to validate logical specifications.  Recent studies on PBT usage~\cite{inpractice} have shown that
+practitioners often interleave PBT with their software development process, sometimes
+testing their properties every time they save their code. This means that PBT is often run with very short time
+budgets---e.g., between 50 milliseconds and 30 seconds---and it is important
+that bugs can be found in that time-frame.\iflater
 \jwc{phrasing could suggest ``race against time'' aspect.}\hg{Agree, can't see
-how to fit this in yet}
+how to fit this in yet}\fi
 
-Given these strict timelines, it is important to think of PBT as
-performance-sensitive process. One important locus for performance improvement
+Given these strict timelines, the impact of performance in PBT cannot be overstated. One important locus for performance improvement
 is the \textit{generators} that produce random inputs to the properties under
 test. These generators are written with the help of \textit{generator
 libraries}, usually expressed as embedded domain-specific languages (eDSLs) that
 provide combinators for building and composing generators. Optimizing these
 libraries is a key opportunity to speed up PBT: if programmers are
 provided with the tools to write fast generators, then they do not themselves
-need to be experts in performance tuning. \jwc{... to find bugs fast}
+need to be experts in performance tuning to find bugs fast. \iflater\bcp{Incorporate fail fast somehow.}\fi
 
-We find that the performance of existing generator libraries falls short of what
+However, careful measurements show that the performance of existing generator libraries falls significantly short of what
 is possible. This is due to two major sources of inefficiency.
 First, the same high-level design that gives generator libraries their
 flexibility and expressiveness also introduces overhead: layered abstractions
-and indirections hinder the compiler's optimizations, shifting more work to
+and indirections hinder compiler optimizations, shifting work to
 run time.
-Second, the \rand that underlies the generator's operation --- the source of
-random numbers that are used to make choices in the generator --- 
-can constitute an unexpectedly high proportion of a generator's running time.
+Second, the \rand that underlies the generator's operation---the source of the
+random numbers that are used to make choices in the generator---can 
+constitute an unexpectedly high proportion of a generator's running time.
 \iflater
 \hg{TODO later, I'm not 100\% sure it's clear how this particular question is
 raised by the above. We could strengthen that connection}
 \fi
-These observations together raise a fundamental question: can generator
-libraries produce code that is both expressive \textit{and} efficient?
+Together, these observations raise a fundamental question: can generator libraries be expressive and high-level without compromising efficiency?
 %In practice, PBT is used 
 %as a lightweight, ad hoc approach to software correctness,
 %\jwc{Move this bit about how it's used to the first sentence. I.e. PBT is a testing technqique where random data is fed to a system under test...}
@@ -312,22 +308,19 @@ libraries produce code that is both expressive \textit{and} efficient?
 % The locus for improvement in this area \jwc{``This area'' sounds like it's talking about the whole area of PBT... Maybe ``a high-leverage way to improve the performance of generators is to...''} is \textit{generator libraries}: if 
 
   % in strict functionallanguages like OCaml and Scal
-To address this question, we propose a two-pronged approach for designing
-generator libraries that preserves their expressiveness while eliminating
-unnecessary overhead.
-First, we describe a method of optimizing generator libraries using
+  To address this question, we outline two key principles for designing generator libraries that balance efficiency with flexibility.
+ First, we describe a method of optimizing generator libraries using
 \textit{multi-stage programming}, or ``staging,'' which has long been used for
-optimizing idiomatic functional DSLs~\cn.
-We extend this technique to generators \jwc{``apply this technology to''? We're not extending staging, we're a client}, completely eliminating the overhead of
+optimizing functional DSLs~\cn.
+We apply this technique to generators, completely eliminating the overhead of
 many common generator abstractions. For example, in unstaged generator
 libraries, each call to monadic bind usually spends time constructing and
-immediately executing a closure at runtime. \jwc{Todo: joe --- cite some evidence for this}
+immediately executing a closure at run time. \jwc{Todo: joe --- cite some evidence for this}
 Meanwhile, a staged approach can resolve the bind at compile time, enabling the
 compiler to inline and eliminate these closures.
 Secondly, we demonstrate the impact of different choices of \rand on generator
-performance by conducting a controlled comparison. \hg{More words here for
-parallelism?} Together, these insights provide a recipe for improving even
-state-of-the-art generator libraries.
+performance by conducting a controlled comparison. \iflater\hg{More words here for
+parallelism?}\fi Together, these insights provide a recipe for improving existing generator libraries.
 
 %\jwc{I think we should use return/bind as the simplest example, since then you don't have to get into the weeds of allocation or closures. The functional abstractions of a monadic generator DSL block the compiler from generating fast code.}
 %\jwc{Then present this case as ``more sophisticated use of staging'' or something?}
@@ -345,16 +338,16 @@ state-of-the-art generator libraries.
 %the same values as its unoptimized counterpart, allowing us to directly 
 %measure the impact of this choice on generator performance. \jwc{Permute? I think staging \emph{then} randomness.} \jwc{Also, i don't love this as the first place we explain the drop-in equivalence of the RNG. It's unmotivated why wen want this.} 
 
-To demonstrate the effectiveness of our technique, we apply it to \bq, a
-high-quality PBT library in OCaml, authored by Jane Street.
+To demonstrate the effectiveness of our approach, we apply it to \bq, a
+high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street.
 Our improved version, \name, is a direct drop-in replacement for
 \bq that 
-is \textit{completely semantically equivalent}: that is, given identical random seeds, generators written using \name{}
+is \textit{100\% semantically equivalent}: that is, given identical random seeds, generators written using \name{}
 produce exactly the same sequence of values as those written in \bq. However, in \name, 
 the abstractions provided by the generator DSL are zero-cost, and the \rand is 
-highly-optimized. The direct equivalence between \name and \bq allows us to 
-perform extremely fine-grained comparisons, \propose{as} differences in \proposechange{generation speed}{bugfinding power} are
-\proposechange{directly}{solely} attributable to the staging and \rand optimizations.
+highly-optimized. The semantic equivalence between \name and \bq allows us to 
+perform clean, fine-grained comparisons, as differences in generation speed are
+solely attributable to the staging and \rand optimizations.
 
 We evaluate the optimizations in \name with a series of case studies in each
 generator library, and show that \name runs faster than \bq.
@@ -364,8 +357,7 @@ platform that simulates real-world PBT usage\hg{Don't love this phrase, I'll
 think more about how we should talk about Etna} by injecting bugs into a system and
 measuring how quickly various generators detect them.
 Finally, to demonstrate the generality of our technique, we implement a version
-of \name in Scala \hg{(based on scalacheck?)} and benchmark the same generators
-in the Scala port of the library---thereby highlighting its portability to other
+of \name in Scala \hg{(based on scalacheck?)} and benchmark the same generators---thereby highlighting its portability to other
 strict functional languages.
 \iflater
 \jwc{I think we should more explicitly point out the portability earlier, maybe
@@ -376,38 +368,40 @@ In summary, we show that monadic PBT generator DSLs incur significant performanc
 We make the following contributions:
 \begin{enumerate}
     \item We identify two key sources of inefficiencies in PBT generator libraries, which can significantly impact performance: 
-    namely, \rand choice, and abstraction overhead \jwc{Swap}. \secref{section:motiv}
-    \item We apply multi-stage programming to the novel domain of generators. \jwc{Less sure this should be a top-level conrib.} \secref{section:}
-    \item We implement a version of \bq, \name, that showcases our optimization technique \jwc{Calling it an ``optimization technique'' begs the ``so they just made a thing faster'' question} while maintaining strict program equality. \secref{section:4}
-    \jwc{We implement \emph{two} versions of \name{}! Once for BQ and once for ScalaCheck.}
-    \item We evaluate \name by demonstrating the improved performance of generators constructed
-    using our library in a controlled comparison, as well as its impact on bug-finding ability. \secref{section:eval}
+    namely, and abstraction overhead, and \rand choice. \secref{section:motiv}
+    % \item We apply multi-stage programming to the novel domain of generators. \jwc{Less sure this should be a top-level conrib.} \secref{section:}
+    \item We implement our approach in OCaml and Scala, showcasing its cross-language applicability.
+    \secref{section:4}
+    \item We construct generators in \name and \scalaname, and show that they give substantial performance improvements. Finally, we show
+    that these performance improvements extend to bug-finding ability.
+     \secref{section:eval}
 \end{enumerate}
 
-\jwc{Ensure we have a signposting table-of-contents-ish few sentences here, if it's not covered by the contribs.}
+\jwc{Ensure we have a signposting table-of-contents-ish few sentences here, if it's not covered by the contribs.}\todo{Todo Thia}
 
-\section{Background}
+\section{Sources of Inefficiency in Monadic Generator Libraries}
+\label{section:motiv}
+\jwc{In this section we answer: ``What are monadic generator libraries, and why are they slow?''}
+\bcp{That's actually not a bad section title!}
 
-\jwc{In this paper, we'll use OCaml to illustrate the ideas, but the concepts
-are portable to other languages: see Section~\ref{subsection:other-langs}}
-
-\subsection{Property-Based Testing}
+\subsection{Background: Monadic Generator DSLs}
 \jwc{Usual spiel about pbt and generators: here's a monadic generic generator library (but we're using BQ to illustrage), it has return and bind, this is what they're for.}
 \jwc{You often want generators to generate for sparse precoditions so you can exercise a property reasonably well}
 
 \begin{lstlisting}
-module Bq = struct
-  type 'a t = int -> SR.t -> 'a
+module Bq : sig
+  type 'a t
+  val return : 'a -> 'a t
+  val bind : 'a t -> ('a -> 'b t) -> 'b t
+  val gen_int : lo:int -> hi:int -> int t
 
-  let return (x : 'a) : 'a t = fun size seed -> x
+  val weighted_union : (int * 'a t) list -> 'a t
 
-  let bind (g : 'a t) (f : 'a -> 'b t) : 'b t =
-    fun size seed ->
-      let x = g size seed in
-      (f x) size seed
+  val size : int t
+  val with_size : int -> 'a t -> 'a t
 
-  let gen_int (lo : int) (hi : int) : int t =
-    fun size seed -> SR.int seed lo hi
+  val fixed_point : ('a t -> 'a t) -> 'a t
+  $\dots$
 end
 \end{lstlisting}
 
@@ -475,10 +469,254 @@ let tree_of g = fixed_point (fun rg ->
 \jwc{This generator generates binary trees using all the combinators, yay. Explain em.}
 
 
-\subsection{Multi-Stage Programming}
-\label{subsection:msp}
 
-\jwc{I think this section should actually go later.}
+\jwc{IMPORTANT: We are using OCaml because we have to pick a syntax for this section, but these abstraction overheads exist in other languages -- at least scala, rust.}
+
+\subsection{Abstraction Overhead of Generator DSLs}
+Just how large is the abstraction overhead of monadic generator DSLs, and where does it come from?
+Figure~\ref{fig:bq-internals} shows the internals of (a simplified version of) \bq{}.
+A generator \texttt{'a Bq.t} is just a function of type~\texttt{int -> SR.t -> 'a},
+taking an \texttt{int} representing the current size parameter and a random seed \texttt{SR.t},
+and returning a generated value \texttt{'a}. It is an invariant of the library that function of this type are
+deterministic: for a fixed size and seed, it will return the same value. All of the randomness in testing comes from varying the initial seed.
+The monad functions \texttt{return} and \texttt{bind} are defined in the usual way
+for an instance of the reader monad \cn{}. \texttt{Return x} ignores the size and seed and just returns
+\texttt{x}, while \texttt{bind g k} first runs \texttt{g} and then passes the generated value to the continuation \texttt{k}.
+\bq{} uses a mutable seed, so the \texttt{random} passed to \texttt{(k a)} will be different from the one passed to \texttt{g}.
+The \texttt{gen\_int} combinator simply calls out to the randomness library \texttt{Splittable\_random}, aliased as \texttt{SR} here.
+\jwc{Should we do this?}
+
+Different PBT libraries use variations on this basic design. Haskell's QuickCheck uses a reader monad with an immutable state
+that is ``split'' at \texttt{bind}s \cn. Meanwhile, ScalaCheck (a) uses an immutable state type and state monad \cn{} to thread
+the state through, and (b) has an \texttt{Option} as its return type, to allow generation to fail.
+\jwc{However, the principles are the same, and we will use \bq{} to illustrate.}
+
+
+\begin{figure}
+\begin{lstlisting}
+module Bq = struct
+  type 'a t = int -> SR.t -> 'a
+
+  let return (x : 'a) : 'a t = fun _ _ -> x
+
+  let bind (g : 'a t) (k : 'a -> 'b t) : 'b t =
+    fun size random ->
+      let a = g size random in
+      (k a) size random
+
+  let gen_int (lo : int) (hi : int) : int t =
+    fun _ random -> SR.int random lo hi
+end
+\end{lstlisting}
+\caption{Internals of a Monadic Generator eDSL}
+\label{fig:bq-internals}
+\end{figure}
+
+Just how much run-time overhead does this monadic abstraction introduce? To
+illustrate, let's return to our running example of a constrained pair of
+integers, written in both \bq{} and ScalaCheck.
+Figure~\ref{fig:overhead-explanation-code} shows two versions of the generator, written in both languages.
+The first versions (\texttt{int\_pair} in \bq{} and \texttt{intPair} in ScalaCheck) are written with the monadic generator combinators from their respective libraries.
+\jwc{Maybe we can avoid rewriting these if we already showed them earlier? Also maybe we duplicate the tutorial discussion of monadic generator libraries to include Scala?}
+The second versions (\texttt{int\_pair\_inlined} and \texttt{intPairInlined})
+are semantically identical to the first, but have been rewritten
+by (1) inlining all generator combinator definitions, and then (2)
+repeatedly reducing simplifiable terms like \lstinline{(fun x -> e) e'} --- where an anonymous function is defined and then immediatly called~\footnote{This is usually known as a ``$\beta$-redex''.
+Note that when reducing, we do not reduce to \lstinline{e[e'/x]}, as this does not preserve the order of effects.
+}
+--- to \lstinline{let x = e' in e}.
+
+\begin{figure}
+\begin{lstlisting}
+let int_pair : (int * int) Bq.t =
+  let%bind x = (Bq.gen_int 0 100) in
+  let%bind y = (Bq.gen_int 0 x) in
+  Bq.return (x,y)
+
+let int_pair_inlined : int -> SR.t -> int * int =
+  fun _ sr ->
+    let x = Splittable_random.int sr ~lo:0 ~hi:100 in
+    let y = Splittable_random.int sr ~lo:0 ~hi:x in
+    (x,y)
+
+def intPair : Gen[(Long,Long)] = for {
+  x <- Gen.choose(0,1000)
+  y <- Gen.choose(0,x)
+} yield (x,y)
+
+def intPairInlined : (Gen.Parameters, Seed) => (Option[(Long,Long)],Seed) = {
+ (p,seed) =>
+  val (x,seed2) = chLng(0,1000)(p,seed)
+  x match {
+    case None => (None,seed2)
+    case Some(x) =>
+      val (y,seed3) = chLng(0,x)(p,seed2)
+      y match {
+        case None => (None,seed)
+        case Some(y) => (Some(x,y),seed3)
+      }
+    }
+}
+\end{lstlisting}
+\caption{Int Pair Generators in \bq{} and ScalaCheck}
+\label{fig:overhead-explanation-code}
+\end{figure}
+
+The performance impact of this inling is large (Figure~\ref{fig:overhead-explanation-perf}). In both languages, the
+inlined version takes (on average) \textbf{half} as much time to generate a single pair of
+\texttt{int}s. 
+Microbenchmarks of more realistic generators (see Section~\ref{section:eval}
+\jwc{more precise ref}) show an even more dramatic performance boost for
+inlining in this manner.
+
+Because the inlined versions of the generator are identical to the un-inlined
+versions except for mechanical, semantics-preserving transformations,
+this performance difference is attributable solely to
+the different machine code generated by the compiler.
+Indeed, compilers of effectful and strict functional languages (including JIT
+compilers, in the case of Scala 3)
+use heuristics to determine if and when to perform this particular kind of
+simplification~\footnote{As we discuss in Section~\ref{asdf} \jwc{fixme}, purity
+means that Haskell is a slightly different story. GHC can and often does
+transformations of this form.}.  Even in cases as simple as
+Figure~\ref{fig:overhead-explanation-code}, the indirection of \texttt{return}
+and \texttt{bind} causes these heuristics to not fire.  Moreover, the story is
+even worse for recursive generators, as the heuristics are necessarily even more
+conservative for optimizing recursive functions. \jwc{unclear if we need this sentence, it's sorta obvious}
+
+
+
+\begin{figure}
+  \begin{tabular}{lll}
+  Library    & Generator          & Average Time per Generation (ns) \\
+  \bq{}         & \texttt{int\_pair}          & 70                       \\
+  \bq{}         & \texttt{int\_pair\_inlined} & 35                       \\
+  ScalaCheck & \texttt{intPair}            & 458                      \\
+  ScalaCheck & \texttt{intPairInlined}     & 266                     
+  \end{tabular}
+\caption{Microbenchmarks of Generators in \bq{} (using \texttt{core\_bench} \cn) and ScalaCheck (using \texttt{jmh} \cn)}
+\label{fig:overhead-explanation-perf}
+\end{figure}
+
+While neither of these microbenchmarks exhibit this behavior, more complex
+generators suffer further performance penalties due to \emph{closure
+allocation}. In cases where the compiler cannot statically eliminate it \jwc{``it'' = ``the allocation''},
+running a monadic bind allocates a short-lived closure: we allocate a closure
+for the continuation, and then immediately jump into it.
+In strict functional languages like OCaml and Scala,
+Each individual closure allocation is relatively cheap, but doing lots of allocation in a
+generator is very costly because each allocation brings us closer to the next costly GC pause \cn{}.
+Similarly to \jwc{the previous one} this effect is magnified in recursive generators: each iteration
+through the recursive loop re-allocates closures for \texttt{bind}s, so the amount of allocation
+\emph{per generated value} scales linearly with the number of recursive generator calls.
+
+\subsubsection{Overhead of Choice Combinators}
+The monad functions \texttt{return} and \texttt{bind} aren't the only combinators that incur an
+abstraction overhead: all of them do! \jwc{I'm so bad at starting new sections...} ``Choice'' combinators like \texttt{weighted\_union}, however
+are particularly costly, because they unavoidably allocate a lot.
+
+\jwc{
+Aside from the usual fact that the compiler can't ``see through'' the
+abstraction boundary to specialize, combinators like union and weighted union
+necessarily allocate a lot in the generation hot path.  Even without the dumb BQ
+array thing, to call union and weighted union, the types mean that you have to
+allocate a list.  These allocations are extremely costly, and happen every
+sample from the generator. If the generator is recursive (like the tree
+generator), they occur at each recursive call.
+}
+
+In practice, \texttt{weighted\_union}s is almost always\footnote{
+There are some generators where \texttt{weighted\_union} is passed a list which
+was itself the result of a generator: the well-typed STLC term generator used in Section~\ref{section:eval} is an example of this.
+} passed an explicitly constructed list, like
+\texttt{weighted\_union [(3,g); (1,g'); (2,g'')]}. 
+This is because the most common use case for \texttt{weighted\_union} is
+to choose between one of the different constructors of an algebraic datatype,
+the options for which are always known.
+The list passed to \texttt{weighted\_union} allocated at the call site, and then \emph{immediately}
+destructed by the function. In principle, since the elements of the list and its length $n$ are known statically,
+a compiler could unroll the loops in \texttt{weighted\_union} to depth $n$ and specialize the function to avoid allocating the list.
+In practice however almost~\jwc{Once again, GHC is a notable exception here \cn{}} no compilers perform this kind of optimization.
+
+% \jwc{This builds the cdf of the distribution, samples from 0 to the total, and binary searches through the array to find the bucket.}
+% \jwc{Allocating this array is unnecessary: we can simply compute the total weight, sample \texttt{x} between 0 and the total, and then walk the list accumulating the sum, until the accumulator exceeds \texttt{x}. Since in practice the list of possible options is quite small (usually at most 10 in practice), the linear time scan is going to be much faster.}
+% \jwc{(The point of this para will just be to emphasize that it's almost always better to be allocation-aware, instead of algorithmically clever.)}
+
+
+
+% \subsubsection{Function call overhead}
+\subsection{Inefficient Randomness Libraries}
+\jwc{We really need to have explained the effect ordering equivalence aspect of the evaluation before here.}
+
+The core of any PBT generator library is a source of randomness: to generate
+random values of some datatype, we some access to random numbers!
+Different PBT libraries use different randomness libraries implementing different algorithms
+\footnote{The common term for such an algorithm or library is a ``Random Number
+Generator'' (RNG) we will avoid this term and instead say ``randomness library''
+to avoid confusing RNG implementations with the PBT gnenerator libraries that
+use them.}.
+Following the original Haskell QuickCheck implementation, \bq\ uses the SplitMix
+algorithm \cn, implemented as a (stateful) OCaml library called \texttt{Splittable\_random}. Meanwhile,
+ScalaCheck uses the JSF algorithm \cn.
+% https://www.pcg-random.org/posts/bob-jenkins-small-prng-passes-practrand.html
+% https://burtleburtle.net/bob/rand/smallprng.html
+
+The randomness library sits at the heart of the hot path.
+Even basic generators --- like ones generating a single \texttt{int} or \texttt{float} uniformly within a range --- can sample \emph{unboundedly many}
+random numbers, since they usually use versions of rejection sampling to find a value within the range \cn.
+Moreover, generator combinators like \texttt{list} usually make $O(n)$ calls to even those basic generators.
+Because of this, the speed of a single sample matters a great deal. Unfortunately,
+existing PBT libraries make relatively inefficient choices on this front,
+leading to worse bugfinding power than what is possible.
+
+\hg{This paragraph feels a bit clumsy right now. What if we started with a table
+of the RNGs used by a bunch of popular PBT frameworks and then argued that
+things like Lehmer are faster?}
+
+For example, significantly faster algorithms than SplitMix or JSF exist,
+such as the Lehmer algorithm\cn. In microbenchmarks, the Lehmer algorithm runs almost 2x as fast as SplitMix \cn.
+% https://github.com/lemire/testingRNG/tree/master
+Moreover, PBT libraries could even consider eschewing the requirement that a source of
+entropy pass statistical tests like BigCrush\cn. \hg{This needs more discussion} 
+This is common practice in other areas of testing already:
+fuzzers often simply use a buffer full of arbitrary bytes as a source of entropy
+\cn. Such approaches are also faster than algorithms like SplitMix: bumping a
+pointer and reading from memory (which can be pipelined trivially) will always
+be faster on modern CPUs than any random sampling algorithm with data-dependent arithmetic
+instructions.\hg{Should we just always be doing this? I think we want to argue
+that this is a bridge too far because you still need to generate the buffer
+ahead of time and you can run out of randomness?}
+\jwc{HG: talk about the tradeoffs here.}
+
+\jwc{The point here is that ``you should be thinking about using a more performant RNG, we'll show you that it does have real benefits (and quantify them). But there are tradeoffs here.'}
+
+Of course, simply arguing that the randomness library is on the hot
+path does not guarantee that a faster sampling leads to measurably faster
+generation; for that, we need an experiment. The most obvious experiment is to
+simply swap out the randomness library for \bq{} with a totally different, faster one. But, as
+discussed previously, generators with different generation orders can be
+difficult to compare. To get around this, we exploit a ``natural experiment:
+OCaml's \texttt{Splittable\_random} library is slow in a way that
+can be improved \emph{without} changing its extensional behavior.
+In particular,
+due to implementation details related to the OCaml garbage collector,
+values of the OCaml type \texttt{int64} are not machine words, but rather
+\emph{pointers} to machine words. This means
+that \emph{all} \texttt{int64} operations (both arithmetic and bitwise) must
+allocate memory cells to contain their output, which has a significant performance benefit.
+By building a version that uses much faster ``unboxed'' 64-bit integer arithmetic, we can demonstrate just how much bug-finding
+performance can be improved just by using a more performant randomness library.
+
+\section{Speeding up Generator DSLs by Staging and Faster Randomness Libraries}
+\jwc{This section needs a much better title...}
+\jwc{Emphasize that this is an \emph{COMPLETELY EQUIVALENT drop in replacement!} We din't just build a different library with different distributions.}
+
+\jwc{Usual introduction to this section, corresponding to how we talked about it in the intro. ``We present a library that XYZ''.}
+
+\hg{TODO: Signposting --- I got a few paragraphs in and realized I wasn't sure what I was reading}
+
+\subsection{Background: Multi-Stage Programming}
+\label{subsection:msp}
 
 In Muli-stage programming (also known more simply as staging), programs execute
 over the course of multiple stages, with each stage producing the code to be run
@@ -488,13 +726,13 @@ primarily consider two stages: compile time and run time. Staged programs thus
 execute twice: once at compile time, which produces more code, which is then
 compiled and run at run time.
 
-\subsubsection{Staging in eDSL Construction}
-
+\subsubsection{Uses of Staging in eDSL Construction}
 One of the primary uses of staging is in embedded DSL construction \cite{sheard99, lms, trattdsl}.
 While embedded DSLs are great \jwc{words}, they have well-known drawback: 
 the functional abstractions used to build eDSLs prevent compilers from generating efficient machine code \cn.
-In the literature, this effect is known as ``abstraction overhead'' \cite{carrette05, moller20}: the layers of abstraction that 
+As alluded to previously \jwc{This sentence here because of the section-ordering transpose... may need to mention this earlier.}, this effect is known as ``abstraction overhead'' \cite{carrette05, moller20}: the layers of abstraction that 
 make eDSLs so usable are precisely what prevents them from being fast.
+\jwc{Something to the effect of ``the issues we noticed in BQ and SC exist across many eDSLs''}
 In light of this issue, staging is often used as a lightweight compiler for DSLs. The compile-time evaluation stage
 transforms the DSL code, eliminating abstractions to produce code that the host language compiler can generate fast machine code for.
 \jwc{This previous paragraph is peak ``shitty first draft''.}
@@ -578,221 +816,11 @@ can ensure that any overhead of using them is eliminated by run time.
 %   \end{itemize}
 % }
 
-\subsection{Other Languages and Libraries}
-\label{subsection:other-langs}
-
-\jwc{TODO: Move this section later (cf conversation in WH meeting 3/7/25)}
-
-\tr{Here's where we talk about what's going on in the world, and ultimately make the argument that \bq{} is the best tool to reproduce.}
-
-\jwc{Note that this explanation require some prior note of exactly *why* BQ is slow... i.e. the abstraction overhead of the library is high.}
-
-\jwc{
-  \begin{itemize}
-    \item Scala. Functional abstractions like QC generators are known to be costly in Scala, that's why they have LMS (in Scala 2, and Macros in Scala 3). Example: parser combinators (``On Staged Parser Combinators for Efficient Data Processing''), functional data structures (\href{https://ppl.stanford.edu/papers/popl13_rompf.pdf}{Link}), web programming (``Efficient High-Level Abstractions for Web Programming'').
-    Al of this should still work in scala. Could easily be incorporated into ScalaCheck, with minor modification: ScalaCheck uses a state monad to thread around the seed, instead of a stateful one (like BQ), or a splittable one (like Haskell). So you have to adapt to that. But same diff.
-    \item Python. Maybe could do it?? Hypothesis + MacroPy
-    \item Haskell: GHC does a lot of these optimizations already, since the code is pure. Since QC generators are relatively small programs,
-    GHC has little trouble specializing them. Of course, this is not guaranteed. A version of this idea can easily be ported to the original QC with template haskell, to guarantee
-    the highest-performance generators.
-    \item Rust: Not GC'd, so no alloc overhead but bind'd generators still dispatch through runtime data.
-  \end{itemize}
-}
-
-\section{Sources of Inefficiency in Monadic Generator Libraries}
-\label{section:motiv}
-\jwc{Why is a monadic generator library slow?}
-\jwc{NOTE: We can simplify this further by getting rid of the size parameter. Make the story even cleaner, I think!}
-
-\jwc{IMPORTANT: We are using OCaml because we have to pick a syntax for this section, but these abstraction overheads exist in other languages -- at least scala, rust.}
-
-\subsection{Monadic DSL Abstraction Overhead}
-
-
-\jwc{
-  \begin{itemize}
-    \item It's been long-known that clean functional abstractions have a runtime overhead (this should be familiar by this time in the paper).
-    \item How does (simplified) BQ work?
-    \begin{itemize}
-      \item The basic generator type: \texttt{'a generator = int -> SR.t -> 'a}. Size and random seed to deterministic value. (note: \texttt{SR.t} is a mutable seed)
-      \item This gets a monad intance in the obvious way (show code).
-      \item Also show the code for \texttt{int}, how it calls the underlying SR function.
-    \end{itemize}
-    % \item Note that \emph{extensionally} \texttt{generate (create (fun size random -> e)) size random = e}, but the OCaml compiler does not always perform this optimization, or do the inlining required to expose it.
-    % (When sufficiently obfuscated behind returns and binds ...) This program compiles to code that (1) allocates the closure for `e', (2) passes it to create (which returns the closure), and then calls (3) generate, which immediately jumps into the closure.
-    \item Show benchmarks of the running example, versus the version where you inline everything. ()
-    \item Let's look at the running example: inline it all the way.
-  \end{itemize}
-}
-
-\begin{lstlisting}
-let int_pair : (int * int) Bq.t =
-  let%bind x = (Bq.gen_int 0 100) in
-  let%bind y = (Bq.gen_int 0 x) in
-  Bq.return (x,y)
-
-let int_pair_inlined : (int * int) Bq.t
-  fun sr ->
-    let x = Splittable_random.int sr ~lo:0 ~hi:100 in
-    let y = Splittable_random.int sr ~lo:0 ~hi:x in
-    (x,y)
-\end{lstlisting}
-
-\jwc{Show benchmark difference between these two generators: the benchmark is in \texttt{waffle-house/handwritten-ocaml/bin/basic-compare.ml}. It's about 2x. (see comment in latex here.)}
-
-% ┌───────┬──────────┬─────────┬────────────┐
-% │ Name  │ Time/Run │ mWd/Run │ Percentage │
-% ├───────┼──────────┼─────────┼────────────┤
-% │ bq    │  70.47ns │  78.00w │    100.00% │
-% │ fused │  35.86ns │  78.00w │     50.89% │
-% └───────┴──────────┴─────────┴────────────┘
-
-\jwc{The overhead of the abstraction is 2x.
-The reality is actually worse: actual base-quickcheck includes even more indirection in its type.}
-
-\jwc{The native code OCaml compiler, even with -O3, fails to specialize this code and eliminate the overhead of this abstraction --- inlining all of the funciton definitions and then performing beta-reductions speeds up sampling by a factor of 2.}
-
-
-\begin{lstlisting}
-def intPair : Gen[(Long,Long)] = for {
-  x <- Gen.choose(0,1000)
-  y <- Gen.choose(0,x)
-} yield (x,y)
-
-def intPairInlined : (Gen.Parameters, Seed) => (Option[(Long,Long)],Seed) = {
- (p,seed) =>
-  val (x,seed2) = chLng(0,1000)(p,seed)
-  x match {
-    case None => (None,seed2)
-    case Some(x) =>
-      val (y,seed3) = chLng(0,x)(p,seed2)
-      y match {
-        case None => (None,seed)
-        case Some(y) => (Some(x,y),seed3)
-      }
-    }
-}
-\end{lstlisting}
-
-\jwc{Same story in scala. 
-Approximately 2x difference for the same generator (though an order of magnitude slower overall than bq)... (scala uses a slightly different generator type, but the principles are the same)
-This doesn't even account for more inlining we could do to eliminate the boxing/unboxing of results. (Scalacheck generators can fail, though this adds significant overhead)
-}
-
-% [info] GenBm.generateComplexBase     avgt    3  458.325 ± 67.214  ns/op
-% [info] GenBm.generateComplexInlined  avgt    3  266.035 ±  8.559  ns/op
-
-
-\jwc{
-The problem is plain: while the monadic abstraction that PBT libraries like base quickcheck provide are indespensible for writing idiomatic generators, the performance overhead of using them is dramatic.
-Modern compilers use heuristics to decide when to specialize and inline code \cn, and these heuristics cannot guarantee that generator abstractions are zero-cost.
-These heuristics are also necessarily conservative about inlining and specializing recursive functions, which all generators of recursive data types must be.
-}
-
-\tr{Each of these consist of an explanation of the problem and pseudocode outlining the solution.}
-
-\jwc{
-  \begin{itemize}
-    \item While it's the ``correct'' abstraction for generators, using a monadic interface prevents the compiler from specializing generator code. Using monadic bind and return obscures the control and data flow of a generator from the compiler. This is
-    compounded when handling recursive functions.
-    \item In cases where the compiler cannot statically eliminate them, running a monadic bind allocates a short-lived closure: we allocate a closure for the continuation, and then immediately jump into it.
-    \item Each closure allocation is relatively cheap, but doing lots of allocation in a generation hot loop adds up fast.
-    \item Similar things have been noticed about monadic parsing DSLs in the past.
-  \end{itemize}
-}
-
-\subsection{Combinator Abstraction Overhead}
-
-\jwc{
-Aside from the usual fact that the compiler can't ``see through'' the abstraction boundary to specialize, combinators like union and weighted union
-necessarily allocate a lot in the generation hot path.
-Even without the dumb BQ array thing, to call union and weighted union, the types mean that you have to allocate a list.
-These allocations are extremely costly, and happen every sample from the generator. If the generator is recursive (like the tree generator), they occur at each recursive call.
-}
-
-\jwc{In practice, the possible options are almost always statically known: in the binary tree generator from earlier, we can tell from the text of the code what
-the weights are, what the generators are, and how many there are.
-Put more simply, you basically always call weighted union with an \emph{explicit list}, which is then immediately traversed by the weighted union. For this reason, you should not have to incur the cost of allocating this list at runtime.
-However, almost no compilers (GHC is a notable exception) can figure this out and eliminate the list \cn (list fusion).
-}
-
-
-% \jwc{This builds the cdf of the distribution, samples from 0 to the total, and binary searches through the array to find the bucket.}
-% \jwc{Allocating this array is unnecessary: we can simply compute the total weight, sample \texttt{x} between 0 and the total, and then walk the list accumulating the sum, until the accumulator exceeds \texttt{x}. Since in practice the list of possible options is quite small (usually at most 10 in practice), the linear time scan is going to be much faster.}
-% \jwc{(The point of this para will just be to emphasize that it's almost always better to be allocation-aware, instead of algorithmically clever.)}
-
-
-% \subsubsection{Function call overhead}
-\subsection{Choice of Randomness Library}
-\jwc{We really need to have explained the effect ordering equivalence aspect of the evaluation before here.}
-
-The core of any PBT generator library is a source of randomness: to generate
-random values of some datatype, we some access to random numbers!
-Different PBT libraries use different randomness libraries implementing different algorithms
-\footnote{The common term for such an algorithm or library is a ``Random Number
-Generator'' (RNG) we will avoid this term and instead say ``randomness library''
-to avoid confusing RNG implementations with the PBT gnenerator libraries that
-use them.}.
-Following the original Haskell QuickCheck implementation, \bq\ uses the SplitMix
-algorithm \cn, implemented as a (stateful) OCaml library called \texttt{Splittable\_random}. Meanwhile,
-ScalaCheck uses the JSF algorithm \cn.
-% https://www.pcg-random.org/posts/bob-jenkins-small-prng-passes-practrand.html
-% https://burtleburtle.net/bob/rand/smallprng.html
-
-The randomness library sits at the heart of the hot path.
-Even basic generators --- like ones generating a single \texttt{int} or \texttt{float} uniformly within a range --- can sample \emph{unboundedly many}
-random numbers, since they usually use versions of rejection sampling to find a value within the range \cn.
-Moreover, generator combinators like \texttt{list} usually make $O(n)$ calls to even those basic generators.
-Because of this, the speed of a single sample matters a great deal. Unfortunately,
-existing PBT libraries make relatively inefficient choices on this front,
-leading to worse bugfinding power than what is possible.
-
-\hg{This paragraph feels a bit clumsy right now. What if we started with a table
-of the RNGs used by a bunch of popular PBT frameworks and then argued that
-things like Lehmer are faster?}
-
-For example, significantly faster algorithms than SplitMix or JSF exist,
-such as the Lehmer algorithm\cn. In microbenchmarks, the Lehmer algorithm runs almost 2x as fast as SplitMix \cn.
-% https://github.com/lemire/testingRNG/tree/master
-Moreover, PBT libraries could even consider eschewing the requirement that a source of
-entropy pass statistical tests like BigCrush\cn. \hg{This needs more discussion} 
-This is common practice in other areas of testing already:
-fuzzers often simply use a buffer full of arbitrary bytes as a source of entropy
-\cn. Such approaches are also faster than algorithms like SplitMix: bumping a
-pointer and reading from memory (which can be pipelined trivially) will always
-be faster on modern CPUs than any random sampling algorithm with data-dependent arithmetic
-instructions.\hg{Should we just always be doing this? I think we want to argue
-that this is a bridge too far because you still need to generate the buffer
-ahead of time and you can run out of randomness?}
-
-Of course, simply arguing that the randomness library is on the hot
-path does not guarantee that a faster sampling leads to measurably faster
-generation; for that, we need an experiment. The most obvious experiment is to
-simply swap out the randomness library for \bq{} with a totally different, faster one. But, as
-discussed previously, generators with different generation orders can be
-difficult to compare. To get around this, we exploit a ``natural experiment:
-OCaml's \texttt{Splittable\_random} library is slow in a way that
-can be improved \emph{without} changing its extensional behavior.
-In particular,
-due to implementation details related to the OCaml garbage collector,
-values of the OCaml type \texttt{int64} are not machine words, but rather
-\emph{pointers} to machine words. This means
-that \emph{all} \texttt{int64} operations (both arithmetic and bitwise) must
-allocate memory cells to contain their output, which has a significant performance benefit.
-By building a version that uses much faster ``unboxed'' 64-bit integer arithmetic, we can demonstrate just how much bug-finding
-performance can be improved just by using a more performant randomness library.
-
-\section{Eliminating Abstraction Overhead of Generator DSLs by Staging and Faster Randomness Libraries}
-\jwc{This section needs a much better title...}
-\jwc{Emphasize that this is an \emph{COMPLETELY EQUIVALENT drop in replacement!} We din't just build a different library with different distributions.}
-
-\jwc{Usual introduction to this section, corresponding to how we talked about it in the intro. ``We present a library that XYZ''.}
-
-\hg{TODO: Signposting --- I got a few paragraphs in and realized I wasn't sure what I was reading}
-
 \subsection{Design of a Staged Generator DSL}
 \label{subsection:basic-design}
-Recall that staging a DSL involves changing the
+\jwc{Needs a lot more signposting at the top here.}
+
+Recall \jwc{did we talk about this} that staging a DSL involves changing the
 combinators to run at compile time by carefully annotating their types with \texttt{code}s.
 Deciding which types \texttt{t} can
 instead be \texttt{t code} --- in other words,
@@ -812,8 +840,7 @@ This means our library's generator type \texttt{'a
 Gen.t} should have the type \texttt{int code -> SR.t code -> 'a code}: a compile-time
 function from dynamically-known size and seed to dynamically-determined result.
 
-This type, along with basic monadic generator DSL functionality can be found in Figure~\ref{fig:gen-staged-basic}.
-The monadic interface is given by a return and bind, as usual.
+This type, along with basic staged monadic generator DSL functionality can be found in Figure~\ref{fig:gen-staged-basic}.
 \texttt{Return} is the constant generator, but this time it 
 runs at compile time. Given \texttt{cx : 'a code}, the code for a \texttt{'a}, it
 returns the generator which always generates that value.
@@ -1115,7 +1142,7 @@ end
 
 
 \subsubsection{The Trick at Other Types}
-To write more interesting generators, we also need the ability to generate code that manipulates runtime values.
+To write more interesting generators, we also need the ability to generate code that manipulates run-time values.
 For instance, consider this generator
 
 \jwc{need a better example here}
@@ -1159,6 +1186,7 @@ recursive combinators, of type \texttt{'r code -> 'a code Gen.t}, for any type \
 The code for this combinator can be found in Appendix~\jwc{appendix}.
 The recursion API consists of an opaque type \texttt{'a handle}, and a function \texttt{recurse} to perform recursive calls.
 Programmers can then define recursive generators by \texttt{fixed\_point}, which ties the recursive knot.
+\jwc{don't want to handle GADTs}
 
 % \begin{lstlisting}
 %   type ('a,'r) handle = 'r code -> 'a code t
@@ -1259,10 +1287,28 @@ discussed in the previous sections.
 
 \section{Evaluation}
 \label{section:eval}
-\subsection{Implementing and Testing Generators}
-\label{subsection:pbt-for-pbt}
-\jwc{Talk about the difftesting to ensure staging maintains semantics, and also different RNGs have identical semantics.}
+\begin{itemize}
+  \item \textbf{RQ1}: Do generators written using \name run faster than those written using base quickcheck?
+  \item \textbf{RQ2}: Do performance speedups translate to better bug-finding ability?
+  \item \textbf{RQ3}: Does our technique generalize to other strict functional languages?
+\end{itemize}
 
+All experiments were run on a 64-bit Linux machine with 264 GB RAM and an Intel Xeon Platinum 8375C CPU, running Ubuntu 24.04.1 LTS.
+The \name library was implemented using the
+4.14.1+BER MetaOCaml compiler variant.  All OCaml benchmarks
+were run invoking \texttt{ocamlopt}, the native code compiler for OCaml, using compiler flag \texttt{-O3}.
+
+. \todo{Joe : Scala info ...}
+
+\subsection{Implementing and Testing Generators}
+\begin{figure}[h]
+  \includegraphics[scale=0.34]{allocs.png}\includegraphics[scale=0.334]{time.png}
+\end{figure}
+\label{subsection:pbt-for-pbt}
+To establish the equivalence of generators up to program equality, 
+we employ a PBT harness to compare their outputs over 1,000 random seeds. 
+If a discrepancy arises, we report the unequal trees; if no counterexample is found,
+we conclude that the generators exhibit equivalent behavior.
 \subsection{Benchmarking speed \& resource usage}
 
 \jwc{NOTE: we should test generator speed across both languages, but speed -> bugfinding ability in only OCaml.}
@@ -1276,10 +1322,92 @@ discussed in the previous sections.
   \end{itemize}
 }
 \subsection{Impact on bug-finding ability}
-\jwc{Staging type-derived generators (which are the most commonly used ones) can turn a timeout into a found bug!}
-\section{Conclusion \& Future Work}
+To answer \textbf{RQ2}, we evaluate the bug-finding ability of three of our case studies---BST, RBT, and STLC---using Etna, a platform for assessing and comparing property-based testing (PBT) techniques. 
+Etna allows users to measure the effectiveness of different generator implementations by injecting bugs into the system under test and recording the time taken for a relevant 
+property to fail in response. For example, in a tree with an ordering property, a bug injection might consist of inserting a value into the tree that violates that ordering. 
+
+Each case study includes a diverse set of \textit{tasks}, where a task consists of a specific bug-property pair designed to test different aspects of the system (e.g., BST
+includes tasks that test insertion, deletion, and union operations on binary search trees).
+
+We evaluate our case studies with both type-derived and custom generators.
+Each generator has four implementations, which are equivalent up to program equality:
+\begin {itemize}
+  \item The original \bq generator (``BQ'').
+  \item A staged version of the generator (``Staged'').
+  \item A staged version of the generator using the C \rand (``Staged C'').
+  \item A staged version incorporating the CSR \rand (``Staged CSR'').
+\end{itemize}
+
+To ensure a fair comparison, we initialize each of these generators with the same random seed, ensuring that they produce identical trees.
+
+\subsubsection{Variance between seeds}
+The time-to-failure of a given strategy on a given seed is not necessarily representative of 
+the strategy's average time-to-fail over a large number of trials, so we normalize by computing the
+timing \textit{differential} between optimized and unoptimized generators (the ``speedup''). While this works in most cases,
+it is not perfect.
+For example, it is theoretically possible
+to choose a seed such that the \textit{first} value produced by a generator discovers the bug, which would elide any differential speedup (and likewise
+if both generators fail to find the bug).
+To account for these edge cases, we repeat the above process for 10 seeds and compute the geometric mean of their speedups.
+
+% To produce \todo{FIG}, we repeated the above process for 10 seeds and computed the geometric average of their speedups. 
+%This is important because the time-to-failure of a given strategy on a given seed is not necessarily 
+%representative of the strategy's overall bug-finding ability, although it often is. For example, it is theoretically possible 
+%to choose a seed such that the \textit{first} value produced by a generator discovers the bug, but it would be misleading to report this result.
+
+\subsubsection{Variance between trials}
+Although the variance \textit{between} seeds in Etna can be very vast, timing results are replicable for a given seed. Across 1,000 trials on the same seed, 
+the observed variance in time-to-failure was less than a nanosecond. \tr{Do we need this?}
+
+
+\section{Other Languages and Libraries}
+\label{subsection:other-langs}
+
+\begin{figure}[h]
+  \centering
+  \vspace{0.5em} % Kept the vertical spacing
+  \begin{tabular}{lrl}
+  \toprule
+  Benchmark & \multicolumn{2}{c}{avg. time (ns/op) $\pm$ std. dev.} \\
+  \midrule
+  BST & $3,560.813$ & $\pm\>1,511.201$ \\
+  BST, Staged & $751.287$ & $\pm\>39.890$ \\
+  BST (Type-Derived) & $44,619.863$ & $\pm\>5,761.568$ \\
+  BST (Type-Derived), Staged & $6,863.209$ & $\pm\>416.188$ \\
+  RBT (Type-Derived) & $60,559.846$ & $\pm\>4,901.980$ \\
+  RBT (Type-Derived), Staged & $8,511.528$ & $\pm\>324.615$ \\
+  STLC & $44,497.623$ & $\pm\>1,970.484$ \\
+  STLC, Staged & $7,151.259$ & $\pm\>355.639$ \\
+  \bottomrule
+  \end{tabular}
+ \caption{\todo{Understand Joe's implementation of this...}}
+ \label{fig:benchmark-table}
+ \end{figure}
+
+\jwc{TODO: Move this section later (cf conversation in WH meeting 3/7/25)}
+
+\tr{Here's where we talk about what's going on in the world, and ultimately make the argument that \bq{} is the best tool to reproduce.}
+
+\jwc{Note that this explanation require some prior note of exactly *why* BQ is slow... i.e. the abstraction overhead of the library is high.}
+
+\jwc{
+  \begin{itemize}
+    \item Scala. Functional abstractions like QC generators are known to be costly in Scala, that's why they have LMS (in Scala 2, and Macros in Scala 3). Example: parser combinators (``On Staged Parser Combinators for Efficient Data Processing''), functional data structures (\href{https://ppl.stanford.edu/papers/popl13_rompf.pdf}{Link}), web programming (``Efficient High-Level Abstractions for Web Programming'').
+    Al of this should still work in scala. Could easily be incorporated into ScalaCheck, with minor modification: ScalaCheck uses a state monad to thread around the seed, instead of a stateful one (like BQ), or a splittable one (like Haskell). So you have to adapt to that. But same diff.
+    \item Python. Maybe could do it?? Hypothesis + MacroPy
+    \item Haskell: GHC does a lot of these optimizations already, since the code is pure. Since QC generators are relatively small programs,
+    GHC has little trouble specializing them. Of course, this is not guaranteed. A version of this idea can easily be ported to the original QC with template haskell, to guarantee
+    the highest-performance generators.
+    \item Rust: Not GC'd, so no alloc overhead but bind'd generators still dispatch through run-time data.
+  \end{itemize}
+}
+
 \section{Related Work}
 \jwc{A generator is a parser of randomness, and people have implemented lots of staged parser libraries!}
+
+\section{Conclusion \& Future Work}
+\jwc{Why we stopped where we stopped: can you squeeze more out of this?}
+
 %%
 %% The next two lines define the bibliography style to be used, and
 %% the bibliography file.
