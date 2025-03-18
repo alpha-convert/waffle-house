@@ -310,8 +310,8 @@ Together, these observations raise a fundamental question: can generator librari
   % in strict functionallanguages like OCaml and Scal
   To address this question, we outline two key principles for designing generator libraries that balance efficiency with flexibility.
  First, we describe a method of optimizing generator libraries using
-\textit{multi-stage programming}, or ``staging,'' which has long been used for
-optimizing functional DSLs~\cn.
+\textit{multi-stage programming}, or ``staging,'' which has long been used to
+optimize functional DSLs~\cn.
 We apply this technique to generators, completely eliminating the overhead of
 many common generator abstractions. For example, in unstaged generator
 libraries, each call to monadic bind usually spends time constructing and
@@ -1301,16 +1301,18 @@ were run invoking \texttt{ocamlopt}, the native code compiler for OCaml, using c
 . \todo{Joe : Scala info ...}
 
 \subsection{Implementing and Testing Generators}
-\begin{figure}[h]
-  \includegraphics[scale=0.34]{allocs.png}\includegraphics[scale=0.334]{time.png}
-\end{figure}
 \label{subsection:pbt-for-pbt}
 To establish the equivalence of generators up to program equality, 
 we employ a PBT harness to compare their outputs over 1,000 random seeds. 
 If a discrepancy arises, we report the unequal trees; if no counterexample is found,
 we conclude that the generators exhibit equivalent behavior.
 \subsection{Benchmarking speed \& resource usage}
-
+\begin{figure}[h]
+  % \includegraphics[scale=0.33]{allocs.png}
+  \includegraphics[scale=0.45]{time.png}
+  \label{fig:benchmark-time}
+  \caption{Average time taken to generate a value with the staged generator, in nanoseconds.}
+\end{figure}
 \jwc{NOTE: we should test generator speed across both languages, but speed -> bugfinding ability in only OCaml.}
 \jwc{
   Baseline generators to test speed in both languages:
@@ -1322,22 +1324,13 @@ we conclude that the generators exhibit equivalent behavior.
   \end{itemize}
 }
 \subsection{Impact on bug-finding ability}
-To answer \textbf{RQ2}, we evaluate the bug-finding ability of three of our case studies---BST, RBT, and STLC---using Etna, a platform for assessing and comparing property-based testing (PBT) techniques. 
+To answer \textbf{RQ2}, we evaluate the bug-finding ability of three of our case studies---BST, RBT, and STLC---using Etna, a platform for assessing and comparing PBT techniques. 
 Etna allows users to measure the effectiveness of different generator implementations by injecting bugs into the system under test and recording the time taken for a relevant 
-property to fail in response. For example, in a tree with an ordering property, a bug injection might consist of inserting a value into the tree that violates that ordering. 
-
-Each case study includes a diverse set of \textit{tasks}, where a task consists of a specific bug-property pair designed to test different aspects of the system (e.g., BST
+property to fail in response. For example, in a tree with an ordering property, a bug injection might consist of inserting a value into the tree that violates that ordering. Each case study includes a diverse set of \textit{tasks}, where a task consists of a specific bug-property pair designed to test different aspects of the system (e.g., BST
 includes tasks that test insertion, deletion, and union operations on binary search trees).
 
 We evaluate our case studies with both type-derived and custom generators.
-Each generator has four implementations, which are equivalent up to program equality:
-\begin {itemize}
-  \item The original \bq generator (``BQ'').
-  \item A staged version of the generator (``Staged'').
-  \item A staged version of the generator using the C \rand (``Staged C'').
-  \item A staged version incorporating the CSR \rand (``Staged CSR'').
-\end{itemize}
-
+Each generator has four implementations, all of which are equivalent up to program equality: the original \bq generator (``BQ''); a staged version of the generator (``Staged''); a staged version of the generator using the C \rand (``Staged C''); and a staged version incorporating the CSR \rand (``Staged CSR'').
 To ensure a fair comparison, we initialize each of these generators with the same random seed, ensuring that they produce identical trees.
 
 \subsubsection{Variance between seeds}
@@ -1349,14 +1342,17 @@ For example, it is theoretically possible
 to choose a seed such that the \textit{first} value produced by a generator discovers the bug, which would elide any differential speedup (and likewise
 if both generators fail to find the bug).
 To account for these edge cases, we repeat the above process for 10 seeds and compute the geometric mean of their speedups.
-
+\begin{figure}[h]
+  \includegraphics[scale=0.333]{speedup.png}
+  \caption{}
+\end{figure}
 % To produce \todo{FIG}, we repeated the above process for 10 seeds and computed the geometric average of their speedups. 
 %This is important because the time-to-failure of a given strategy on a given seed is not necessarily 
 %representative of the strategy's overall bug-finding ability, although it often is. For example, it is theoretically possible 
 %to choose a seed such that the \textit{first} value produced by a generator discovers the bug, but it would be misleading to report this result.
 
 \subsubsection{Variance between trials}
-Although the variance \textit{between} seeds in Etna can be very vast, timing results are replicable for a given seed. Across 1,000 trials on the same seed, 
+Although the variance \textit{between} seeds in Etna can be vast, timing results are replicable for a given seed. Across 1,000 trials on the same seed, 
 the observed variance in time-to-failure was less than a nanosecond. \tr{Do we need this?}
 
 
