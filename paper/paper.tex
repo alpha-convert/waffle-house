@@ -450,6 +450,7 @@ Explain effect ordering here!!
 the first element where the partial sums to the left exceeds the sampled number.
 (This has been written about a billion times, cite one of the papers about this.)
 }
+\jwc{I re-explain this later somewhere i think, so we need to remember to RM that explanation.}
 
 \begin{lstlisting}
 let tree_of g = fixed_point (fun rg ->
@@ -583,7 +584,6 @@ Figure~\ref{fig:overhead-explanation-code}, the indirection of \texttt{return}
 and \texttt{bind} causes these heuristics to not fire.  Moreover, the story is
 even worse for recursive generators, as the heuristics are necessarily even more
 conservative for optimizing recursive functions. \jwc{unclear if we need this sentence, it's sorta obvious}
-
 
 \begin{figure}
   \begin{tabular}{lll}
@@ -1296,17 +1296,43 @@ discussed in the previous sections.
 All experiments were run on a 64-bit Linux machine with 264 GB RAM and an Intel Xeon Platinum 8375C CPU, running Ubuntu 24.04.1 LTS.
 The \name library was implemented using the
 4.14.1+BER MetaOCaml compiler variant.  All OCaml benchmarks
-were run invoking \texttt{ocamlopt}, the native code compiler for OCaml, using compiler flag \texttt{-O3}.
+were compiled with \texttt{ocamlopt}, the native code compiler for OCaml, using compiler flag \texttt{-O3}.
+The microbecnhmark
 
 . \todo{Joe : Scala info ...}
 
-\subsection{Implementing and Testing Generators}
+\subsection{Differential Testing of Generators}
 \label{subsection:pbt-for-pbt}
 To establish the equivalence of generators up to program equality, 
 we employ a PBT harness to compare their outputs over 1,000 random seeds. 
 If a discrepancy arises, we report the unequal trees; if no counterexample is found,
 we conclude that the generators exhibit equivalent behavior.
-\subsection{Benchmarking speed \& resource usage}
+\jwc{A little more here}
+
+\subsection{Benchmarking Generator Speed}
+\jwc{Intro stuff}
+
+\begin{figure}[h]
+  \centering
+  \vspace{0.5em} % Kept the vertical spacing
+  \begin{tabular}{lrl}
+  \toprule
+  Benchmark & \multicolumn{2}{c}{avg. time (ns/op) $\pm$ std. dev.} \\
+  \midrule
+  BST & $3,560.813$ & $\pm\>1,511.201$ \\
+  BST, Staged & $751.287$ & $\pm\>39.890$ \\
+  BST (Type-Derived) & $44,619.863$ & $\pm\>5,761.568$ \\
+  BST (Type-Derived), Staged & $6,863.209$ & $\pm\>416.188$ \\
+  RBT (Type-Derived) & $60,559.846$ & $\pm\>4,901.980$ \\
+  RBT (Type-Derived), Staged & $8,511.528$ & $\pm\>324.615$ \\
+  STLC & $44,497.623$ & $\pm\>1,970.484$ \\
+  STLC, Staged & $7,151.259$ & $\pm\>355.639$ \\
+  \bottomrule
+  \end{tabular}
+ \caption{\todo{Understand Joe's implementation of this...}}
+ \label{fig:benchmark-table}
+ \end{figure}
+
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
   \includegraphics[scale=0.45]{time.png}
@@ -1323,7 +1349,7 @@ we conclude that the generators exhibit equivalent behavior.
     \item Unableled Trees of a fixed size (no weighted union) minimal sampling, lots of binds.
   \end{itemize}
 }
-\subsection{Impact on bug-finding ability}
+\subsection{Benchmarking Bug-Finding Ability}
 To answer \textbf{RQ2}, we evaluate the bug-finding ability of three of our case studies---BST, RBT, and STLC---using Etna, a platform for assessing and comparing PBT techniques. 
 Etna allows users to measure the effectiveness of different generator implementations by injecting bugs into the system under test and recording the time taken for a relevant 
 property to fail in response. For example, in a tree with an ordering property, a bug injection might consist of inserting a value into the tree that violates that ordering. Each case study includes a diverse set of \textit{tasks}, where a task consists of a specific bug-property pair designed to test different aspects of the system (e.g., BST
@@ -1359,37 +1385,12 @@ the observed variance in time-to-failure was less than a nanosecond. \tr{Do we n
 \section{Other Languages and Libraries}
 \label{subsection:other-langs}
 
-\begin{figure}[h]
-  \centering
-  \vspace{0.5em} % Kept the vertical spacing
-  \begin{tabular}{lrl}
-  \toprule
-  Benchmark & \multicolumn{2}{c}{avg. time (ns/op) $\pm$ std. dev.} \\
-  \midrule
-  BST & $3,560.813$ & $\pm\>1,511.201$ \\
-  BST, Staged & $751.287$ & $\pm\>39.890$ \\
-  BST (Type-Derived) & $44,619.863$ & $\pm\>5,761.568$ \\
-  BST (Type-Derived), Staged & $6,863.209$ & $\pm\>416.188$ \\
-  RBT (Type-Derived) & $60,559.846$ & $\pm\>4,901.980$ \\
-  RBT (Type-Derived), Staged & $8,511.528$ & $\pm\>324.615$ \\
-  STLC & $44,497.623$ & $\pm\>1,970.484$ \\
-  STLC, Staged & $7,151.259$ & $\pm\>355.639$ \\
-  \bottomrule
-  \end{tabular}
- \caption{\todo{Understand Joe's implementation of this...}}
- \label{fig:benchmark-table}
- \end{figure}
-
-\jwc{TODO: Move this section later (cf conversation in WH meeting 3/7/25)}
-
 \tr{Here's where we talk about what's going on in the world, and ultimately make the argument that \bq{} is the best tool to reproduce.}
 
 \jwc{Note that this explanation require some prior note of exactly *why* BQ is slow... i.e. the abstraction overhead of the library is high.}
 
 \jwc{
   \begin{itemize}
-    \item Scala. Functional abstractions like QC generators are known to be costly in Scala, that's why they have LMS (in Scala 2, and Macros in Scala 3). Example: parser combinators (``On Staged Parser Combinators for Efficient Data Processing''), functional data structures (\href{https://ppl.stanford.edu/papers/popl13_rompf.pdf}{Link}), web programming (``Efficient High-Level Abstractions for Web Programming'').
-    Al of this should still work in scala. Could easily be incorporated into ScalaCheck, with minor modification: ScalaCheck uses a state monad to thread around the seed, instead of a stateful one (like BQ), or a splittable one (like Haskell). So you have to adapt to that. But same diff.
     \item Python. Maybe could do it?? Hypothesis + MacroPy
     \item Haskell: GHC does a lot of these optimizations already, since the code is pure. Since QC generators are relatively small programs,
     GHC has little trouble specializing them. Of course, this is not guaranteed. A version of this idea can easily be ported to the original QC with template haskell, to guarantee
