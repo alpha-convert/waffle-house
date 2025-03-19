@@ -1351,17 +1351,18 @@ We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for ge
 To answer \textbf{RQ1}, we implement benchmarks in both \name and \bq. We vary the choice of \rand in our \name generators, 
 using both \bq's default \texttt{splittable\_random} (``SR'') and our improved SplitMix (``CSR''), as discussed in \secref{subsection:faster-rng}.
 
-Our benchmarks consist of lists, binary search trees (BST), and simply typed lambda calculus (STLC) terms. We implement generators for these benchmarks using a variety of 
+Our benchmarks consist of boolean lists, binary search trees (BST), and simply typed lambda calculus (STLC) terms. We implement generators for these benchmarks using a variety of 
 \textit{strategies}, which vary in structure and sophistication. These include: a derived generators for BSTs and STLC terms, using the approach outlined in \secref{subsection:type-derived}; 
-two custom BST generators, one that repeatedly inserts values into an initially empty tree and one that materializes the tree in a single pass by generating keys, values, and subtrees at each step;
-a custom, correct by construction generator for STLC, which is the most complex; and a generator of boolean lists. 
+two custom BST generators, one that repeatedly inserts values into an initially empty tree and one that materializes the tree in a single pass by generating keys, values, and subtrees at each step; a generator of boolean lists that operates similarly to the single-pass BST strategy; and
+a custom, correct-by-construction generator of STLC terms, whose behavior is the most complex. 
 
-
+The runtime of these generators over a range of sizes is shown in \secref{fig:time}. Staging provides only a negligible speedup for the type-derived and insertion-based BST strategies, as their overhead is largely dominated by random sampling. In these cases, the primary source of performance improvement comes from our enhanced SplitMix \rand.
+In contrast, STLC strategies benefit more from staging than from improvements to \rand, as they involve fewer sampling operations but rely heavily on generator combinators. The same holds for the boolean list benchmark, as sampling booleans is relatively inexpensive. Our single-pass BST strategy falls somewhere in between: it both samples frequently and makes extensive use of generator combinators.
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
   \includegraphics[scale=0.45]{time.png}
-  \label{fig:time}
   \caption{Average generation time over 10,000 trials.}
+  \label{fig:time}
 \end{figure}
 
 \begin{figure}[h]
