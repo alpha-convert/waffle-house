@@ -306,42 +306,30 @@ Together, these observations raise a fundamental question: can generator librari
  First, we describe a method of optimizing generator libraries using
 \textit{multi-stage programming}, or ``staging,'' which has long been used to
 build DSLs ``without regret''~\cn.
-We apply this technique to generators, completely eliminating the overhead of
-many common generator abstractions. For example, in unstaged generator
-libraries, each call to monadic bind usually spends time constructing and
-immediately executing a closure at run time. \todo{cite some evidence for this} \jwc{Maybe this sentence isn't needed at all.}
-Meanwhile, a staged approach can resolve the bind at compile time, enabling the
-compiler to inline and eliminate these closures.
+We apply this technique to generators, completely eliminating the run-time overhead of
+many common generator abstractions.
 Secondly, we demonstrate the impact of different choices of \rand on generator
 performance by conducting a controlled comparison. \iflater\hg{More words here for
 parallelism?}\fi Together, these insights provide a recipe for improving existing generator libraries.
 
-To demonstrate the effectiveness of our approach, we apply it to \bq, a
-high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street.
-\jwc{Also to ScalaCheck! Let's put this up front.}
-Our improved version, \name, is a direct drop-in replacement for
-\bq that 
-is \textit{100\% semantically equivalent}: that is, given identical random seeds, generators written using \name{}
-produce exactly the same sequence of values as those written in \bq. However, in \name, 
-the abstractions provided by the generator DSL are zero-cost, and the \rand is 
-highly-optimized. The semantic equivalence between \name and \bq allows us to 
+To demonstrate the effectiveness of our approach, we apply it to two PBT generator libraries, namely \bq{} --- a
+high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street ---
+and ScalaCheck --- a very mature PBT library and the de facto choice in Scala.
+In both languages, our staged versions are direct drop-in replacements that are
+\textit{100\% semantically equivalent}: that is, given identical random seeds, the same generator written once with \name{}
+and once with the original generator library produces exactly the same sequence of values.
+The semantic equivalence between the original generators and \name generators allows us to 
 perform clean, fine-grained comparisons, as differences in generation speed are
 solely attributable to the staging and \rand optimizations.
 
 We evaluate the optimizations in \name with a series of case studies in each
-generator library, and show that \name runs faster than \bq.
+generator library, and show that the \name generators run faster than their unstaged equivalence.
 Further, we show that this performance benefit\hg{wc?} translates to bug-finding
 ability by running these case studies in the Etna framework~\cite{etna}, a
 platform that simulates real-world PBT usage\hg{Don't love this phrase, I'll
 think more about how we should talk about Etna} by injecting bugs into a system and
 measuring how quickly various generators detect them.
-Finally, to demonstrate the generality of our technique, we implement a version
-of \name in Scala \hg{(based on scalacheck?)} and benchmark the same generators---thereby highlighting its portability to other
-strict functional languages.
-\iflater
-\jwc{I think we should more explicitly point out the portability earlier, maybe
-up where we say we're applying it to BQ.}\hg{Agree}
-\fi
+
 
 In summary, we show that monadic PBT generator DSLs incur significant performance costs across languages, and present a general technique for improving their efficiency while preserving their idiomatic abstractions.
 We make the following contributions:
