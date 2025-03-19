@@ -274,9 +274,9 @@ random test inputs to validate logical specifications. Recent studies on PBT usa
 practitioners often interleave PBT with their software development process, sometimes
 testing their properties every time they save their code. This means that PBT is often run with very short time
 budgets---e.g., between 50 milliseconds and 30 seconds---and it is important
-that bugs can be found in that time-frame.
+that bugs can be found in that time-frame.\iflater
 \jwc{phrasing could suggest ``race against time'' aspect.}\hg{Agree, can't see
-how to fit this in yet} \jwc{Also think the phrasing should say something like ``the goal is to fail as fast as possible''}
+how to fit this in yet} \jwc{Also think the phrasing should say something like ``the goal is to fail as fast as possible''}\fi
 
 Given these strict timelines, the impact of performance in PBT cannot be overstated. One important locus for performance improvement
 is the \textit{generators} that produce random inputs to the properties under
@@ -391,9 +391,11 @@ end
 
 While many DSL designs are possible, the standard design for QuickCheck-style
 generators is via an embedded {\em monadic} language. For the purposes of this
-paper, we use the sytnax from \bq, which is presented in
-Figure~\ref{fig:bq-api}. The library provides a series of basic generators, for
-example ones like \texttt{gen\_int} for random integers in a range, along with
+paper, we use the syntax from \bq, which is presented in
+Figure~\ref{fig:bq-api}, but these kinds of DSLs can also be found in languages
+like Haskell, Scala, Rust, and many more.
+The library provides some basic generators, for
+example \texttt{gen\_int} for generating random integers in a range, along with
 the ``monadic interface'' consisting of \texttt{return} and \texttt{bind}.  The
 generator \texttt{return x} is the constant generator, always generating the
 value \texttt{x}. Running a generator \texttt{bind g k} runs the generator
@@ -411,11 +413,7 @@ and \texttt{return} and \texttt{bind} allow generators to be composed to create
 larger, more complex generators. Figure~\ref{fig:simple-bind} shows a generator
 built with these operations; it first samples an int between $0$ and $100$,
 names it $x$, samples another between $0$ an $x$, and then returns the pair of
-them both. In practice, PBT generator libraries also include other functions
-that make generator construction easier, including functions like
-\texttt{weighted\_union} for making a weighted choice between different
-generators as well as functions for managing the sizes of generated values and
-combinators for recursion.
+them both.
 
 \begin{figure}[h]
   \begin{subfigure}{.49\textwidth}
@@ -440,37 +438,55 @@ let int_pair : (int * int) Bq.t =
 \end{figure}
 
 Most languages in which monadic APIs are common expose some sort of syntactic
-sugar for them. In OCaml\footnote{OCaml actually has a few versions of syntax
-for monadic APIs; this is the one provided by Jane Street's libraries.}, this
+sugar for them. In OCaml\footnote{OCaml actually has a few ways to implement
+monadic syntax; this is the one provided by Jane Street's libraries.}, this
 looks like \texttt{let\%bind x = e in e'}, which is a macro that desugars to
 \texttt{bind e (fun x => e')}. Figure~\ref{fig:simple-macro} shows the same
 generator as before, now written with macros.
 
-\jwc{
-Explain effect ordering here!!
-\begin{itemize}
-  \item \texttt{Bq.bind} has the CBV sampling semantics
-  \item If you \texttt{Bq.bind} \texttt{x} and then use it twice, both uses refer to the \emph{same} value.
-  \item Sampling is effectful: it mutates the internal state.
-  \item Permuting two independent binds gives you a generator that is distributionally equivalent, but not equivlaent when considered up to pointwise equality as \emph{functions} from seed to value.
-  \item Note that it's much more sensible to compare the bugfinding performance of two function-equivalent generators:
-\end{itemize}
-}
+\subsubsection{Subtleties of Bind}
+The \texttt{bind} function in monadic generator libraries sequences generators
+with a call-by-value semantics, regardless of the calling convention of the
+language in which it is implemented. Concretely, this means that sampling
+\begin{center}
+  \texttt{let\%bind x = gen\_int 0 10 in return (x + x)}
+\end{center}
+always produces an even number; \texttt{x} is only sampled once (when the
+\texttt{bind} is evaluated) and from that point on it is a pure value. This is
+in contrast to the semantics of some probabilistic programming languages that
+may have call-by-name binders. This is important because \hg{Joe why are we
+talking about this here? What are we going to use this fact for?}.
 
-\jwc{
-  \begin{itemize}
-    \item PBT generator libraries include more functions than just the monad interface and sampling, libraries include helper functions.
-    \item With \texttt{weighted\_union}, to make a weighted choices, and \texttt{fixed\_point} to define recursive generators.
-    \item Also \texttt{size} and \texttt{with\_size} to adjust the size parameter --- these are useful to ensure we terminate with recursive generators.
-  \end{itemize}
-}
+Another subtle aspect of \texttt{bind} is that many implementations mutate the
+internal state of the random number generator\footnote{The original QuickCheck
+implementation in Haskell uses a splittable random number generator~\cn, and
+\texttt{bind} splits the seed.} This means that generators do not always obey
+equivalences that one might expect from a monadic program. For example,
+\begin{center}
+  \texttt{let\%bind \_x = return () in gen\_int 0 10}
+\end{center}
+does not necessarily produce the same sequence of values as \texttt{gen\_int 0
+10}; the \texttt{bind} updates the random seed in the background before
+geenrating the integer, even though it looks like a no-op. Critically, while
+these generators do not produce the same sequence of values, they do produce the
+same {\em distributions} of values. We say that generators obey standard monadic
+equalities up to ``distributional equivalence.''
+In Section~\hg{todo}, we discuss why distributional equivalence is often weaker
+than one might like when evaluating the differences between
+generators.\hg{Update this}
 
-\jwc{This section needs to explain approximately how weighted union works --- compute a sum of the weights, sample between 0 and the sum, pick
-the first element where the partial sums to the left exceeds the sampled number.
-(This has been written about a billion times, cite one of the papers about this.)
-}
-\jwc{I re-explain this later somewhere i think, so we need to remember to RM that explanation.}
+\subsubsection{Weighted Union and Other Conveniences}
+Generator libraries also include other functions that make generator
+construction easier; some examples of these are also shown in
+Figure~\ref{fig:bq-api}.  The \texttt{weighted\_union} function is a
+particularly well-used one: it makes making a weighted choice between different
+generators, allowing the developer to combine different sub-generators into a
+single program and tune the data distribution. Also important are functions like
+\texttt{size} and \texttt{with\_size} that are used to control the sizes of
+generated values and \texttt{fixed\_point} that is used tto define recursive
+generators.
 
+\begin{wrapfigure}{r}{.5\textwidth}
 \begin{lstlisting}
 let tree_of g = fixed_point (fun rg ->
   let%bind n = size in
@@ -480,17 +496,20 @@ let tree_of g = fixed_point (fun rg ->
       let%bind x = g in
       let%bind l = with_size (n / 2) rg in
       let%bind r = with_size (n / 2) rg in
-      return (Node (l,x,r))
-    )
-  ]
-)
+      return (Node (l,x,r)))
+  ])
 \end{lstlisting}
+\caption{A generator using a variety of convenience functions.}\label{fig:tree_of}
+\end{wrapfigure}
 
-\jwc{This generator generates binary trees using all the combinators, yay. Explain em.}
-
-
-
-\jwc{IMPORTANT: We are using OCaml because we have to pick a syntax for this section, but these abstraction overheads exist in other languages -- at least scala, rust.}
+The generator in Figure~\ref{fig:tree_of} uses all of the aforementioned
+features. It uses \texttt{fixed\_point} to define a recursive generator that
+reads the current value of \texttt{size} to determine how to generate a tree.
+The generator uses \texttt{weighted\_union} to make a random choice between an
+empty tree and a node, choosing a node with weight proportional to the current
+size and choosing a leaf otherwise. When generating a node, the generator uses
+\texttt{with\_size} to reduce the value of the size parameter for future
+iterations.
 
 \subsection{Abstraction Overhead of Generator DSLs}
 Just how large is the abstraction overhead of monadic generator DSLs, and where does it come from?
