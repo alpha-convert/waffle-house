@@ -310,8 +310,8 @@ Together, these observations raise a fundamental question: can generator librari
   % in strict functionallanguages like OCaml and Scal
   To address this question, we outline two key principles for designing generator libraries that balance efficiency with flexibility.
  First, we describe a method of optimizing generator libraries using
-\textit{multi-stage programming}, or ``staging,'' which has long been used for
-optimizing functional DSLs~\cn.
+\textit{multi-stage programming}, or ``staging,'' which has long been used to
+optimize functional DSLs~\cn.
 We apply this technique to generators, completely eliminating the overhead of
 many common generator abstractions. For example, in unstaged generator
 libraries, each call to monadic bind usually spends time constructing and
@@ -450,6 +450,7 @@ Explain effect ordering here!!
 the first element where the partial sums to the left exceeds the sampled number.
 (This has been written about a billion times, cite one of the papers about this.)
 }
+\jwc{I re-explain this later somewhere i think, so we need to remember to RM that explanation.}
 
 \begin{lstlisting}
 let tree_of g = fixed_point (fun rg ->
@@ -584,8 +585,6 @@ and \texttt{bind} causes these heuristics to not fire.  Moreover, the story is
 even worse for recursive generators, as the heuristics are necessarily even more
 conservative for optimizing recursive functions. \jwc{unclear if we need this sentence, it's sorta obvious}
 
-
-
 \begin{figure}
   \begin{tabular}{lll}
   Library    & Generator          & Average Time per Generation (ns) \\
@@ -594,7 +593,7 @@ conservative for optimizing recursive functions. \jwc{unclear if we need this se
   ScalaCheck & \texttt{intPair}            & 458                      \\
   ScalaCheck & \texttt{intPairInlined}     & 266                     
   \end{tabular}
-\caption{Microbenchmarks of Generators in \bq{} (using \texttt{core\_bench} \cn) and ScalaCheck (using \texttt{jmh} \cn)}
+\caption{Microbenchmarks of Generators in \bq{} (using \texttt{core\_bench} \cn) and ScalaCheck (using \texttt{jmh} \cn). Average over 10000 generations with random seeds, and a fixed size}
 \label{fig:overhead-explanation-perf}
 \end{figure}
 
@@ -611,38 +610,39 @@ through the recursive loop re-allocates closures for \texttt{bind}s, so the amou
 \emph{per generated value} scales linearly with the number of recursive generator calls.
 
 \subsubsection{Overhead of Choice Combinators}
-The monad functions \texttt{return} and \texttt{bind} aren't the only combinators that incur an
-abstraction overhead: all of them do! \jwc{I'm so bad at starting new sections...} ``Choice'' combinators like \texttt{weighted\_union}, however
-are particularly costly, because they unavoidably allocate a lot.
-
-\jwc{
-Aside from the usual fact that the compiler can't ``see through'' the
-abstraction boundary to specialize, combinators like union and weighted union
-necessarily allocate a lot in the generation hot path.  Even without the dumb BQ
-array thing, to call union and weighted union, the types mean that you have to
-allocate a list.  These allocations are extremely costly, and happen every
-sample from the generator. If the generator is recursive (like the tree
-generator), they occur at each recursive call.
-}
+After the \texttt{return}, \texttt{bind}, and base-type generation combinators
+(such as \texttt{gen\_int}), the most frequently used combinators are ``choice''
+combinators like \texttt{weighted\_union} which randomly select between
+sub-generators.
+Like \texttt{return} and \texttt{bind}, these combinators incur a performance penalty
+at run time. Aside from the previously-discussed issues that compilers
+cannot see through the abstraction boundary to optimize these programs,
+choice combinators come with their own particular abstraction overhead.
 
 In practice, \texttt{weighted\_union}s is almost always\footnote{
 There are some generators where \texttt{weighted\_union} is passed a list which
 was itself the result of a generator: the well-typed STLC term generator used in Section~\ref{section:eval} is an example of this.
-} passed an explicitly constructed list, like
-\texttt{weighted\_union [(3,g); (1,g'); (2,g'')]}. 
+} called with an explicitly constructed list, like
+\texttt{weighted\_union [(w1,g1); (w2,g2); (w3,g3)]}. 
 This is because the most common use case for \texttt{weighted\_union} is
 to choose between one of the different constructors of an algebraic datatype,
 the options for which are always known.
-The list passed to \texttt{weighted\_union} allocated at the call site, and then \emph{immediately}
+This list is allocated at the call site, and then \emph{immediately}
 destructed by the function. In principle, since the elements of the list and its length $n$ are known statically,
 a compiler could unroll the loops in \texttt{weighted\_union} to depth $n$ and specialize the function to avoid allocating the list.
-In practice however almost~\jwc{Once again, GHC is a notable exception here \cn{}} no compilers perform this kind of optimization.
+Unfortunately, almost~\jwc{Once again, GHC is a notable exception here \cn{}} no compilers perform this kind of optimization.
+This allocation (or rather, its tendency to cause GC pauses) --- as well as the cost of running the code 
+to traverse arbitrary lists compared to unrolled loops --- has a significant impact on 
+performance.
 
-% \jwc{This builds the cdf of the distribution, samples from 0 to the total, and binary searches through the array to find the bucket.}
-% \jwc{Allocating this array is unnecessary: we can simply compute the total weight, sample \texttt{x} between 0 and the total, and then walk the list accumulating the sum, until the accumulator exceeds \texttt{x}. Since in practice the list of possible options is quite small (usually at most 10 in practice), the linear time scan is going to be much faster.}
-% \jwc{(The point of this para will just be to emphasize that it's almost always better to be allocation-aware, instead of algorithmically clever.)}
-
-
+Last, many PBT libraries --- including both \bq and ScalaCheck --- implement their \texttt{weighted\_union} combinators
+in ways that are asymptotically more efficient but slower in practice than the naive algorithm.
+Weighted union works by the Fitness Proportionate Selection algorithm \cn{}, which (1) samples a number $r$
+between $0$ and the sum of the weights, and then (2) finds the first generator for which the cumulative
+weights in the list before it exceeds $r$. This second part can be accomplished in $O(\log_2 n)$ time by
+binary searching the list. However, since the lists are short in practice, a linear scan is almost always faster \cn{}.
+Moreover, both \bq{} and ScalaCheck allocate auxiliary data structures (an array in \bq{} and a BST in ScalaCheck) to
+perform this search, which incurs further run time overhead.
 
 % \subsubsection{Function call overhead}
 \subsection{Inefficient Randomness Libraries}
@@ -1287,81 +1287,35 @@ discussed in the previous sections.
 
 \section{Evaluation}
 \label{section:eval}
+
+\jwc{Initial section here about eval}
+
 \begin{itemize}
-  \item \textbf{RQ1}: Do generators written using \name run faster than those written using base quickcheck?
+  \item \textbf{RQ1}: Do generators written using \name run faster than those written with regular generator combinators?
   \item \textbf{RQ2}: Do performance speedups translate to better bug-finding ability?
-  \item \textbf{RQ3}: Does our technique generalize to other strict functional languages?
+  % \item \textbf{RQ3}: Does our technique generalize to other strict functional languages?
 \end{itemize}
 
 All experiments were run on a 64-bit Linux machine with 264 GB RAM and an Intel Xeon Platinum 8375C CPU, running Ubuntu 24.04.1 LTS.
-The \name library was implemented using the
-4.14.1+BER MetaOCaml compiler variant.  All OCaml benchmarks
-were run invoking \texttt{ocamlopt}, the native code compiler for OCaml, using compiler flag \texttt{-O3}.
 
-. \todo{Joe : Scala info ...}
+The OCaml version of \name and all OCaml benchmarks
+were compiled with 4.14.1+BER MetaOCaml \texttt{ocamlopt}, the native code compiler for OCaml, using compiler flag \texttt{-O3}.
+The baseline OCaml generators were written with \bq{} 0.16.
+The Scala 3 version of \name and all Scala benchmarks
+were run on Scala 3.6.3
+and OpenJDK 21.0.6, using ScalaCheck version 1.17 as the baseline.
+We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for generator performance microbenchmarking.
 
-\subsection{Implementing and Testing Generators}
-\begin{figure}[h]
-  \includegraphics[scale=0.34]{allocs.png}\includegraphics[scale=0.334]{time.png}
-\end{figure}
+\subsection{Differential Testing of Generators}
 \label{subsection:pbt-for-pbt}
 To establish the equivalence of generators up to program equality, 
 we employ a PBT harness to compare their outputs over 1,000 random seeds. 
 If a discrepancy arises, we report the unequal trees; if no counterexample is found,
 we conclude that the generators exhibit equivalent behavior.
-\subsection{Benchmarking speed \& resource usage}
+\jwc{A little more here}
 
-\jwc{NOTE: we should test generator speed across both languages, but speed -> bugfinding ability in only OCaml.}
-\jwc{
-  Baseline generators to test speed in both languages:
-  \begin{itemize}
-    \item Single int
-    \item Pair of ints, constrained
-    \item List of ints without bind (use map): lots of sampling, minimal binds.
-    \item Unableled Trees of a fixed size (no weighted union) minimal sampling, lots of binds.
-  \end{itemize}
-}
-\subsection{Impact on bug-finding ability}
-To answer \textbf{RQ2}, we evaluate the bug-finding ability of three of our case studies---BST, RBT, and STLC---using Etna, a platform for assessing and comparing property-based testing (PBT) techniques. 
-Etna allows users to measure the effectiveness of different generator implementations by injecting bugs into the system under test and recording the time taken for a relevant 
-property to fail in response. For example, in a tree with an ordering property, a bug injection might consist of inserting a value into the tree that violates that ordering. 
-
-Each case study includes a diverse set of \textit{tasks}, where a task consists of a specific bug-property pair designed to test different aspects of the system (e.g., BST
-includes tasks that test insertion, deletion, and union operations on binary search trees).
-
-We evaluate our case studies with both type-derived and custom generators.
-Each generator has four implementations, which are equivalent up to program equality:
-\begin {itemize}
-  \item The original \bq generator (``BQ'').
-  \item A staged version of the generator (``Staged'').
-  \item A staged version of the generator using the C \rand (``Staged C'').
-  \item A staged version incorporating the CSR \rand (``Staged CSR'').
-\end{itemize}
-
-To ensure a fair comparison, we initialize each of these generators with the same random seed, ensuring that they produce identical trees.
-
-\subsubsection{Variance between seeds}
-The time-to-failure of a given strategy on a given seed is not necessarily representative of 
-the strategy's average time-to-fail over a large number of trials, so we normalize by computing the
-timing \textit{differential} between optimized and unoptimized generators (the ``speedup''). While this works in most cases,
-it is not perfect.
-For example, it is theoretically possible
-to choose a seed such that the \textit{first} value produced by a generator discovers the bug, which would elide any differential speedup (and likewise
-if both generators fail to find the bug).
-To account for these edge cases, we repeat the above process for 10 seeds and compute the geometric mean of their speedups.
-
-% To produce \todo{FIG}, we repeated the above process for 10 seeds and computed the geometric average of their speedups. 
-%This is important because the time-to-failure of a given strategy on a given seed is not necessarily 
-%representative of the strategy's overall bug-finding ability, although it often is. For example, it is theoretically possible 
-%to choose a seed such that the \textit{first} value produced by a generator discovers the bug, but it would be misleading to report this result.
-
-\subsubsection{Variance between trials}
-Although the variance \textit{between} seeds in Etna can be very vast, timing results are replicable for a given seed. Across 1,000 trials on the same seed, 
-the observed variance in time-to-failure was less than a nanosecond. \tr{Do we need this?}
-
-
-\section{Other Languages and Libraries}
-\label{subsection:other-langs}
+\subsection{Benchmarking Generator Speed}
+\jwc{Intro stuff}
 
 \begin{figure}[h]
   \centering
@@ -1384,7 +1338,57 @@ the observed variance in time-to-failure was less than a nanosecond. \tr{Do we n
  \label{fig:benchmark-table}
  \end{figure}
 
-\jwc{TODO: Move this section later (cf conversation in WH meeting 3/7/25)}
+\begin{figure}[h]
+  % \includegraphics[scale=0.33]{allocs.png}
+  \includegraphics[scale=0.45]{time.png}
+  \label{fig:benchmark-time}
+  \caption{Average time taken to generate a value with the staged generator, in nanoseconds.}
+\end{figure}
+\jwc{NOTE: we should test generator speed across both languages, but speed -> bugfinding ability in only OCaml.}
+\jwc{
+  Baseline generators to test speed in both languages:
+  \begin{itemize}
+    \item Single int
+    \item Pair of ints, constrained
+    \item List of ints without bind (use map): lots of sampling, minimal binds.
+    \item Unableled Trees of a fixed size (no weighted union) minimal sampling, lots of binds.
+  \end{itemize}
+}
+\subsection{Benchmarking Bug-Finding Ability}
+To answer \textbf{RQ2}, we evaluate the bug-finding ability of three of our case studies---BST, RBT, and STLC---using Etna, a platform for assessing and comparing PBT techniques. 
+Etna allows users to measure the effectiveness of different generator implementations by injecting bugs into the system under test and recording the time taken for a relevant 
+property to fail in response. For example, in a tree with an ordering property, a bug injection might consist of inserting a value into the tree that violates that ordering. Each case study includes a diverse set of \textit{tasks}, where a task consists of a specific bug-property pair designed to test different aspects of the system (e.g., BST
+includes tasks that test insertion, deletion, and union operations on binary search trees).
+
+We evaluate our case studies with both type-derived and custom generators.
+Each generator has four implementations, all of which are equivalent up to program equality: the original \bq generator (``BQ''); a staged version of the generator (``Staged''); a staged version of the generator using the C \rand (``Staged C''); and a staged version incorporating the CSR \rand (``Staged CSR'').
+To ensure a fair comparison, we initialize each of these generators with the same random seed, ensuring that they produce identical trees.
+
+\subsubsection{Variance between seeds}
+The time-to-failure of a given strategy on a given seed is not necessarily representative of 
+the strategy's average time-to-fail over a large number of trials, so we normalize by computing the
+timing \textit{differential} between optimized and unoptimized generators (the ``speedup''). While this works in most cases,
+it is not perfect.
+For example, it is theoretically possible
+to choose a seed such that the \textit{first} value produced by a generator discovers the bug, which would elide any differential speedup (and likewise
+if both generators fail to find the bug).
+To account for these edge cases, we repeat the above process for 10 seeds and compute the geometric mean of their speedups.
+\begin{figure}[h]
+  \includegraphics[scale=0.333]{speedup.png}
+  \caption{}
+\end{figure}
+% To produce \todo{FIG}, we repeated the above process for 10 seeds and computed the geometric average of their speedups. 
+%This is important because the time-to-failure of a given strategy on a given seed is not necessarily 
+%representative of the strategy's overall bug-finding ability, although it often is. For example, it is theoretically possible 
+%to choose a seed such that the \textit{first} value produced by a generator discovers the bug, but it would be misleading to report this result.
+
+\subsubsection{Variance between trials}
+Although the variance \textit{between} seeds in Etna can be vast, timing results are replicable for a given seed. Across 1,000 trials on the same seed, 
+the observed variance in time-to-failure was less than a nanosecond. \tr{Do we need this?}
+
+
+\section{Other Languages and Libraries}
+\label{subsection:other-langs}
 
 \tr{Here's where we talk about what's going on in the world, and ultimately make the argument that \bq{} is the best tool to reproduce.}
 
@@ -1392,8 +1396,6 @@ the observed variance in time-to-failure was less than a nanosecond. \tr{Do we n
 
 \jwc{
   \begin{itemize}
-    \item Scala. Functional abstractions like QC generators are known to be costly in Scala, that's why they have LMS (in Scala 2, and Macros in Scala 3). Example: parser combinators (``On Staged Parser Combinators for Efficient Data Processing''), functional data structures (\href{https://ppl.stanford.edu/papers/popl13_rompf.pdf}{Link}), web programming (``Efficient High-Level Abstractions for Web Programming'').
-    Al of this should still work in scala. Could easily be incorporated into ScalaCheck, with minor modification: ScalaCheck uses a state monad to thread around the seed, instead of a stateful one (like BQ), or a splittable one (like Haskell). So you have to adapt to that. But same diff.
     \item Python. Maybe could do it?? Hypothesis + MacroPy
     \item Haskell: GHC does a lot of these optimizations already, since the code is pure. Since QC generators are relatively small programs,
     GHC has little trouble specializing them. Of course, this is not guaranteed. A version of this idea can easily be ported to the original QC with template haskell, to guarantee
