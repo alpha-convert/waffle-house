@@ -1183,28 +1183,28 @@ end
 \end{figure}
 
 
-\subsubsection{The Trick at Other Types}
-To write more interesting generators, we also need the ability to generate code that manipulates run-time values.
-For instance, consider this generator
+% \subsubsection{The Trick at Other Types}
+% To write more interesting generators, we also need the ability to generate code that manipulates run-time values.
+% For instance, consider this generator
 
-\jwc{need a better example here}
+% \jwc{need a better example here}
 
-\begin{figure}
-\begin{lstlisting}
-let int_or_zero : int Bq.t =
-  let%bind n = size in
-  if n <= 5 then return 0 else Bq.int
+% \begin{figure}
+% \begin{lstlisting}
+% let int_or_zero : int Bq.t =
+%   let%bind n = size in
+%   if n <= 5 then return 0 else Bq.int
 
-let split_bool (b : bool code) : bool Gen.t =
-  fun _ _ ->  _
+% let split_bool (b : bool code) : bool Gen.t =
+%   fun _ _ ->  _
 
-\end{lstlisting}
-\caption{??}
-\label{fig:trick-example}
-\end{figure}
+% \end{lstlisting}
+% \caption{??}
+% \label{fig:trick-example}
+% \end{figure}
 
 
-\jwc{Describe split --- this section is approximately experts-only, but you can just point at the Andras paper and the things it cites.}
+% \jwc{Describe split --- this section is approximately experts-only, but you can just point at the Andras paper and the things it cites.}
 
 \subsection{Recursive Generators}
 \jwc{Generating recursive datatypes requires recursive generators!}
