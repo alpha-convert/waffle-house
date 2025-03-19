@@ -35,11 +35,16 @@ include For_applicative
 module Applicative_infix = For_applicative.Applicative_infix
 include Applicative_infix
 
+let num_binds = ref 0
+
+let get_num_binds () = !num_binds
+let reset_bind_count () = num_binds := 0
+
 module For_monad = Base.Monad.Make (struct
     type nonrec 'a t = 'a t
 
     let return = Base_quickcheck.Generator.return
-    let bind = Base_quickcheck.Generator.bind
+    let bind x ~f = incr num_binds; Base_quickcheck.Generator.bind x ~f
     let map = `Custom Base_quickcheck.Generator.map
   end)
 
