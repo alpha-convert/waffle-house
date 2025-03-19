@@ -281,7 +281,7 @@ how to fit this in yet} \jwc{Also think the phrasing should say something like `
 Given these strict timelines, the impact of performance in PBT cannot be overstated. One important locus for performance improvement
 is the \textit{generators} that produce random inputs to the properties under
 test. These generators are written with the help of \textit{generator
-libraries}, usually expressed as embedded domain-specific languages (eDSLs) that
+libraries}, usually expressed as embedded domain-specific languages (eDSLs) \cntxt{edsls} that
 provide combinators for building and composing generators. Optimizing these
 libraries is a key opportunity to speed up PBT: if programmers are
 provided with the tools to write fast generators, then they do not themselves
@@ -305,11 +305,11 @@ Together, these observations raise a fundamental question: can generator librari
   To address this question, we outline two key principles for designing generator libraries that balance efficiency with flexibility.
  First, we describe a method of optimizing generator libraries using
 \textit{multi-stage programming}, or ``staging,'' which has long been used to
-optimize functional DSLs~\cn.
+build DSLs ``without regret''~\cn.
 We apply this technique to generators, completely eliminating the overhead of
 many common generator abstractions. For example, in unstaged generator
 libraries, each call to monadic bind usually spends time constructing and
-immediately executing a closure at run time. \jwc{Todo: joe --- cite some evidence for this}
+immediately executing a closure at run time. \todo{cite some evidence for this} \jwc{Maybe this sentence isn't needed at all.}
 Meanwhile, a staged approach can resolve the bind at compile time, enabling the
 compiler to inline and eliminate these closures.
 Secondly, we demonstrate the impact of different choices of \rand on generator
@@ -318,6 +318,7 @@ parallelism?}\fi Together, these insights provide a recipe for improving existin
 
 To demonstrate the effectiveness of our approach, we apply it to \bq, a
 high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street.
+\jwc{Also to ScalaCheck! Let's put this up front.}
 Our improved version, \name, is a direct drop-in replacement for
 \bq that 
 is \textit{100\% semantically equivalent}: that is, given identical random seeds, generators written using \name{}
@@ -1460,7 +1461,7 @@ Below we discuss how \name{} could be applied in other languages.
   For this reason, \name{} does not seem directly applicable to any of the PBT libraries in Rust.
 
   \item \textbf{Python} is home to Hypothesis, the most widely used PBT library in any language.
-  
+  \jwc{More here}
 
 \end{itemize}
 
