@@ -1357,7 +1357,7 @@ two custom BST generators, one that repeatedly inserts values into an initially 
 a custom, correct-by-construction generator of STLC terms, whose behavior is the most complex. 
 
 The runtime of these generators over a range of sizes is shown in \secref{fig:time}. Staging provides only a negligible speedup for the type-derived and insertion-based BST strategies, as their overhead is largely dominated by random sampling. In these cases, the primary source of performance improvement comes from our enhanced SplitMix \rand.
-In contrast, STLC strategies benefit more from staging than from improvements to \rand, as they involve fewer sampling operations but rely heavily on generator combinators. The same holds for the boolean list benchmark, as sampling booleans is relatively inexpensive. Our single-pass BST strategy falls somewhere in between: it both samples frequently and makes extensive use of generator combinators.
+In contrast, STLC strategies benefit more from staging than \rand choice, as they involve fewer sampling operations but rely heavily on generator combinators. The same holds for the boolean list benchmark, as sampling booleans is inexpensive relative to integers. Our single-pass BST strategy falls somewhere in between: it both samples frequently and makes extensive use of generator combinators.
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
   \includegraphics[scale=0.45]{time.png}
