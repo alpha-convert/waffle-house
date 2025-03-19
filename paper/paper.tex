@@ -246,7 +246,7 @@
 %  are in existing PBT tools, and which ones matter most?
 %  \item (Your claim here...)?
 %  \end{itemize}
-%}
+%
 
 %\jwc{Agree: I think something like the 3rd is the best reframing. Something
 %like: ``We demonstrate that, across languages, monadic PBT generator DSLs can
@@ -281,7 +281,8 @@ how to fit this in yet} \jwc{Also think the phrasing should say something like `
 Given these strict timelines, the impact of performance in PBT cannot be overstated. One important locus for performance improvement
 is the \textit{generators} that produce random inputs to the properties under
 test. These generators are written with the help of \textit{generator
-libraries}, usually expressed as embedded domain-specific languages (eDSLs) \cntxt{edsls} that
+libraries}, usually expressed as embedded domain-specific languages (eDSLs) %\cntxt{edsls} 
+that
 provide combinators for building and composing generators. Optimizing these
 libraries is a key opportunity to speed up PBT: if programmers are
 provided with the tools to write fast generators, then they do not themselves
