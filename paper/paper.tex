@@ -766,8 +766,10 @@ compiled and run at run time.
 
 \subsubsection{Uses of Staging in eDSL Construction}
 One of the primary uses of staging is in embedded DSL construction \cite{sheard99, lms, trattdsl}.
+\jwc{Cite racket macros for DSLs here:}
 While embedded DSLs are great \jwc{words}, they have well-known drawback: 
 the functional abstractions used to build eDSLs prevent compilers from generating efficient machine code \cn.
+\jwc{Do racket people also use macros to eliminate run time overhead? Or is it just for extensibility?}
 As alluded to previously \jwc{This sentence here because of the section-ordering transpose... may need to mention this earlier.}, this effect is known as ``abstraction overhead'' \cite{carrette05, moller20}: the layers of abstraction that 
 make eDSLs so usable are precisely what prevents them from being fast.
 \jwc{Something to the effect of ``the issues we noticed in BQ and SC exist across many eDSLs''}
@@ -776,9 +778,10 @@ transforms the DSL code, eliminating abstractions to produce code that the host 
 \jwc{This previous paragraph is peak ``shitty first draft''.}
 This recipe has been used to great effect across domains to stage eDSLs for stream processing \cite{moller20,strymonas}, parser combinators \cite{sspc, staged-parsers, krishnaswami19, flap},
 and query processing \cite{rhyme}.
+\jwc{Cite racket things here}
 
 Many languages have some degree of staging functionality, though support varies
-from full native support (Scala 3 \cite{scalamacros}, Haskell \cite{templatehaskell}) to compiler extensions (OCaml \cite{metaocaml,macocaml}, Java \cite{mint}).
+from full native support (Scala 3 \cite{scalamacros}, Haskell \cite{templatehaskell}, Racket \cn{}) to compiler extensions (OCaml \cite{metaocaml,macocaml}, Java \cite{mint}).
 Moreover, many more languages have lighter-weight staging-like metaprogramming support in the form of macros.
 See Section~\ref{subsection:other-langs} for a full discussion of just how portable these ideas are. \jwc{this sentence is a placeholder lol}
 
@@ -1429,20 +1432,36 @@ the observed variance in time-to-failure was less than a nanosecond.}
 \label{subsection:other-langs}
 
 In the years since the original QuickCheck paper \cn{}, PBT has had remarkable success
-in languages outside of 
+in languages outside of the small ICFP world from which it came.
+For this reason, readers who are users and developers of PBT libraries in \emph{other} languages ---
+including non-strict or procedural ones --- might be curious about how the
+techniques brought to bear on OCaml's \bq{} and Scala's ScalaCheck in this paper
+might be imported to their favorite language.
+Below we discuss how \name{} could be applied in other languages.
 
-Of course, users and developers of PBT libraries in \emph{other} languages might be curious about how
-the techniques brought to bear on OCaml's \bq{} and Scala's ScalaCheck in this paper might be imported to their favorite language.
-
-Indeed, while we have done our best to keep the proceeding discussion as
-language-agnostic as possible, our claims about the \name{} technique have only
-been thoroughly tested in OCaml and Scala 3, and we are only claiming (in the
-scientific sense) that we have contributed a technique applicable to PBT
-libraries in strict functional programming languages.
+% While we have done our best to keep the proceeding discussion as
+% language-agnostic as possible, our claims about the \name{} technique have only
+% been thoroughly tested in OCaml and Scala 3, and we are only claiming (in the
+% scientific sense) that we have contributed a technique applicable to PBT
+% libraries in strict functional programming languages.
 
 
-In this section
+\begin{itemize}
+  \item \textbf{Racket} is the next target that we intend to test the \name{} methodology on. The entire Racket philosophy is intertwined with
+  using macros to build small eDSLs like the ones we use to write generators, and so it is a natural fit.
+  We have not yet tested the technique in Racket for the simple reason that the authorship team of this paper does not posess
+  much Racket expertise \jwc{can we say this without unblinding?}.
 
+  \item \textbf{Haskell} birthed PBT, and so it is natural to ask why we have not yet applied \name{} to it. The basic answer is that
+  because most tasks in Haskell are accomplished with monads, GHC is designed specially to eliminate the run-time overhead of monadic
+  abstractions! Indeed, because Haskell is pure, GHC can aggressively inline and beta-reduce
+  nearly anything as part of its normal optimiation steps.
+  For complex enough programs however, the heuristics GHC uses can degrade, leading to performance overheads for monadic code.
+  For this reason, Haskell does have a multi-stage programming system called Template Haskell \cn{}, which is sometimes 
+  to build eDSLs in contexts where one does not want to rely on the optimizer's heuristics.
+  \item \textbf{Rust:} asdf
+  \item \textbf{Python:} asdf
+\end{itemize}
 
 \jwc{
   \begin{itemize}
@@ -1466,14 +1485,22 @@ In this section
   \item Evaluation of PBT generation~\cite{shiEtnaEvaluationPlatform2023}
 \end{itemize}}
 
-\subsection{Staging Monadic Libraries}
+\subsection{Staging eDSLs}
 \jwc{A generator is a parser of
 randomness~\cite{goldsteinParsingRandomness2022}, and people have implemented
 lots of staged parser libraries!}
+\jwc{cite Lionel Parreaux  work, he's on PC}
 
 
 \section{Conclusion \& Future Work}
 \jwc{Why we stopped where we stopped: can you squeeze more out of this?}
+\jwc{
+  \begin{itemize}
+    \item On the staging front, we could do a little with more clever staging to codegen better... Avoided using floating let-insertion to ensure we had precise control over effect ordering, but we could try to relax that.
+          Recursive generators have some extra overhead for packing/unpacking accumulators, but could do a GADT cf \texttt{SOP} in 2ltt.
+    \item On the RNG front, there's not much more we can squeeze out of the RNG without breakning equiv with splitmix. As discussed, there are much faster things you can do as alterative sources of entropy.
+  \end{itemize}
+}
 
 %%
 %% The next two lines define the bibliography style to be used, and
