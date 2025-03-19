@@ -1348,6 +1348,7 @@ and OpenJDK 21.0.6, using ScalaCheck version 1.17 as the baseline.
 We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for generator performance microbenchmarking.
 
 \subsection{Benchmarking Generator Speed}
+\label{subsection:benchmarking}
 To answer \textbf{RQ1}, we implement benchmarks in both \name and \bq. We vary the choice of \rand in our \name generators, 
 using both \bq's default \texttt{splittable\_random} and our improved SplitMix, as discussed in \secref{subsection:faster-rng}.
 
@@ -1359,7 +1360,8 @@ a custom, correct-by-construction generator of STLC terms, whose behavior is the
 The runtime of these generators over a range of sizes is shown in \secref{fig:time}. Staging provides only a negligible speedup for type-derived and insertion-based BST strategies, whose overhead is dominated by random sampling. In this case, performance improvement is primarily attributable the enhanced SplitMix \rand.
 In contrast, STLC strategies benefit more from staging, as they involve fewer sampling operations but rely heavily on generator combinators. The same holds for boolean lists, as sampling booleans is inexpensive relative to integers. Our single-pass BST strategy falls somewhere in between: it both samples frequently and makes extensive use of generator combinators. 
 
-These results show that staging and \rand choice serve distinct but complementary roles in generator performance. Sampling-heavy generators see greater improvements from faster randomness libraries, while combinator-heavy ones benefit more from staging. Since both factors influence performance in different ways, generator libraries should use both to achieve strong performance over diverse workloads.
+These results show that staging and \rand choice serve distinct but complementary roles in generator performance. Sampling-heavy generators see greater improvements from faster randomness libraries, while combinator-heavy ones benefit more from staging. Since both factors influence performance in different ways, generator libraries should use both to be performant over diverse workloads.
+\subsubsection{Scala} \tr{TODO!!!!}
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
   \includegraphics[scale=0.45]{time.png}
@@ -1402,19 +1404,15 @@ These results show that staging and \rand choice serve distinct but complementar
 To answer \textbf{RQ2}, we evaluate the bug-finding ability of our BST and STLC case studies using Etna, a platform for assessing and comparing PBT techniques. 
 Etna allows users to measure the effectiveness of different generator implementations by injecting bugs into the system under test and recording the time taken for a relevant 
 property to fail in response. For example, in a tree with an ordering property, a bug injection might consist of inserting a value into the tree that violates that ordering. Each case study includes a diverse set of \textit{tasks}, where a task consists of a specific bug-property pair designed to test different aspects of the system (e.g., BST
-includes tasks that test insertion, deletion, and union operations on binary search trees). BST has 43 tasks; STLC has 18.
+includes tasks that test insertion, deletion, and union operations on binary search trees). In our case, BST has 43 tasks, and STLC has 18.
 
-We test both type-derived and custom generators for BST and STLC.
-Each generator has four implementations (``strategies''), all equivalent up to program equality: the original \bq generator (``BQ''); a staged version of the generator (``Staged''); and a staged version incorporating the CSR \rand (``Staged CSR'').
-To ensure a fair comparison, we initialize each of these generators with the same random seed, ensuring that they produce identical trees.
-
-
-We evaluate each strategy on every task with a 60-second timeout. 
+Strategies for BST and STLC are unchanged from \secref{subsection:benchmarking}.
+To ensure a fair comparison, we initialize each of these generators with the same random seed, ensuring that they produce identical sequences of values. We evaluate each strategy on all tasks using a 60-second timeout. 
 If a bug is not found within this limit, the task is considered unsolved. 
 Tasks where all strategies fail to find the bug are excluded from our dataset, 
 as they provide no basis for comparison. 
 Similarly, we exclude tasks where the BQ strategy completes in under 5ms,
- as such negligible runtimes do not yield meaningful insights into relative performance. These filters ensure that the reported speedups are based on cases where optimization has a measurable impact.
+ as such negligible runtimes do not yield meaningful insights into relative performance. These filters ensure that reported speedups are based on cases where optimization has a measurable impact.
 
 
 It is worth noting that the time-to-failure of a given strategy on a given seed is not necessarily representative of 
@@ -1423,7 +1421,7 @@ it is not perfect.
 For example, it is theoretically possible
 to choose a seed such that the \textit{first} value produced by a generator discovers the bug, which would elide any differential speedup (and likewise
 if both generators fail to find the bug).
-To account for these edge cases, we repeat the above process for 10 seeds and compute the geometric average of the speedups.\footnote{Although the variance \textit{between} seeds in Etna can be vast, timing results are replicable for a \textit{given} seed. Across 1,000 trials using the same seed, 
+To account for these edge cases, we repeat the above process over 10 seeds and compute the geometric average of the speedups.\footnote{Although the variance \textit{between} seeds in Etna can be vast, timing results are replicable for a \textit{given} seed. Across 1,000 trials using the same seed, 
 the observed variance in time-to-failure was less than a nanosecond.}
 
 \begin{figure}[h]
