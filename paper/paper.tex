@@ -1356,12 +1356,14 @@ Our benchmarks consist of boolean lists, binary search trees (BST), and simply t
 two custom BST generators, one that repeatedly inserts values into an initially empty tree and one that materializes the tree in a single pass by generating keys, values, and subtrees at each step; a generator of boolean lists that operates similarly to the single-pass BST strategy; and
 a custom, correct-by-construction generator of STLC terms, whose behavior is the most complex. 
 
-The runtime of these generators over a range of sizes is shown in \secref{fig:time}. Staging provides only a negligible speedup for the type-derived and insertion-based BST strategies, as their overhead is largely dominated by random sampling. In these cases, the primary source of performance improvement comes from our enhanced SplitMix \rand.
-In contrast, STLC strategies benefit more from staging than \rand choice, as they involve fewer sampling operations but rely heavily on generator combinators. The same holds for the boolean list benchmark, as sampling booleans is inexpensive relative to integers. Our single-pass BST strategy falls somewhere in between: it both samples frequently and makes extensive use of generator combinators.
+The runtime of these generators over a range of sizes is shown in \secref{fig:time}. Staging provides only a negligible speedup for type-derived and insertion-based BST strategies, whose overhead is dominated by random sampling. In these cases, performance improvement is primarily attributable the enhanced SplitMix \rand.
+In contrast, STLC strategies benefit more from staging than \rand choice, as they involve fewer sampling operations but rely heavily on generator combinators. The same holds for boolean lists, as sampling booleans is inexpensive relative to integers. Our single-pass BST strategy falls somewhere in between: it both samples frequently and makes extensive use of generator combinators. 
+
+These results show that staging and \rand choice serve distinct but complementary roles in generator performance. Sampling-heavy generators see greater improvements from optimized randomness sources, while combinator-heavy ones benefit more from staging. Since both factors influence performance in different ways, effective generator libraries incorporate both strategies to achieve strong performance across workloads.
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
   \includegraphics[scale=0.45]{time.png}
-  \caption{Average generation time over 10,000 trials.}
+  \caption{Time to generate a value using each strategy, averaged over 10,000 trials. Performance benefits scale with generation size; lower is better.}
   \label{fig:time}
 \end{figure}
 
