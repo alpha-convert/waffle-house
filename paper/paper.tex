@@ -1344,23 +1344,54 @@ To evaluate our contributions, this section answers the following research quest
 
 \subsection{Benchmarking Generator Speed}
 \label{subsection:benchmarking}
-To answer \textbf{RQ1}, we implement benchmarks in both \name and \bq. We vary the choice of \rand in our \name generators, 
-using both \bq's default \texttt{splittable\_random} and our improved SplitMix (\csplitmix), as discussed in \secref{subsection:faster-rng}.
+To answer \textbf{RQ1}, we implement benchmarks in both \name and \bq. We vary
+the choice of \rand in our \name generators, using both \bq's default
+\texttt{splittable\_random} and our improved SplitMix (\csplitmix), as discussed
+in \secref{subsection:faster-rng}.
 
-Our benchmarks consist of boolean lists, binary search trees (BST), and simply typed lambda calculus (STLC) terms. We implement generators for these benchmarks using a variety of 
-\textit{strategies}, which vary in structure and sophistication. These include type-derived generators for BSTs and STLC terms, using the approach outlined in \secref{subsection:type-derived}; 
-two custom BST generators, one that repeatedly inserts values into an initially empty tree and one that materializes the tree in a single pass by generating keys, values, and subtrees at each step; a generator of boolean lists that operates similarly to the single-pass BST strategy; and
-a custom, correct-by-construction generator of STLC terms, whose behavior is the most complex. 
+Our benchmarks consist of boolean lists, binary search trees (BST), and simply
+typed lambda calculus (STLC) terms. We implement generators for these benchmarks
+using a variety of \textit{strategies}, which vary in structure and
+sophistication. These include type-derived generators for BSTs and STLC terms,
+using the approach outlined in \secref{subsection:type-derived}; two custom BST
+generators, one that repeatedly inserts values into an initially empty tree and
+one that materializes the tree in a single pass by generating keys, values, and
+subtrees at each step; a generator of boolean lists that operates similarly to
+the single-pass BST strategy; and a custom, correct-by-construction generator of
+STLC terms, whose behavior is the most complex. 
 
-The runtime of these generators over a range of sizes is shown in \figref{fig:time}. Staging provides only a negligible speedup for type-derived and insertion-based BST strategies, whose overhead is dominated by random sampling. In this case, performance improvement is primarily attributable the \csplitmix \rand.
-In contrast, STLC strategies benefit more from staging, as they involve fewer sampling operations but rely heavily on generator combinators. The same holds for boolean lists, as sampling booleans is inexpensive relative to integers. Our single-pass BST strategy falls somewhere in between: it both samples frequently and makes extensive use of generator combinators. \tr{Goal is to replace this paragraph with the ref-counting chart---I think it will be WAY less boring. But I need to do 3.7 first.}
+The runtime of these generators over a range of sizes is shown in
+\figref{fig:time}. Staging provides only a negligible speedup for type-derived
+and insertion-based BST strategies, whose overhead is dominated by random
+sampling. In this case, performance improvement is primarily attributable the
+\csplitmix \rand.  In contrast, STLC strategies benefit more from staging, as
+they involve fewer sampling operations but rely heavily on generator
+combinators. The same holds for boolean lists, as sampling booleans is
+inexpensive relative to integers. Our single-pass BST strategy falls somewhere
+in between: it both samples frequently and makes extensive use of generator
+combinators. \tr{Goal is to replace this paragraph with the ref-counting
+chart---I think it will be WAY less boring. But I need to do 3.7 first.}
 
-These results show that staging and \rand choice serve distinct but complementary roles in generator performance. Sampling-heavy generators see greater improvements from faster randomness libraries, while combinator-heavy ones benefit more from staging. Since both factors influence performance in different ways, generator libraries should use both in order to handle diverse workloads.
-\subsubsection{Scala}
-To show that the benefit of staging extends to other strict functional languages, we apply it to ScalaCheck, a widely-used PBT library written in Scala. We implement a subset of our strategies from \secref{subsection:benchmarking} in both standard and staged ScalaCheck (``\scalaname''). 
+These results show that staging and \rand choice serve distinct but
+complementary roles in generator performance. Sampling-heavy generators see
+greater improvements from faster randomness libraries, while combinator-heavy
+ones benefit more from staging. Since both factors influence performance in
+different ways, generator libraries should use both in order to handle diverse
+workloads.
 
-As shown in \figref{fig:scala}, \scalaname achieves a greater performance gain over ScalaCheck than \name does over \bq. This discrepancy arises from ScalaCheck's representation of generators as functions of type \texttt{size -> seed -> Option[A]}. Each generator combinator must construct and then pattern-match on these \texttt{Option} values, introducing significant boxing and unboxing overhead at each step.
-Staging allows us to eliminate this overhead, resulting in substantial speedups in aggregate.
+\subsubsection{Scala} To show that the benefit of staging extends to
+other strict functional languages, we apply it to ScalaCheck, a widely-used PBT
+library written in Scala. We implement a subset of our strategies from
+\secref{subsection:benchmarking} in both standard and staged ScalaCheck
+(``\scalaname''). 
+
+As shown in \figref{fig:scala}, \scalaname achieves a greater performance gain
+over ScalaCheck than \name does over \bq. This discrepancy arises from
+ScalaCheck's representation of generators as functions of type \texttt{size ->
+seed -> Option[A]}. Each generator combinator must construct and then
+pattern-match on these \texttt{Option} values, introducing significant boxing
+and unboxing overhead at each step.  Staging allows us to eliminate this
+overhead, resulting in substantial speedups in aggregate.
 
 These results illustrate that staging is a powerful \textit{and} general optimization technique, capable of delivering performance gains in strict functional languages beyond OCaml.
 \begin{figure}[h]
@@ -1388,27 +1419,40 @@ These results illustrate that staging is a powerful \textit{and} general optimiz
 %  \end{itemize}
 %}
 \subsection{Benchmarking Bug-Finding Ability}
-To answer \textbf{RQ2}, we evaluate the bug-finding ability of our BST and STLC case studies using Etna, a platform for assessing and comparing PBT techniques. 
-Etna allows users to measure the effectiveness of different generator implementations by injecting bugs into the system under test and recording the time taken for a relevant 
-property to fail in response. For example, in a tree with an ordering property, a bug injection might consist of inserting a value into the tree that violates that ordering. Each case study includes a diverse set of \textit{tasks}, where a task consists of a specific bug-property pair designed to test different aspects of the system (e.g., BST
-includes tasks that test insertion, deletion, and union operations on binary search trees). In our case, BST has 43 tasks, and STLC has 18.
+To answer \textbf{RQ2}, we evaluate the bug-finding ability of our BST and STLC
+case studies using Etna, a platform for assessing and comparing PBT techniques. 
+Etna allows users to measure the effectiveness of different generator
+implementations by injecting bugs into the system under test and recording the
+time taken for a relevant property to fail in response. For example, in a tree
+with an ordering property, a bug injection might consist of inserting a value
+into the tree that violates that ordering. Each case study includes a diverse
+set of \textit{tasks}, where a task consists of a specific bug-property pair
+designed to test different aspects of the system (e.g., BST includes tasks that
+test insertion, deletion, and union operations on binary search trees). In our
+case, BST has 43 tasks, and STLC has 18.
 
 Strategies for BST and STLC are unchanged from \secref{subsection:benchmarking}.
-To ensure a fair comparison, we initialize each strategy with the same random seed, ensuring that they produce identical sequences of values. We run each strategy on all tasks using a 60-second timeout. 
-If a bug is not found within this limit, the task is considered unsolved. 
-Tasks where all strategies fail to find the bug are excluded from our dataset, 
-as they provide no basis for comparison. 
-Similarly, we exclude tasks where the BQ strategy completes in under 5ms,
- as such negligible runtimes do not yield meaningful insights into relative performance. These filters ensure that reported speedups are based on cases where optimization has a measurable impact.
+To ensure a fair comparison, we initialize each strategy with the same random
+seed, ensuring that they produce identical sequences of values. We run each
+strategy on all tasks using a 60-second timeout.  If a bug is not found within
+this limit, the task is considered unsolved.  Tasks where all strategies fail to
+find the bug are excluded from our dataset, as they provide no basis for
+comparison.  Similarly, we exclude tasks where the BQ strategy completes in
+under 5ms, as such negligible runtimes do not yield meaningful insights into
+relative performance. These filters ensure that reported speedups are based on
+cases where optimization has a measurable impact.
 
 
-It is worth noting that the time-to-failure of a given strategy on a given seed is not necessarily representative of 
-the strategy's average time-to-failure over a large number of trials. We normalize by computing the relative performance, or the ``speedup''. This works in most cases,
-but it is not perfect.
-For example, it is theoretically possible
-to choose a seed such that the \textit{first} value produced by a generator discovers the bug, which would elide any differential speedup (and likewise
-if both generators fail to find the bug).
-To account for these cases, we repeat the above process over 10 seeds.\footnote{Although the variance \textit{between} seeds in Etna can be vast, timing results are replicable for a \textit{given} seed. Across 1,000 trials using the same seed, 
+It is worth noting that the time-to-failure of a given strategy on a given seed
+is not necessarily representative of the strategy's average time-to-failure over
+a large number of trials. We normalize by computing the relative performance, or
+the ``speedup''. This works in most cases, but it is not perfect.  For example,
+it is theoretically possible to choose a seed such that the \textit{first} value
+produced by a generator discovers the bug, which would elide any differential
+speedup (and likewise if both generators fail to find the bug).  To account for
+these cases, we repeat the above process over 10 seeds.\footnote{Although the
+variance \textit{between} seeds in Etna can be vast, timing results are
+replicable for a \textit{given} seed. Across 1,000 trials using the same seed, 
 the observed variance in time-to-failure was less than a nanosecond.}
 
 The average individual-task speedups for each strategy and benchmark are shown in 
