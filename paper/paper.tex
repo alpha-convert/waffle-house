@@ -1367,8 +1367,7 @@ Similarly, we exclude tasks where the BQ strategy completes in under 5ms,
 
 
 It is worth noting that the time-to-failure of a given strategy on a given seed is not necessarily representative of 
-the strategy's average time-to-failure over a large number of trials. We normalize by computing the
-timing \textit{differential} between optimized and unoptimized generators (the ``speedup''). While this works in most cases,
+the strategy's average time-to-failure over a large number of trials. We normalize by computing the relative performance of \name generators vs. \bq generators (the ``speedup''). While this works in most cases,
 it is not perfect.
 For example, it is theoretically possible
 to choose a seed such that the \textit{first} value produced by a generator discovers the bug, which would elide any differential speedup (and likewise
