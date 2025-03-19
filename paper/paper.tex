@@ -1349,21 +1349,21 @@ We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for ge
 
 \subsection{Benchmarking Generator Speed}
 To answer \textbf{RQ1}, we implement benchmarks in both \name and \bq. We vary the choice of \rand in our \name generators, 
-using both \bq's default \texttt{splittable\_random} (``SR'') and our improved SplitMix (``CSR''), as discussed in \secref{subsection:faster-rng}.
+using both \bq's default \texttt{splittable\_random} and our improved SplitMix, as discussed in \secref{subsection:faster-rng}.
 
 Our benchmarks consist of boolean lists, binary search trees (BST), and simply typed lambda calculus (STLC) terms. We implement generators for these benchmarks using a variety of 
-\textit{strategies}, which vary in structure and sophistication. These include: a derived generators for BSTs and STLC terms, using the approach outlined in \secref{subsection:type-derived}; 
+\textit{strategies}, which vary in structure and sophistication. These include a derived generators for BSTs and STLC terms, using the approach outlined in \secref{subsection:type-derived}; 
 two custom BST generators, one that repeatedly inserts values into an initially empty tree and one that materializes the tree in a single pass by generating keys, values, and subtrees at each step; a generator of boolean lists that operates similarly to the single-pass BST strategy; and
 a custom, correct-by-construction generator of STLC terms, whose behavior is the most complex. 
 
-The runtime of these generators over a range of sizes is shown in \secref{fig:time}. Staging provides only a negligible speedup for type-derived and insertion-based BST strategies, whose overhead is dominated by random sampling. In these cases, performance improvement is primarily attributable the enhanced SplitMix \rand.
-In contrast, STLC strategies benefit more from staging than \rand choice, as they involve fewer sampling operations but rely heavily on generator combinators. The same holds for boolean lists, as sampling booleans is inexpensive relative to integers. Our single-pass BST strategy falls somewhere in between: it both samples frequently and makes extensive use of generator combinators. 
+The runtime of these generators over a range of sizes is shown in \secref{fig:time}. Staging provides only a negligible speedup for type-derived and insertion-based BST strategies, whose overhead is dominated by random sampling. In this case, performance improvement is primarily attributable the enhanced SplitMix \rand.
+In contrast, STLC strategies benefit more from staging, as they involve fewer sampling operations but rely heavily on generator combinators. The same holds for boolean lists, as sampling booleans is inexpensive relative to integers. Our single-pass BST strategy falls somewhere in between: it both samples frequently and makes extensive use of generator combinators. 
 
-These results show that staging and \rand choice serve distinct but complementary roles in generator performance. Sampling-heavy generators see greater improvements from optimized randomness sources, while combinator-heavy ones benefit more from staging. Since both factors influence performance in different ways, effective generator libraries incorporate both strategies to achieve strong performance across workloads.
+These results show that staging and \rand choice serve distinct but complementary roles in generator performance. Sampling-heavy generators see greater improvements from faster randomness libraries, while combinator-heavy ones benefit more from staging. Since both factors influence performance in different ways, generator libraries should use both to achieve strong performance over diverse workloads.
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
   \includegraphics[scale=0.45]{time.png}
-  \caption{Time to generate a value using each strategy, averaged over 10,000 trials. Performance benefits scale with generation size; lower is better.}
+  \caption{Time to generate a value using each strategy, averaged over 10,000 trials. BQ is \bq; Staged SR is \name using \bq's \texttt{splittable\_random} RNG; Staged CSR is \name using \secref{subsection:faster-rng}'s optimized SplitMix. Performance benefits scale with generation size; lower is better.}
   \label{fig:time}
 \end{figure}
 
