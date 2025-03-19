@@ -1099,8 +1099,8 @@ For example, \texttt{bind (int .<0>. .<1.>) (fun cx -> return .<(.~cx,.~cx)>.)} 
 \texttt{.< fun size random -> let x = SR.int random 0 1 in (x,x) >.}. \jwc{Should we do out the whole reduction sequence here? It might be explanatory, but it also might be boring.}
 
 This design is less obviously correct, and does require some care. Rather than \texttt{bind} ensuring correct evaluation order once and for all,
-individual combinators must be carefully written to ensure that \texttt{'a code} values that contian effects are \texttt{let\_insert}'d.
-In Section~\ref{subsection:pbt-for-pbt}, we discuss how we use PBT to ensure that the OCaml is written correctly.
+individual combinators must be carefully written to ensure that \texttt{'a code} values that contian effects are \texttt{let\_insert}'d.\footnote{To ensure that the OCaml code is written correctly, we employ a PBT harness to compare its outputs to the corresponding \bq generator over 1,000 random seeds. 
+If no discrepancy arises, we conclude that the generators exhibit equivalent behavior.}
 
 \jwc{... and all of this works identically in Scala, too.}
 
@@ -1306,14 +1306,6 @@ were run on Scala 3.6.3
 and OpenJDK 21.0.6, using ScalaCheck version 1.17 as the baseline.
 We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for generator performance microbenchmarking.
 
-\subsection{Differential Testing of Generators}
-\label{subsection:pbt-for-pbt}
-To establish the equivalence of generators up to program equality, 
-we employ a PBT harness to compare their outputs over 1,000 random seeds. 
-If a discrepancy arises, we report the unequal trees; if no counterexample is found,
-we conclude that the generators exhibit equivalent behavior.
-\jwc{A little more here}
-
 \subsection{Benchmarking Generator Speed}
 \jwc{Intro stuff}
 
@@ -1355,46 +1347,47 @@ we conclude that the generators exhibit equivalent behavior.
   \end{itemize}
 }
 \subsection{Benchmarking Bug-Finding Ability}
-To answer \textbf{RQ2}, we evaluate the bug-finding ability of three of our case studies---BST, RBT, and STLC---using Etna, a platform for assessing and comparing PBT techniques. 
+To answer \textbf{RQ2}, we evaluate the bug-finding ability of our BST and STLC case studies using Etna, a platform for assessing and comparing PBT techniques. 
 Etna allows users to measure the effectiveness of different generator implementations by injecting bugs into the system under test and recording the time taken for a relevant 
 property to fail in response. For example, in a tree with an ordering property, a bug injection might consist of inserting a value into the tree that violates that ordering. Each case study includes a diverse set of \textit{tasks}, where a task consists of a specific bug-property pair designed to test different aspects of the system (e.g., BST
 includes tasks that test insertion, deletion, and union operations on binary search trees).
 
-We evaluate our case studies with both type-derived and custom generators.
-Each generator has four implementations, all of which are equivalent up to program equality: the original \bq generator (``BQ''); a staged version of the generator (``Staged''); a staged version of the generator using the C \rand (``Staged C''); and a staged version incorporating the CSR \rand (``Staged CSR'').
+We test both type-derived and custom generators for BST and STLC.
+Each generator has four implementations (``strategies''), all equivalent up to program equality: the original \bq generator (``BQ''); a staged version of the generator (``Staged''); and a staged version incorporating the CSR \rand (``Staged CSR'').
 To ensure a fair comparison, we initialize each of these generators with the same random seed, ensuring that they produce identical trees.
 
-\subsubsection{Variance between seeds}
-The time-to-failure of a given strategy on a given seed is not necessarily representative of 
-the strategy's average time-to-fail over a large number of trials, so we normalize by computing the
+
+We evaluate each strategy on every task with a 60-second timeout. 
+If a bug is not found within this limit, the task is considered unsolved. 
+Tasks where all strategies fail to find the bug are excluded from our dataset, 
+as they provide no basis for comparison. 
+Similarly, we exclude tasks where the BQ strategy completes in under 5ms,
+ as such negligible runtimes do not yield meaningful insights into relative performance. These filters ensure that the reported speedups are based on cases where optimization has a measurable impact.
+
+
+It is worth noting that the time-to-failure of a given strategy on a given seed is not necessarily representative of 
+the strategy's average time-to-failure over a large number of trials. We normalize by computing the
 timing \textit{differential} between optimized and unoptimized generators (the ``speedup''). While this works in most cases,
 it is not perfect.
 For example, it is theoretically possible
 to choose a seed such that the \textit{first} value produced by a generator discovers the bug, which would elide any differential speedup (and likewise
 if both generators fail to find the bug).
-To account for these edge cases, we repeat the above process for 10 seeds and compute the geometric mean of their speedups.
+To account for these edge cases, we repeat the above process for 10 seeds and compute the geometric mean of the speedups.\footnote{Although the variance \textit{between} seeds in Etna can be vast, timing results are replicable for a \textit{given} seed. Across 1,000 trials using the same seed, 
+the observed variance in time-to-failure was less than a nanosecond.}
+
 \begin{figure}[h]
   \includegraphics[scale=0.333]{speedup.png}
-  \caption{}
+  \caption{Geometric average of each task's speedup over case study and strategies, showing that staging leads to better bug-finding ability across the board. As in \todo{earlier figure}, benchmarks with higher numbers of binds (BST (Single-Pass), STLC) see more benefit from staging, whereas benchmarks with more sampling (BST) see a greater speedup from the CSR \rand.}
+  \label{fig:etna}
 \end{figure}
 \begin{figure}[h]
   \includegraphics[scale=0.437]{swarm.png}
-  \caption{}
+  \label{fig:swarm}
+  \caption{Swarm plot of individual speedups across different staging strategies and benchmarks. Each dot represents a speedup measurement, with larger spreads indicating greater variability (omitted for some strategies where all values cluster very close to the mean). Extreme outliers correspond to large speedups.}
 \end{figure}
-% To produce \todo{FIG}, we repeated the above process for 10 seeds and computed the geometric average of their speedups. 
-%This is important because the time-to-failure of a given strategy on a given seed is not necessarily 
-%representative of the strategy's overall bug-finding ability, although it often is. For example, it is theoretically possible 
-%to choose a seed such that the \textit{first} value produced by a generator discovers the bug, but it would be misleading to report this result.
-
-\subsubsection{Variance between trials}
-Although the variance \textit{between} seeds in Etna can be vast, timing results are replicable for a given seed. Across 1,000 trials on the same seed, 
-the observed variance in time-to-failure was less than a nanosecond. \tr{Do we need this?}
-
 
 \section{Other Languages and Libraries}
 \label{subsection:other-langs}
-
-\tr{Here's where we talk about what's going on in the world, and ultimately make the argument that \bq{} is the best tool to reproduce.}
 
 \jwc{Note that this explanation require some prior note of exactly *why* BQ is slow... i.e. the abstraction overhead of the library is high.}
 
