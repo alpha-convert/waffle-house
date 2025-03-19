@@ -1371,7 +1371,9 @@ The runtime of these generators over a range of sizes is shown in \secref{fig:ti
 In contrast, STLC strategies benefit more from staging, as they involve fewer sampling operations but rely heavily on generator combinators. The same holds for boolean lists, as sampling booleans is inexpensive relative to integers. Our single-pass BST strategy falls somewhere in between: it both samples frequently and makes extensive use of generator combinators. 
 
 These results show that staging and \rand choice serve distinct but complementary roles in generator performance. Sampling-heavy generators see greater improvements from faster randomness libraries, while combinator-heavy ones benefit more from staging. Since both factors influence performance in different ways, generator libraries should use both to be performant over diverse workloads.
-\subsubsection{Scala} \tr{TODO!!!!}
+\subsubsection{Scala}
+To confirm that the benefit of staging extends to other strict functional languages, we apply it to ScalaCheck, a widely-used PBT library written in Scala. We implement a subset of our strategies from \secref{subsection:benchmarking} in both staged and unstaged ScalaCheck. 
+
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
   \includegraphics[scale=0.45]{time.png}
@@ -1381,22 +1383,8 @@ These results show that staging and \rand choice serve distinct but complementar
 
 \begin{figure}[h]
   \centering
-  \vspace{0.5em} % Kept the vertical spacing
-  \begin{tabular}{lrl}
-  \toprule
-  Benchmark & \multicolumn{2}{c}{avg. time (ns/op) $\pm$ std. dev.} \\
-  \midrule
-  BST & $3,560.813$ & $\pm\>1,511.201$ \\
-  BST, Staged & $751.287$ & $\pm\>39.890$ \\
-  BST (Type-Derived) & $44,619.863$ & $\pm\>5,761.568$ \\
-  BST (Type-Derived), Staged & $6,863.209$ & $\pm\>416.188$ \\
-  RBT (Type-Derived) & $60,559.846$ & $\pm\>4,901.980$ \\
-  RBT (Type-Derived), Staged & $8,511.528$ & $\pm\>324.615$ \\
-  STLC & $44,497.623$ & $\pm\>1,970.484$ \\
-  STLC, Staged & $7,151.259$ & $\pm\>355.639$ \\
-  \bottomrule
-  \end{tabular}
- \caption{Benchmarks reimplemented in ScalaCheck show similar performance improvements to \name.}
+  \includegraphics[scale=0.32]{scala.png}
+ \caption{Staging in ScalaCheck shows greater speedups than in \bq. SC is ScalaCheck; BQ is \bq.}
  \label{fig:scala}
  \end{figure}
 
