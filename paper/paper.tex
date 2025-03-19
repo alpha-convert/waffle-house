@@ -272,21 +272,18 @@
 Property-based testing (PBT) is a software testing technique which uses
 random test inputs to validate logical specifications. Recent studies on PBT usage~\cite{inpractice} have shown that
 practitioners often interleave PBT with their software development process, sometimes
-testing their properties every time they save their code. This means that PBT is often run with very short time
-budgets---e.g., between 50 milliseconds and 30 seconds---and it is important
-that bugs can be found in that time-frame.\iflater
-\jwc{phrasing could suggest ``race against time'' aspect.}\hg{Agree, can't see
-how to fit this in yet} \jwc{Also think the phrasing should say something like ``the goal is to fail as fast as possible''}\fi
+testing their properties every time they save their code. This means that PBT is often given a very short time
+window to find bugs --- e.g., between 50 milliseconds and 30 seconds~\cite{inpractice}.
+In other words, the goal is to fail as fast as possible. \jwc{Cut at ``fail fast''}
 
 Given these strict timelines, the impact of performance in PBT cannot be overstated. One important locus for performance improvement
 is the \textit{generators} that produce random inputs to the properties under
 test. These generators are written with the help of \textit{generator
 libraries}, usually expressed as embedded domain-specific languages (eDSLs) %\cntxt{edsls} 
-that
-provide combinators for building and composing generators. Optimizing these
+that provide combinators for building and composing generators. Optimizing these
 libraries is a key opportunity to speed up PBT: if programmers are
 provided with the tools to write fast generators, then they do not themselves
-need to be experts in performance tuning to find bugs fast. \iflater\bcp{Incorporate fail fast somehow.}\fi
+need to be experts in performance tuning to find bugs fast.
 
 However, careful measurements show that the performance of existing generator libraries falls significantly short of what
 is possible. This is due to two major sources of inefficiency.
@@ -306,39 +303,40 @@ Together, these observations raise a fundamental question: can generator librari
 To address this question, we outline two key principles for designing generator libraries that balance efficiency with flexibility.
 First, we describe a method of optimizing generator libraries using
 \textit{multi-stage programming}, or ``staging,'' which has long been used to
-build DSLs ``without regret''~\cn{}.
+build DSLs without abstraction overhead (``without regret''~\cn{}).
 We apply this technique to generators, completely eliminating the run-time overhead of
 many common generator abstractions.
 Secondly, we demonstrate the impact of different choices of \rand on generator
 performance by conducting a controlled comparison. Together, these insights provide a recipe for improving existing generator libraries.
 
-To demonstrate the effectiveness of our approach, we apply it to two PBT generator libraries, namely \bq{} \cn{} --- a
-high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street ---
-and ScalaCheck \cn{} --- a very mature PBT library and the de facto choice in Scala.
+To demonstrate the effectiveness of our approach, we apply it to two PBT generator libraries, namely \bq{}  --- a
+high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street \cn{} ---
+and ScalaCheck --- a very mature PBT library and the de facto choice in Scala \cn{}.
 In both languages, our staged versions are direct drop-in replacements that are
-\textit{100\% semantically equivalent}: that is, given identical random seeds, the same generator written once with \name{}
-and once with the original generator library produces exactly the same sequence of values.
+\textit{100\% semantically equivalent}: that is, given identical random seeds, a generator written with \name{}
+produces exactly the same sequence of values as the same generator written with the original generator library.
 The semantic equivalence between the original generators and \name generators allows us to 
 perform clean, fine-grained comparisons, as differences in generation speed are
 solely attributable to the staging and \rand optimizations.
 
 We evaluate the optimizations in \name with a series of case studies in each
-generator library, and show that the \name generators run faster than their unstaged equivalence.
-Further, we show that this performance benefit\hg{wc?} translates to bug-finding
-ability \jwc{The paper is called ``fail faster'' --- we shouldn't say ``bug finding ability'', we should say something like ``how fast you can squash bugs''. This is too passive }by running these case studies in the Etna framework~\cite{etna}, a
+generator library, and show that the \name generators run faster than their unstaged equivalents.
+Further, we show generators that run faster also find bugs faster
+% ability \jwc{The paper is called ``fail faster'' --- we shouldn't say ``bug finding ability'', we should say something like ``how fast you can squash bugs''. This is too passive }
+by running these case studies in the Etna framework~\cite{etna}., a
 platform that simulates real-world PBT usage\hg{Don't love this phrase, I'll
 think more about how we should talk about Etna} by injecting bugs into a system and
 measuring how quickly various generators detect them.
 
 
-In summary, we show that monadic PBT generator DSLs incur significant performance costs across languages, and present a general technique for improving their efficiency while preserving their idiomatic abstractions.
+In summary, we show that monadic PBT generator DSLs incur significant performance costs across languages, and present a general technique for improving their efficiency while preserving their idiomatic abstractions. \jwc{needs a bit about RNG --- BCP thoughts?}
 We make the following contributions:
 \begin{enumerate}
     \item We identify two key sources of inefficiency in PBT generator libraries, which can significantly impact performance: 
-    namely and abstraction overhead and \rand choice. 
-    % \item We apply multi-stage programming to the novel domain of generators. \jwc{Less sure this should be a top-level conrib.} \secref{section:}
-    \item We implement \name{} in both OCaml and Scala 3, showcasing its cross-language applicability.
-    \item We demonstrate that both \name{} and choosing a faster \rand yield substantial performance improvements. Finally, we show
+    abstraction overhead and \rand choice. 
+    \item We present \name{}, a technique based on staging that eliminates the abstraction overhead of generators. We implement \name{} in both OCaml and Scala 3, showcasing its cross-language applicability.
+    \item \jwc{We need a top-level contrib about RNG}
+    \item We demonstrate that both \name{} and choosing a faster \rand yield substantial performance improvements to generator running time. Finally, we show
     that these performance improvements extend to significantly improved bug-finding ability. \jwc{This should be sell-ier: 2x speedups, etc. ``bug-finding ability'' isn't a race against time.}
 \end{enumerate}
 
@@ -350,10 +348,10 @@ iteratively develop the \name{} technique, and discuss options for faster \rand{
 Section~\ref{section:eval} evaluates all of the previous work, demonstrating the generator performance improvements
 and how they lead to much faster bug finding.
 
-\section{Sources of Inefficiency in Monadic Generator Libraries}
+\section{What are Generator Libraries, and why are they Slow?}
 \label{section:motiv}
-\jwc{In this section we answer: ``What are monadic generator libraries, and why are they slow?''}
-\bcp{That's actually not a bad section title!}
+% \jwc{In this section we answer: ``What are monadic generator libraries, and why are they slow?''}
+% \bcp{That's actually not a bad section title!}
 \todo{Intro of this section}
 
 \subsection{Background: Monadic Generator DSLs}
@@ -742,8 +740,7 @@ values of the OCaml type \texttt{int64} are not machine words, but rather
 \emph{pointers} to machine words. This means
 that \emph{all} \texttt{int64} operations (both arithmetic and bitwise) must
 allocate memory cells to contain their output, which has a significant performance benefit.
-By building a version that uses much faster ``unboxed'' 64-bit integer arithmetic, we can demonstrate just how much bug-finding
-performance can be improved just by using a more performant randomness library.
+By building a version that uses much faster ``unboxed'' 64-bit integer arithmetic, we can demonstrate just how much faster bugs can be found just by using a more performant randomness library.
 
 \section{Speeding up Generator DSLs by Staging and Faster Randomness Libraries}
 \label{section:faster-generators}
