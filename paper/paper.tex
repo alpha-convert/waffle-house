@@ -1441,7 +1441,20 @@ the observed variance in time-to-failure was less than a nanosecond.}
 }
 
 \section{Related Work}
-\jwc{A generator is a parser of randomness, and people have implemented lots of staged parser libraries!}
+
+\subsection{Speeding up Property-Based Testing}
+\hg{\begin{itemize}
+  \item Changing the generation order~\cite{runcimanSmallcheckLazySmallcheck2008,braquehaisSimpleIncrementalDevelopment2017}
+  \item Dealing with filtering~\cite{claessenGeneratingConstrainedRandom2015}
+  \item QuickerCheck~\cite{krookQuickerCheckImplementingEvaluating2024}
+  \item Evaluation of PBT generation~\cite{shiEtnaEvaluationPlatform2023}
+\end{itemize}}
+
+\subsection{Staging Monadic Libraries}
+\jwc{A generator is a parser of
+randomness~\cite{goldsteinParsingRandomness2022}, and people have implemented
+lots of staged parser libraries!}
+
 
 \section{Conclusion \& Future Work}
 \jwc{Why we stopped where we stopped: can you squeeze more out of this?}
@@ -1450,8 +1463,7 @@ the observed variance in time-to-failure was less than a nanosecond.}
 %% The next two lines define the bibliography style to be used, and
 %% the bibliography file.
 \bibliographystyle{ACM-Reference-Format}
-\bibliography{bib}
-
+\bibliography{bib,harry}
 
 %%
 %% If your work has an appendix, this is the place to put it.
