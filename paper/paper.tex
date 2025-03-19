@@ -657,7 +657,7 @@ at run time. Aside from the previously-discussed issues that compilers
 cannot see through the abstraction boundary to optimize these programs,
 choice combinators come with their own particular abstraction overhead.
 
-In practice, \texttt{weighted\_union}s is almost always\footnote{
+In practice, \texttt{weighted\_union} is almost always\footnote{
 There are some generators where \texttt{weighted\_union} is passed a list which
 was itself the result of a generator: the well-typed STLC term generator used in Section~\ref{section:eval} is an example of this.
 } called with an explicitly constructed list, like
@@ -1175,7 +1175,6 @@ module Gen = struct
   
   let int (lo : int code) (hi : int code) : int code t =
     fun size random -> let_insert .< SR.int .~random .~lo .~hi >.
-
 end
 \end{lstlisting} 
 \caption{CodeCPS and The Final Gen Monad}
