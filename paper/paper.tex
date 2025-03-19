@@ -1326,17 +1326,8 @@ discussed in the previous sections.
 
 \section{Evaluation}
 \label{section:eval}
-
-\jwc{Initial section here about eval}\tr{todo}
-
-\begin{itemize}
-  \item \textbf{RQ1}: Do generators written using our technique run faster than those written with regular generator combinators?
-  \item \textbf{RQ2}: Do performance speedups translate to better bug-finding ability?
-  % \item \textbf{RQ3}: Does our technique generalize to other strict functional languages?
-\end{itemize}
-
-All experiments were run on a 64-bit Linux machine with 264 GB RAM and an Intel Xeon Platinum 8375C CPU, running Ubuntu 24.04.1 LTS.
-\camlname{} and all OCaml benchmarks
+% \jwc{Initial section here about eval}\tr{todo}
+All experiments were run on a 64-bit Linux machine with 264 GB RAM and an Intel Xeon Platinum 8375C CPU, running Ubuntu 24.04.1 LTS. The OCaml version of \name and all OCaml benchmarks
 were compiled with 4.14.1+BER MetaOCaml \texttt{ocamlopt}, the native code compiler for OCaml, using compiler flag \texttt{-O3}.
 The baseline OCaml generators were written with \bq{} 0.16.
 \scalaname{} and all Scala benchmarks
@@ -1344,31 +1335,38 @@ were run on Scala 3.6.3
 and OpenJDK 21.0.6, using ScalaCheck version 1.17 as the baseline.
 We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for generator performance microbenchmarking.
 
+To evaluate our contributions, this section answers the following research questions:
+\begin{itemize}
+  \item \textbf{RQ1}: Do generators written using our technique run faster than those written with regular generator combinators?
+  \item \textbf{RQ2}: Do performance speedups translate to better bug-finding ability?
+  % \item \textbf{RQ3}: Does our technique generalize to other strict functional languages?
+\end{itemize}
+
 \subsection{Benchmarking Generator Speed}
 \label{subsection:benchmarking}
 To answer \textbf{RQ1}, we implement benchmarks in both \name and \bq. We vary the choice of \rand in our \name generators, 
 using both \bq's default \texttt{splittable\_random} and our improved SplitMix (\csplitmix), as discussed in \secref{subsection:faster-rng}.
 
 Our benchmarks consist of boolean lists, binary search trees (BST), and simply typed lambda calculus (STLC) terms. We implement generators for these benchmarks using a variety of 
-\textit{strategies}, which vary in structure and sophistication. These include a derived generators for BSTs and STLC terms, using the approach outlined in \secref{subsection:type-derived}; 
+\textit{strategies}, which vary in structure and sophistication. These include type-derived generators for BSTs and STLC terms, using the approach outlined in \secref{subsection:type-derived}; 
 two custom BST generators, one that repeatedly inserts values into an initially empty tree and one that materializes the tree in a single pass by generating keys, values, and subtrees at each step; a generator of boolean lists that operates similarly to the single-pass BST strategy; and
 a custom, correct-by-construction generator of STLC terms, whose behavior is the most complex. 
 
 The runtime of these generators over a range of sizes is shown in \figref{fig:time}. Staging provides only a negligible speedup for type-derived and insertion-based BST strategies, whose overhead is dominated by random sampling. In this case, performance improvement is primarily attributable the \csplitmix \rand.
-In contrast, STLC strategies benefit more from staging, as they involve fewer sampling operations but rely heavily on generator combinators. The same holds for boolean lists, as sampling booleans is inexpensive relative to integers. Our single-pass BST strategy falls somewhere in between: it both samples frequently and makes extensive use of generator combinators. \tr{Goal is to replace this paragraph with the ref-counting chart---I think it will be WAY less boring.}
+In contrast, STLC strategies benefit more from staging, as they involve fewer sampling operations but rely heavily on generator combinators. The same holds for boolean lists, as sampling booleans is inexpensive relative to integers. Our single-pass BST strategy falls somewhere in between: it both samples frequently and makes extensive use of generator combinators. \tr{Goal is to replace this paragraph with the ref-counting chart---I think it will be WAY less boring. But I need to do 3.7 first.}
 
-These results show that staging and \rand choice serve distinct but complementary roles in generator performance. Sampling-heavy generators see greater improvements from faster randomness libraries, while combinator-heavy ones benefit more from staging. Since both factors influence performance in different ways, generator libraries should use both to be performant over diverse workloads.
+These results show that staging and \rand choice serve distinct but complementary roles in generator performance. Sampling-heavy generators see greater improvements from faster randomness libraries, while combinator-heavy ones benefit more from staging. Since both factors influence performance in different ways, generator libraries should use both in order to handle diverse workloads.
 \subsubsection{Scala}
 To show that the benefit of staging extends to other strict functional languages, we apply it to ScalaCheck, a widely-used PBT library written in Scala. We implement a subset of our strategies from \secref{subsection:benchmarking} in both standard and staged ScalaCheck (``\scalaname''). 
 
-As shown in \figref{fig:scala}, \scalaname achieves an even greater performance gain over ScalaCheck than \name does over \bq. This discrepancy arises from ScalaCheck's representation of generators as functions of type \texttt{size -> seed -> Option[A]}. Each generator combinator must construct and then pattern-match on these \texttt{Option} values, introducing significant boxing and unboxing overhead at each step.
-Staging allows us to eliminate this overhead, resulting in substantial speedups. 
+As shown in \figref{fig:scala}, \scalaname achieves a greater performance gain over ScalaCheck than \name does over \bq. This discrepancy arises from ScalaCheck's representation of generators as functions of type \texttt{size -> seed -> Option[A]}. Each generator combinator must construct and then pattern-match on these \texttt{Option} values, introducing significant boxing and unboxing overhead at each step.
+Staging allows us to eliminate this overhead, resulting in substantial speedups in aggregate.
 
 These results illustrate that staging is a powerful \textit{and} general optimization technique, capable of delivering performance gains in strict functional languages beyond OCaml.
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
   \includegraphics[scale=0.45]{time.png}
-  \caption{Time to generate a value using each strategy, averaged over 10,000 trials. BQ is \bq; Staged SR is \name using \bq's \texttt{splittable\_random} RNG; Staged CSR is \name using \secref{subsection:faster-rng}'s \csplitmix. Performance benefits scale with generation size; lower is better.}
+  \caption{Time to generate a value using each strategy, averaged over 10,000 trials. Performance benefits scale with generation size; lower is better. BQ is \bq; Staged SR is \name using \bq's \texttt{splittable\_random} RNG; Staged CSR is \name using \secref{subsection:faster-rng}'s \csplitmix.}
   \label{fig:time}
 \end{figure}
 
@@ -1405,16 +1403,24 @@ Similarly, we exclude tasks where the BQ strategy completes in under 5ms,
 
 
 It is worth noting that the time-to-failure of a given strategy on a given seed is not necessarily representative of 
-the strategy's average time-to-failure over a large number of trials. We normalize by computing relative performance, or the ``speedup''. While this works in most cases,
-it is not perfect.
+the strategy's average time-to-failure over a large number of trials. We normalize by computing the relative performance, or the ``speedup''. This works in most cases,
+but it is not perfect.
 For example, it is theoretically possible
 to choose a seed such that the \textit{first} value produced by a generator discovers the bug, which would elide any differential speedup (and likewise
 if both generators fail to find the bug).
 To account for these cases, we repeat the above process over 10 seeds.\footnote{Although the variance \textit{between} seeds in Etna can be vast, timing results are replicable for a \textit{given} seed. Across 1,000 trials using the same seed, 
 the observed variance in time-to-failure was less than a nanosecond.}
 
-The average of individual-task speedups for each strategy and benchmark, across all seeds, is shown in \figref{fig:etna}. Trends in bug-finding ability closely reproduce trends in performance from \secref{subsection:benchmarking}. The distribution of individual-task speedups, shown in \figref{fig:swarm}, tell a more interesting story: benchmarks 
-
+The average individual-task speedups for each strategy and benchmark are shown in 
+\figref{fig:etna}, with trends in bug-finding ability closely mirroring those in performance 
+from \secref{subsection:benchmarking}. The distribution of speedups in \figref{fig:swarm} reveals 
+substantial variability, with most tasks clustering near the median and a long tail of outliers 
+achieving much larger gains. STLC shows a more bimodal distribution of speedups
+than the other benchmarks, which we attribute to the heterogenous difficulty of its tasks:  
+some tasks regularly hit the 60-second timeout, while others finish in a fraction of a second. We find that tasks of intermediate difficulty 
+tend to achieve larger speedups, whereas very fast or slow tasks cluster near the mean.
+Overall, 
+these results give strong evidence that our technique consistently benefits bug-finding ability, sometimes drastically.
 \begin{figure}[h]
   \includegraphics[scale=0.333]{speedup.png}
   \caption{Geometric average of all speedups for each strategy and benchmark, showing that staging leads to better bug-finding ability across the board.}
@@ -1423,7 +1429,7 @@ The average of individual-task speedups for each strategy and benchmark, across 
 
 \begin{figure}[h]
   \includegraphics[scale=0.41]{swarm.png}
-  \caption{Distribution of individual-task speedups across strategies and benchmarks. Extreme outliers correspond to large speedups.}
+  \caption{Swarm distribution of individual-task speedups across strategies and benchmarks (each black dot is a task). Plots with extremely low variance have no swarm overlay; in plots with high variance, outliers correspond to large speedups. \tr{Make mean higher-contrast.}}
   \label{fig:swarm}
 \end{figure}
 
