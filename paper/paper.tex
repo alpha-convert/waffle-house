@@ -1350,7 +1350,7 @@ We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for ge
 To answer \textbf{RQ2}, we evaluate the bug-finding ability of our BST and STLC case studies using Etna, a platform for assessing and comparing PBT techniques. 
 Etna allows users to measure the effectiveness of different generator implementations by injecting bugs into the system under test and recording the time taken for a relevant 
 property to fail in response. For example, in a tree with an ordering property, a bug injection might consist of inserting a value into the tree that violates that ordering. Each case study includes a diverse set of \textit{tasks}, where a task consists of a specific bug-property pair designed to test different aspects of the system (e.g., BST
-includes tasks that test insertion, deletion, and union operations on binary search trees).
+includes tasks that test insertion, deletion, and union operations on binary search trees). BST has 43 tasks; STLC has 18.
 
 We test both type-derived and custom generators for BST and STLC.
 Each generator has four implementations (``strategies''), all equivalent up to program equality: the original \bq generator (``BQ''); a staged version of the generator (``Staged''); and a staged version incorporating the CSR \rand (``Staged CSR'').
