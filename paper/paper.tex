@@ -1415,14 +1415,14 @@ the observed variance in time-to-failure was less than a nanosecond.}
 
 \begin{figure}[h]
   \includegraphics[scale=0.333]{speedup.png}
-  \caption{Geometric average of each task's speedup over case studies and strategies, showing that staging leads to better bug-finding ability across the board. As in \todo{earlier figure}, benchmarks with higher numbers of binds (BST (Single-Pass), STLC) see more benefit from staging, whereas benchmarks with more sampling (BST) see a greater speedup from the CSR \rand.}
+  \caption{Geometric average of all speedups for each strategy and benchmark, showing that staging leads to better bug-finding ability across the board. As in \todo{earlier figure}, benchmarks with higher numbers of binds (BST (Single-Pass); STLC) see more benefit from staging, whereas benchmarks with more sampling (BST) see a greater speedup from the CSR \rand.}
   \label{fig:etna}
 \end{figure}
 
 \begin{figure}[h]
-  \includegraphics[scale=0.355]{hist.png}
+  \includegraphics[scale=0.41]{swarm.png}
   \label{fig:swarm}
-  \caption{Histogram of individual-task speedups across different staging strategies and benchmarks. Extreme outliers correspond to large speedups.}
+  \caption{Distribution of individual-task speedups across strategies and benchmarks. Extreme outliers correspond to large speedups.}
 \end{figure}
 
 \section{Other Languages and Libraries}
@@ -1457,7 +1457,20 @@ In this section
 
 
 \section{Related Work}
-\jwc{A generator is a parser of randomness, and people have implemented lots of staged parser libraries!}
+
+\subsection{Speeding up Property-Based Testing}
+\hg{\begin{itemize}
+  \item Changing the generation order~\cite{runcimanSmallcheckLazySmallcheck2008,braquehaisSimpleIncrementalDevelopment2017}
+  \item Dealing with filtering~\cite{claessenGeneratingConstrainedRandom2015}
+  \item QuickerCheck~\cite{krookQuickerCheckImplementingEvaluating2024}
+  \item Evaluation of PBT generation~\cite{shiEtnaEvaluationPlatform2023}
+\end{itemize}}
+
+\subsection{Staging Monadic Libraries}
+\jwc{A generator is a parser of
+randomness~\cite{goldsteinParsingRandomness2022}, and people have implemented
+lots of staged parser libraries!}
+
 
 \section{Conclusion \& Future Work}
 \jwc{Why we stopped where we stopped: can you squeeze more out of this?}
@@ -1466,8 +1479,7 @@ In this section
 %% The next two lines define the bibliography style to be used, and
 %% the bibliography file.
 \bibliographystyle{ACM-Reference-Format}
-\bibliography{bib}
-
+\bibliography{bib,harry}
 
 %%
 %% If your work has an appendix, this is the place to put it.
