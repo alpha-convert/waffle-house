@@ -1346,13 +1346,15 @@ Our benchmarks consist of boolean lists, binary search trees (BST), and simply t
 two custom BST generators, one that repeatedly inserts values into an initially empty tree and one that materializes the tree in a single pass by generating keys, values, and subtrees at each step; a generator of boolean lists that operates similarly to the single-pass BST strategy; and
 a custom, correct-by-construction generator of STLC terms, whose behavior is the most complex. 
 
-The runtime of these generators over a range of sizes is shown in \secref{fig:time}. Staging provides only a negligible speedup for type-derived and insertion-based BST strategies, whose overhead is dominated by random sampling. In this case, performance improvement is primarily attributable the enhanced SplitMix \rand.
+The runtime of these generators over a range of sizes is shown in \figref{fig:time}. Staging provides only a negligible speedup for type-derived and insertion-based BST strategies, whose overhead is dominated by random sampling. In this case, performance improvement is primarily attributable the enhanced SplitMix \rand.
 In contrast, STLC strategies benefit more from staging, as they involve fewer sampling operations but rely heavily on generator combinators. The same holds for boolean lists, as sampling booleans is inexpensive relative to integers. Our single-pass BST strategy falls somewhere in between: it both samples frequently and makes extensive use of generator combinators. 
 
 These results show that staging and \rand choice serve distinct but complementary roles in generator performance. Sampling-heavy generators see greater improvements from faster randomness libraries, while combinator-heavy ones benefit more from staging. Since both factors influence performance in different ways, generator libraries should use both to be performant over diverse workloads.
 \subsubsection{Scala}
-To confirm that the benefit of staging extends to other strict functional languages, we apply it to ScalaCheck, a widely-used PBT library written in Scala. We implement a subset of our strategies from \secref{subsection:benchmarking} in both staged and unstaged ScalaCheck. 
+To show that the benefit of staging extends to other strict functional languages, we apply it to ScalaCheck, a widely-used PBT library written in Scala. We implement a subset of our strategies from \secref{subsection:benchmarking} in both staged and unstaged ScalaCheck. 
 
+As shown in \figref{fig:scala}, staged ScalaCheck achieves an even greater performance gain over ScalaCheck than \name does over \bq. This discrepancy arises from ScalaCheck's representation of generators as functions of type \texttt{size -> seed -> Option[A]}. Each generator combinator must construct and then pattern-match on these \texttt{Option} values, introducing significant boxing and unboxing overhead at each step.
+Staging allows us to eliminate this overhead, resulting in substantial speedups. These results illustrate that staging is a powerful \textit{and} general optimization technique, delivering substantial performance gains in strict functional languages beyond OCaml.
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
   \includegraphics[scale=0.45]{time.png}
@@ -1393,17 +1395,17 @@ Similarly, we exclude tasks where the BQ strategy completes in under 5ms,
 
 
 It is worth noting that the time-to-failure of a given strategy on a given seed is not necessarily representative of 
-the strategy's average time-to-failure over a large number of trials. We normalize by computing the \textit{relative} performance (the ``speedup''). While this works in most cases,
+the strategy's average time-to-failure over a large number of trials. We normalize by computing relative performance (the ``speedup''). While this works in most cases,
 it is not perfect.
 For example, it is theoretically possible
 to choose a seed such that the \textit{first} value produced by a generator discovers the bug, which would elide any differential speedup (and likewise
 if both generators fail to find the bug).
-To account for these edge cases, we repeat the above process over 10 seeds and compute the geometric average of the speedups.\footnote{Although the variance \textit{between} seeds in Etna can be vast, timing results are replicable for a \textit{given} seed. Across 1,000 trials using the same seed, 
-the observed variance in time-to-failure was less than a nanosecond.}
+To account for these cases, we repeat the above process over 10 seeds and compute the geometric average of their speedups.\footnote{Although the variance \textit{between} seeds in Etna can be vast, timing results are replicable for a \textit{given} seed. Across 1,000 trials using the same seed, 
+the observed variance in time-to-failure was less than a nanosecond.} 
 
 \begin{figure}[h]
   \includegraphics[scale=0.333]{speedup.png}
-  \caption{Geometric average of all speedups for each strategy and benchmark, showing that staging leads to better bug-finding ability across the board. As in \todo{earlier figure}, benchmarks with higher numbers of binds (BST (Single-Pass); STLC) see more benefit from staging, whereas benchmarks with more sampling (BST) see a greater speedup from the CSR \rand.}
+  \caption{Geometric average of all speedups for each strategy and benchmark, showing that staging leads to better bug-finding ability across the board. As in \todo{earlier figure}, benchmarks with higher numbers of binds (BST (Single-Pass); STLC) see more benefit from staging, whereas benchmarks with more sampling (BST) see a greater speedup from faster SplitMix.}
   \label{fig:etna}
 \end{figure}
 
