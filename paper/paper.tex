@@ -1407,7 +1407,7 @@ property to fail in response. For example, in a tree with an ordering property, 
 includes tasks that test insertion, deletion, and union operations on binary search trees). In our case, BST has 43 tasks, and STLC has 18.
 
 Strategies for BST and STLC are unchanged from \secref{subsection:benchmarking}.
-To ensure a fair comparison, we initialize each of these generators with the same random seed, ensuring that they produce identical sequences of values. We evaluate each strategy on all tasks using a 60-second timeout. 
+To ensure a fair comparison, we initialize each strategy with the same random seed, ensuring that they produce identical sequences of values. We evaluate each strategy on all tasks using a 60-second timeout. 
 If a bug is not found within this limit, the task is considered unsolved. 
 Tasks where all strategies fail to find the bug are excluded from our dataset, 
 as they provide no basis for comparison. 
