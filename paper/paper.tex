@@ -1408,24 +1408,26 @@ Similarly, we exclude tasks where the BQ strategy completes in under 5ms,
 
 
 It is worth noting that the time-to-failure of a given strategy on a given seed is not necessarily representative of 
-the strategy's average time-to-failure over a large number of trials. We normalize by computing relative performance (the ``speedup''). While this works in most cases,
+the strategy's average time-to-failure over a large number of trials. We normalize by computing relative performance, or the ``speedup''. While this works in most cases,
 it is not perfect.
 For example, it is theoretically possible
 to choose a seed such that the \textit{first} value produced by a generator discovers the bug, which would elide any differential speedup (and likewise
 if both generators fail to find the bug).
-To account for these cases, we repeat the above process over 10 seeds and compute the geometric average of their speedups.\footnote{Although the variance \textit{between} seeds in Etna can be vast, timing results are replicable for a \textit{given} seed. Across 1,000 trials using the same seed, 
-the observed variance in time-to-failure was less than a nanosecond.} 
+To account for these cases, we repeat the above process over 10 seeds.\footnote{Although the variance \textit{between} seeds in Etna can be vast, timing results are replicable for a \textit{given} seed. Across 1,000 trials using the same seed, 
+the observed variance in time-to-failure was less than a nanosecond.}
+
+The average of individual-task speedups for each strategy and benchmark, across all seeds, is shown in \figref{fig:etna}. Trends in bug-finding ability closely reproduce trends in performance from \secref{subsection:benchmarking}. The distribution of individual-task speedups, shown in \figref{fig:swarm}, tell a more interesting story: benchmarks 
 
 \begin{figure}[h]
   \includegraphics[scale=0.333]{speedup.png}
-  \caption{Geometric average of all speedups for each strategy and benchmark, showing that staging leads to better bug-finding ability across the board. As in \todo{earlier figure}, benchmarks with higher numbers of binds (BST (Single-Pass); STLC) see more benefit from staging, whereas benchmarks with more sampling (BST) see a greater speedup from \csplitmix.}
+  \caption{Geometric average of all speedups for each strategy and benchmark, showing that staging leads to better bug-finding ability across the board.}
   \label{fig:etna}
 \end{figure}
 
 \begin{figure}[h]
   \includegraphics[scale=0.41]{swarm.png}
-  \label{fig:swarm}
   \caption{Distribution of individual-task speedups across strategies and benchmarks. Extreme outliers correspond to large speedups.}
+  \label{fig:swarm}
 \end{figure}
 
 \section{Other Languages and Libraries}
