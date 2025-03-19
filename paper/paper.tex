@@ -117,6 +117,8 @@
 \title{Fail Faster}
 \subtitle{\hg{TODO: Subtitle}}
 
+
+
 %%
 %% The "author" command and its associated commands are used to define
 %% the authors and their affiliations.
@@ -124,6 +126,7 @@
 %% "authornote" and "authornotemark" commands
 %% used to denote shared contribution to the research.
 \author{Cynthia Richey}
+\authornote{Both authors contributed equally to this work.}
 \affiliation{%
   \institution{University of Pennsylvania}
   \city{Philadelphia}
@@ -132,6 +135,7 @@
 }
 
 \author{Joseph W. Cutler}
+\authornotemark[1]
 \affiliation{
   \institution{University of Pennsylvania}
   \city{Philadelphia}
@@ -266,13 +270,13 @@
 %\jwc{``Property based testing is a race against time...''}
 
 Property-based testing (PBT) is a software testing technique which uses
-random test inputs to validate logical specifications.  Recent studies on PBT usage~\cite{inpractice} have shown that
+random test inputs to validate logical specifications. Recent studies on PBT usage~\cite{inpractice} have shown that
 practitioners often interleave PBT with their software development process, sometimes
 testing their properties every time they save their code. This means that PBT is often run with very short time
 budgets---e.g., between 50 milliseconds and 30 seconds---and it is important
 that bugs can be found in that time-frame.\iflater
 \jwc{phrasing could suggest ``race against time'' aspect.}\hg{Agree, can't see
-how to fit this in yet}\fi
+how to fit this in yet} \jwc{Also think the phrasing should say something like ``the goal is to fail as fast as possible''}\fi
 
 Given these strict timelines, the impact of performance in PBT cannot be overstated. One important locus for performance improvement
 is the \textit{generators} that produce random inputs to the properties under
@@ -297,18 +301,7 @@ constitute an unexpectedly high proportion of a generator's running time.
 raised by the above. We could strengthen that connection}
 \fi
 Together, these observations raise a fundamental question: can generator libraries be expressive and high-level without compromising efficiency?
-%In practice, PBT is used 
-%as a lightweight, ad hoc approach to software correctness,
-%\jwc{Move this bit about how it's used to the first sentence. I.e. PBT is a testing technqique where random data is fed to a system under test...}
-%aimed at 
-%detecting bugs within a short testing window---typically 50 milliseconds 
-%to 30 seconds. \jwc{This sells us a little short: we should say something to the effect of ``Recent work on understanding how PBT is used in practice has determined that practitioners often run PBT with very short time budgets...''} Given this practical constraint, it is imperative that 
-%inputs be generated as fast as possible; in other words, generators must be 
-%treated as performance-sensitive code.
 
-% The locus for improvement in this area \jwc{``This area'' sounds like it's talking about the whole area of PBT... Maybe ``a high-leverage way to improve the performance of generators is to...''} is \textit{generator libraries}: if 
-
-  % in strict functionallanguages like OCaml and Scal
   To address this question, we outline two key principles for designing generator libraries that balance efficiency with flexibility.
  First, we describe a method of optimizing generator libraries using
 \textit{multi-stage programming}, or ``staging,'' which has long been used to
@@ -322,22 +315,6 @@ compiler to inline and eliminate these closures.
 Secondly, we demonstrate the impact of different choices of \rand on generator
 performance by conducting a controlled comparison. \iflater\hg{More words here for
 parallelism?}\fi Together, these insights provide a recipe for improving existing generator libraries.
-
-%\jwc{I think we should use return/bind as the simplest example, since then you don't have to get into the weeds of allocation or closures. The functional abstractions of a monadic generator DSL block the compiler from generating fast code.}
-%\jwc{Then present this case as ``more sophisticated use of staging'' or something?}
-%where an unstaged generator DSL might represent a choice between
-%a list of options as a dynamically-allocated array of closures, a staged 
-%generator can expand to an if-else tree at compile 
-%time---eliminating the allocation entirely.
-% This approach is not tied to any
-%particular PBT library, but rather provides a recipe for improving even
-%state-of-the-art implementations \jwc{Sentence structure doesn't follow. Instead maybe ``not any particular, but a recipe for improving in general''}.
-
-%First, we demonstrate the impact of
-%RNG choice by optimizing an existing \rand. Our optimized RNG produces 
-%exactly 
-%the same values as its unoptimized counterpart, allowing us to directly 
-%measure the impact of this choice on generator performance. \jwc{Permute? I think staging \emph{then} randomness.} \jwc{Also, i don't love this as the first place we explain the drop-in equivalence of the RNG. It's unmotivated why wen want this.} 
 
 To demonstrate the effectiveness of our approach, we apply it to \bq, a
 high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street.
@@ -384,6 +361,7 @@ We make the following contributions:
 \label{section:motiv}
 \jwc{In this section we answer: ``What are monadic generator libraries, and why are they slow?''}
 \bcp{That's actually not a bad section title!}
+\todo{Intro of this section}
 
 \subsection{Background: Monadic Generator DSLs}
 
@@ -1450,7 +1428,7 @@ the observed variance in time-to-failure was less than a nanosecond.}
 \label{subsection:other-langs}
 
 In the years since the original QuickCheck paper \cn{}, PBT has had remarkable success
-in languages outside of the small ICFP world from which it came.
+in languages outside of the Haskell world from which it came.
 For this reason, readers who are users and developers of PBT libraries in \emph{other} languages ---
 including non-strict or procedural ones --- might be curious about how the
 techniques brought to bear on OCaml's \bq{} and Scala's ScalaCheck in this paper
@@ -1473,15 +1451,19 @@ Below we discuss how \name{} could be applied in other languages.
   We have not yet tested the technique in Racket for the simple reason that the authorship team of this paper does not posess
   much Racket expertise \jwc{can we say this without unblinding?}.
 
-  \item \textbf{Haskell} birthed PBT, and so it is natural to ask why we have not yet applied \name{} to it. The basic answer is that
-  the Haskell compiler (GHC) is designed specially to eliminate the run-time overhead of monadic
-  abstractions! Indeed, because Haskell is pure, GHC can aggressively inline and beta-reduce
-  nearly anything as part of its normal optimiation steps.
-  This means that in many cases, the impact of a staged PBT library (and indeed, all staged monadic DSLs) negligible.
-  For complex enough programs however, the heuristics GHC uses can degrade, leading to performance overheads for monadic code.
-  For this reason, Haskell does have a multi-stage programming system called Template Haskell \cn{}, which is sometimes 
-  to build eDSLs in contexts where one does not want to rely on the optimizer's heuristics.
-  In short: it is possible to port \name{} to Haskell QuickCheck, but the benefits would be much less pronounced.
+  \item \textbf{Haskell} is home to the original PBT implementation \cn{}, and
+  so it is natural to ask why we have not yet applied \name{} to it. The basic
+  answer is that the Haskell compiler (GHC) is designed specially to eliminate
+  the run-time overhead of monadic abstractions! Indeed, because Haskell is
+  pure, GHC can aggressively inline and beta-reduce nearly anything as part of
+  its normal optimiation steps.  This means that in many cases, the impact of a
+  staged PBT library (and indeed, all staged monadic DSLs) negligible.  For
+  complex enough programs however, the heuristics GHC uses can degrade, leading
+  to performance overheads for monadic code.  For this reason, Haskell does have
+  a multi-stage programming system called Template Haskell \cn{}, which is
+  sometimes to build eDSLs in contexts where one does not want to rely on the
+  optimizer's heuristics.  In short: it is possible to port \name{} to Haskell
+  QuickCheck, but the benefits would be much less pronounced.
   
   \item \textbf{Rust} shares some similarities with functional languages, and
   indeed, it is host to a number of property-based testing libraries \cn{}. However Rust does not
@@ -1490,6 +1472,7 @@ Below we discuss how \name{} could be applied in other languages.
   For this reason, \name{} does not seem directly applicable to any of the PBT libraries in Rust.
 
   \item \textbf{Python} is home to Hypothesis, the most widely used PBT library in any language.
+  
 
 \end{itemize}
 
