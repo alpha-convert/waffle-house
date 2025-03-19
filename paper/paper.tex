@@ -1297,12 +1297,14 @@ discussed in the previous sections.
 \end{itemize}
 
 All experiments were run on a 64-bit Linux machine with 264 GB RAM and an Intel Xeon Platinum 8375C CPU, running Ubuntu 24.04.1 LTS.
-The \name library was implemented using the
-4.14.1+BER MetaOCaml compiler variant.  All OCaml benchmarks
-were compiled with \texttt{ocamlopt}, the native code compiler for OCaml, using compiler flag \texttt{-O3}.
-The microbecnhmark
 
-. \todo{Joe : Scala info ...}
+The OCaml version of \name and all OCaml benchmarks
+were compiled with 4.14.1+BER MetaOCaml \texttt{ocamlopt}, the native code compiler for OCaml, using compiler flag \texttt{-O3}.
+The baseline OCaml generators were written with \bq{} 0.16.
+The Scala 3 version of \name and all Scala benchmarks
+were run on Scala 3.6.3
+and OpenJDK 21.0.6, using ScalaCheck version 1.17 as the baseline.
+We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for generator performance microbenchmarking.
 
 \subsection{Differential Testing of Generators}
 \label{subsection:pbt-for-pbt}
