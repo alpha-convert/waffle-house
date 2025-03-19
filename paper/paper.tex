@@ -1428,17 +1428,33 @@ the observed variance in time-to-failure was less than a nanosecond.}
 \section{Other Languages and Libraries}
 \label{subsection:other-langs}
 
-\jwc{Note that this explanation require some prior note of exactly *why* BQ is slow... i.e. the abstraction overhead of the library is high.}
+In the years since the original QuickCheck paper \cn{}, PBT has had remarkable success
+in languages outside of 
+
+Of course, users and developers of PBT libraries in \emph{other} languages might be curious about how
+the techniques brought to bear on OCaml's \bq{} and Scala's ScalaCheck in this paper might be imported to their favorite language.
+
+Indeed, while we have done our best to keep the proceeding discussion as
+language-agnostic as possible, our claims about the \name{} technique have only
+been thoroughly tested in OCaml and Scala 3, and we are only claiming (in the
+scientific sense) that we have contributed a technique applicable to PBT
+libraries in strict functional programming languages.
+
+
+In this section
+
 
 \jwc{
   \begin{itemize}
-    \item Python. Maybe could do it?? Hypothesis + MacroPy
-    \item Haskell: GHC does a lot of these optimizations already, since the code is pure. Since QC generators are relatively small programs,
+    \item Racket is the only ``real'' strict functional language we haven't tested this in. It'd definitely work.
+    \item Haskell GHC does a lot of these optimizations already, since the code is pure. Since QC generators are relatively small programs,
     GHC has little trouble specializing them. Of course, this is not guaranteed. A version of this idea can easily be ported to the original QC with template haskell, to guarantee
-    the highest-performance generators.
-    \item Rust: Not GC'd, so no alloc overhead but bind'd generators still dispatch through run-time data.
+    the highest-performance generators. But the benefit would be lower since GHC is smarter. Worth doing, though.
+    \item Rust: generator libraries are not monadic, presumably to avoid exactly these issues.
+    \item Python. Maybe could do it?? Hypothesis is the most used PBT library out there so this could be high impact.
   \end{itemize}
 }
+
 
 \section{Related Work}
 \jwc{A generator is a parser of randomness, and people have implemented lots of staged parser libraries!}
