@@ -1288,10 +1288,10 @@ discussed in the previous sections.
 \section{Evaluation}
 \label{section:eval}
 
-\jwc{Initial section here about eval}
+\jwc{Initial section here about eval}\tr{todo}
 
 \begin{itemize}
-  \item \textbf{RQ1}: Do generators written using \name run faster than those written with regular generator combinators?
+  \item \textbf{RQ1}: Do generators written using our technique run faster than those written with regular generator combinators?
   \item \textbf{RQ2}: Do performance speedups translate to better bug-finding ability?
   % \item \textbf{RQ3}: Does our technique generalize to other strict functional languages?
 \end{itemize}
@@ -1307,7 +1307,14 @@ and OpenJDK 21.0.6, using ScalaCheck version 1.17 as the baseline.
 We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for generator performance microbenchmarking.
 
 \subsection{Benchmarking Generator Speed}
-\jwc{Intro stuff}
+
+
+\begin{figure}[h]
+  % \includegraphics[scale=0.33]{allocs.png}
+  \includegraphics[scale=0.45]{time.png}
+  \label{fig:time}
+  \caption{Average generation time over 10,000 trials. Across all benchmarks, we see reliable improvement from at least one of Staged SR and Staged CSR.}
+\end{figure}
 
 \begin{figure}[h]
   \centering
@@ -1326,26 +1333,20 @@ We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for ge
   STLC, Staged & $7,151.259$ & $\pm\>355.639$ \\
   \bottomrule
   \end{tabular}
- \caption{\todo{Understand Joe's implementation of this...}}
- \label{fig:benchmark-table}
+ \caption{Benchmarks reimplemented in ScalaCheck show similar performance improvements to \name.}
+ \label{fig:scala}
  \end{figure}
 
-\begin{figure}[h]
-  % \includegraphics[scale=0.33]{allocs.png}
-  \includegraphics[scale=0.45]{time.png}
-  \label{fig:benchmark-time}
-  \caption{Average time taken to generate a value with the staged generator, in nanoseconds.}
-\end{figure}
-\jwc{NOTE: we should test generator speed across both languages, but speed -> bugfinding ability in only OCaml.}
-\jwc{
-  Baseline generators to test speed in both languages:
-  \begin{itemize}
-    \item Single int
-    \item Pair of ints, constrained
-    \item List of ints without bind (use map): lots of sampling, minimal binds.
-    \item Unableled Trees of a fixed size (no weighted union) minimal sampling, lots of binds.
-  \end{itemize}
-}
+%\jwc{NOTE: we should test generator speed across both languages, but speed -> bugfinding ability in only OCaml.}
+%\jwc{
+%  Baseline generators to test speed in both languages:
+%  \begin{itemize}
+%    \item Single int
+%    \item Pair of ints, constrained
+%    \item List of ints without bind (use map): lots of sampling, minimal binds.
+%    \item Unableled Trees of a fixed size (no weighted union) minimal sampling, lots of binds.
+%  \end{itemize}
+%}
 \subsection{Benchmarking Bug-Finding Ability}
 To answer \textbf{RQ2}, we evaluate the bug-finding ability of our BST and STLC case studies using Etna, a platform for assessing and comparing PBT techniques. 
 Etna allows users to measure the effectiveness of different generator implementations by injecting bugs into the system under test and recording the time taken for a relevant 
@@ -1372,14 +1373,15 @@ it is not perfect.
 For example, it is theoretically possible
 to choose a seed such that the \textit{first} value produced by a generator discovers the bug, which would elide any differential speedup (and likewise
 if both generators fail to find the bug).
-To account for these edge cases, we repeat the above process for 10 seeds and compute the geometric mean of the speedups.\footnote{Although the variance \textit{between} seeds in Etna can be vast, timing results are replicable for a \textit{given} seed. Across 1,000 trials using the same seed, 
+To account for these edge cases, we repeat the above process for 10 seeds and compute the geometric average of the speedups.\footnote{Although the variance \textit{between} seeds in Etna can be vast, timing results are replicable for a \textit{given} seed. Across 1,000 trials using the same seed, 
 the observed variance in time-to-failure was less than a nanosecond.}
 
 \begin{figure}[h]
   \includegraphics[scale=0.333]{speedup.png}
-  \caption{Geometric average of each task's speedup over case study and strategies, showing that staging leads to better bug-finding ability across the board. As in \todo{earlier figure}, benchmarks with higher numbers of binds (BST (Single-Pass), STLC) see more benefit from staging, whereas benchmarks with more sampling (BST) see a greater speedup from the CSR \rand.}
+  \caption{Geometric average of each task's speedup over case studies and strategies, showing that staging leads to better bug-finding ability across the board. As in \todo{earlier figure}, benchmarks with higher numbers of binds (BST (Single-Pass), STLC) see more benefit from staging, whereas benchmarks with more sampling (BST) see a greater speedup from the CSR \rand.}
   \label{fig:etna}
 \end{figure}
+
 \begin{figure}[h]
   \includegraphics[scale=0.355]{hist.png}
   \label{fig:swarm}
