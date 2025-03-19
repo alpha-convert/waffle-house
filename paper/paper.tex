@@ -1261,7 +1261,7 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
 
 
 \subsection{Staged Type-Derived Generators}
-
+\label{subsection:type-derived}
 \jwc{
   \begin{itemize}
     \item In PBT in practice, we learned that in many cases, programmers don't
@@ -1348,13 +1348,20 @@ and OpenJDK 21.0.6, using ScalaCheck version 1.17 as the baseline.
 We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for generator performance microbenchmarking.
 
 \subsection{Benchmarking Generator Speed}
+To answer \textbf{RQ1}, we implement benchmarks in both \name and \bq. We vary the choice of \rand in our \name generators, 
+using both \bq's default \texttt{splittable\_random} (``SR'') and our improved SplitMix (``CSR''), as discussed in \secref{subsection:faster-rng}.
+
+Our benchmarks consist of lists, binary search trees (BST), and simply typed lambda calculus (STLC) terms. We implement generators for these benchmarks using a variety of 
+\textit{strategies}, which vary in structure and sophistication. These include: a derived generators for BSTs and STLC terms, using the approach outlined in \secref{subsection:type-derived}; 
+two custom BST generators, one that repeatedly inserts values into an initially empty tree and one that materializes the tree in a single pass by generating keys, values, and subtrees at each step;
+a custom, correct by construction generator for STLC, which is the most complex; and a generator of boolean lists. 
 
 
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
   \includegraphics[scale=0.45]{time.png}
   \label{fig:time}
-  \caption{Average generation time over 10,000 trials. Across all benchmarks, we see reliable improvement from at least one of Staged SR and Staged CSR.}
+  \caption{Average generation time over 10,000 trials.}
 \end{figure}
 
 \begin{figure}[h]
@@ -1408,7 +1415,7 @@ Similarly, we exclude tasks where the BQ strategy completes in under 5ms,
 
 
 It is worth noting that the time-to-failure of a given strategy on a given seed is not necessarily representative of 
-the strategy's average time-to-failure over a large number of trials. We normalize by computing the relative performance of \name generators vs. \bq generators (the ``speedup''). While this works in most cases,
+the strategy's average time-to-failure over a large number of trials. We normalize by computing the \textit{relative} performance (the ``speedup''). While this works in most cases,
 it is not perfect.
 For example, it is theoretically possible
 to choose a seed such that the \textit{first} value produced by a generator discovers the bug, which would elide any differential speedup (and likewise
