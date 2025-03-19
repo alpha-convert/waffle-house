@@ -17,6 +17,7 @@
 \usepackage{listings}
 \usepackage{subcaption}
 \usepackage{xspace}
+\usepackage{wrapfig}
 \lstset{
   mathescape=true,
   frame=none,
@@ -385,30 +386,24 @@ We make the following contributions:
 \bcp{That's actually not a bad section title!}
 
 \subsection{Background: Monadic Generator DSLs}
-\jwc{Usual spiel about pbt and generators: here's a monadic generic generator
-library (but we're using BQ to illustrage), it has return and bind, this is what
-they're for.}
-\jwc{You often want generators to generate for sparse precoditions
-so you can exercise a property reasonably well}
 
-Property Based Testing was popularized by the QuickCheck library \cn{} in
-Haskell.  A core element of PBT as introduced in that paper is \emph{monadic
-generators}, an embedded DSL for writing the random data generators that drive
-the PBT process.  This DSL gives developers significant control over exactly
-what sorts of values are generated and what their distribution is. Both of these
-axes of control are important to adequately exercise the system under test and
-find bugs.  Indeed, the PBT literature \cn{} has repatedly demonstrated that the
-particular generator used to test a property has an enormous impact on how well
-PBT actually works \jwc{less derogatory phrasing}, and much research has gone
-into finding clever ways to generate data \cn{}.
+Since property-based testing was first introduced in Haskell's QuickCheck
+library~\cite{claessenQuickCheckLightweightTool2000}, {\em generators} have been
+a key element of the PBT process. While properties are critical for correctly
+expressing a developer's intent for a function, the success of the testing
+ultimately rests on how well the random inputs to that property exercise the
+system under test. QuickCheck's solution to this problem, which has been copied
+dozens of frameworks across as many languages, is to provide a domain-specific
+language (DSL) for writing random data generators that gives developers complete
+control over their distribution of test inputs.
 
-\begin{figure}
+\begin{wrapfigure}{r}{.5\textwidth}
 \begin{lstlisting}
 module Bq : sig
   type 'a t
+  val gen_int : int -> int -> int t
   val return : 'a -> 'a t
   val bind : 'a t -> ('a -> 'b t) -> 'b t
-  val gen_int : int -> int -> int t
 
   val weighted_union : (int * 'a t) list -> 'a t
 
@@ -419,51 +414,66 @@ module Bq : sig
   $\dots$
 end
 \end{lstlisting}
-\caption{API of the \bq{} Generator DSL}
+\caption{Some functions from the API of the \bq{} generator DSL.}
 \label{fig:bq-api}
-\end{figure}
+\end{wrapfigure}
 
-A standard generator DSL consists of a monadic interface, plus combinators for sampling random numbers, making (weighted) random choices,
-and controlling the size of generated values. Figure~\ref{fig:bq-api} shows a selection of functions from the API of th \bq{} generator
-DSL.
+While many DSL designs are possible, the standard design for QuickCheck-style
+generators is via an embedded {\em monadic} language. For the purposes of this
+paper, we use the sytnax from \bq, which is presented in
+Figure~\ref{fig:bq-api}. The library provides a series of basic generators, for
+example ones like \texttt{gen\_int} for random integers in a range, along with
+the ``monadic interface'' consisting of \texttt{return} and \texttt{bind}.  The
+generator \texttt{return x} is the constant generator, always generating the
+value \texttt{x}. Running a generator \texttt{bind g k} runs the generator
+\texttt{g}, producing a value \texttt{a}, and then runs the generator \texttt{k
+a}.
+\iflater
+\jwc{\texttt{gen\_int} here is really \texttt{int\_uniform\_inclusive}. I also
+think we should completely omit named arguments in the paper so we don't confuse
+with splices.}
+\fi
 
-Because we have to choose \emph{some} syntax for this paper, we use \bq{}'s as our primary running generator DSL. However,
-this is a standin for a generic generator DSL, since they basicalyl all look like this one.
+Together, these three functions are the bare minimum for constructing arbitrary
+random data generators: \texttt{gen\_int} provides a base source of randomness,
+and \texttt{return} and \texttt{bind} allow generators to be composed to create
+larger, more complex generators. Figure~\ref{fig:simple-bind} shows a generator
+built with these operations; it first samples an int between $0$ and $100$,
+names it $x$, samples another between $0$ an $x$, and then returns the pair of
+them both. In practice, PBT generator libraries also include other functions
+that make generator construction easier, including functions like
+\texttt{weighted\_union} for making a weighted choice between different
+generators as well as functions for managing the sizes of generated values and
+combinators for recursion.
 
-The ``monadic interface'' of a generator DSL consists of \texttt{return} and \texttt{bind}.
-The generator \texttt{return x} is the constant generator, always generating the value \texttt{x}.
-Running a generator \texttt{bind g k} runs the generator \texttt{g}, producing a value \texttt{a},
-and then runs the generator \texttt{k a}. Monadic \texttt{bind} allows for dependencies.
-
-The \texttt{gen\_int a b} generator samples an integer uniformly in the inclusive range from \texttt{a} to \texttt{b}.
-
-\jwc{\texttt{gen\_int} here is really \texttt{int\_uniform\_inclusive}. I also think we should completely omit named arguments in the paper so we don't confuse with splices.}
-
-Figure ... shows an example of a generator written with these combinators. It first samples an int between $0$ and $100$, 
-names it $x$, samples another between $0$ an $x$, and then returns the pair of them both.
-Most languages in which monadic APIs are common expose some sort of sytnactic sugar for them --- this is true of OCaml and Scala. 
-OCaml's looks like \texttt{let\%bind x = e in e'}, which desguars to \texttt{...}. Figure~\jwc{...} also shows this generator written with OCaml's syntacitc sugar\footnote{It's actually Jane's}.
-
-
-\begin{figure}
-  
+\begin{figure}[h]
+  \begin{subfigure}{.49\textwidth}
 \begin{lstlisting}
 let int_pair : (int * int) Bq.t =
   Bq.bind (Bq.gen_int 0 100) (fun x ->
     Bq.bind (Bq.gen_int 0 x) (fun y ->
-      Bq.return (x,y)
-  ))
+      Bq.return (x,y)))
 \end{lstlisting}
-
+\caption{A simple generator using \texttt{bind} explicitly.}\label{fig:simple-bind}
+  \end{subfigure}
+  \begin{subfigure}{.49\textwidth}
 \begin{lstlisting}
 let int_pair : (int * int) Bq.t =
   let%bind x = Bq.gen_int 0 100 in
   let%bind y = Bq.gen_int 0 x in
   return (x,y)
 \end{lstlisting}
+\caption{An equivalent generator using macros for \texttt{bind}.}\label{fig:simple-macro}
+  \end{subfigure}
+  \caption{Simple monadic generators for a pair of ordered integers.}\label{fig:simple-pair}
 \end{figure}
 
-
+Most languages in which monadic APIs are common expose some sort of syntactic
+sugar for them. In OCaml\footnote{OCaml actually has a few versions of syntax
+for monadic APIs; this is the one provided by Jane Street's libraries.}, this
+looks like \texttt{let\%bind x = e in e'}, which is a macro that desugars to
+\texttt{bind e (fun x => e')}. Figure~\ref{fig:simple-macro} shows the same
+generator as before, now written with macros.
 
 \jwc{
 Explain effect ordering here!!
