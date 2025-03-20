@@ -792,8 +792,8 @@ defining functions that accept and return \texttt{code} values.  A function
 \texttt{f : 'a code -> 'b code} is a function that takes a program computing a
 run-time \texttt{'a} and transforms it into a program computing a run-time
 \texttt{'b}. In particular, because \texttt{f} itself runs at compile time, the
-abstraction of using \texttt{f} is necessarily completely eliminated by
-run time.
+fact that the programmer called \texttt{f} does not matter at run time --- the abstraction
+that \texttt{f} defines has been eliminated.
 A code-transforming function \texttt{'a code -> 'b code} can also be converted \emph{code for a function} --- a value of type
 \texttt{('a -> 'b) code} --- with the following program:
 \begin{lstlisting}
@@ -805,7 +805,6 @@ This program is known as ``the trick'' in the partial evaluation and multi-stage
 % USE THIS: https://arxiv.org/pdf/2309.08207
 It returns a code for a function that takes an argument \texttt{x}, and then it splats in the result of calling \texttt{f} on just
 the quoted \texttt{x}.
-\jwc{Does this make any sense?}
 
 The trick is best illustrated by an example. The following program reduces to \texttt{.< fun x -> (1 + x) mod 2 == 0 >}.
 \begin{lstlisting}
@@ -814,11 +813,11 @@ let succ x = .< 1 + .~x >. in
 eta (succ . is_even)
 \end{lstlisting}
 By composing the two code-transforming functions together at compile time, and only then turning them into a run-time function,
-the functions are fused together... \jwc{words}.
+the functions are fused together.
 This is the basis of how staging is used to eliminate the abstraction of DSLs
 (like a generator DSL). By writing DSL combinators as compile-time functions ---
 and only calling \texttt{eta} at the end on the completed DSL program ---  we
-can ensure that any overhead of using them is eliminated by run time.
+can ensure that any overhead of using the combinators is eliminated by run time.
 
 % \jwc{
 %   \begin{itemize}
@@ -842,31 +841,39 @@ can ensure that any overhead of using them is eliminated by run time.
 \label{subsection:basic-design}
 \jwc{Needs a lot more signposting at the top here.}
 
-Recall \jwc{did we talk about this} that staging a DSL involves changing the
-combinators to run at compile time by carefully annotating their types with \texttt{code}s.
-Deciding which types \texttt{t} can
-instead be \texttt{t code} --- in other words,
-figuring out which parts of the DSL can be determined statically (and can be
-part of the compile-time stage), and which parts are only known dynamically (and
-hence must be \texttt{code}) --- is an art known as ``binding-time analysis'' \cn.
+To build a staged version of a generator DSL, we must rewrite the the generator
+combinators so that they run during the compile time. Of course,
+the compile time stage does not do all the work: the DSL must run at compile time,
+producing inlined code that uses no combinators, which can then be compiled and run at run time
+with different sizes and seeds.
 
-The crux of our binding time analysis is that the particular random seed and
-size parameter \jwc{if explained} are only known at run time (the later stage),
-but the code of the generator itself is known at compile time.\hg{Are we going
-to talk more about how we did this analysis?} \jwc{Well it's sort of right here: you just think about it, it's the same thing as staging a parser too.}
-Generators ---
-values of type \texttt{'a Bq.t} --- are always constructed statically in practice,
-so all of the combinators we use to build them can run at compile time.
+Our job is thus to carefully bisect the DSL, determining which inputs to generator
+combinators are known statically (and can be part of the compile time stage), and
+which parts are only known at run time (and must be \texttt{code}).
+In the staging literature, this task is known as ``binding-time analysis'', and it is more of an art than a science.
 
+% carefully break up so that you push what you can into the compile time stage.
+% Figuring out which parts of the generator are known statically ()
+% Recall \jwc{did we talk about this} that staging a DSL involves changing the
+% combinators to run at compile time by carefully annotating their types with \texttt{code}s.
+% Deciding which types \texttt{t} can
+% instead be \texttt{t code} --- in other words,
+% figuring out which parts of the DSL can be determined statically (and can be
+% part of the compile-time stage), and which parts are only known dynamically (and
+% hence must be \texttt{code}) --- is an art known as ``binding-time analysis'' \cn.
+
+The crux of our binding time analysis is that the \emph{only} parts of a generator that are not
+known at compile time are the particular random seed and
+size parameters that will be passed in at run time. Generators themselves are always known entirely at compile time.
 This means our library's generator type \texttt{'a
 Gen.t} should have the type \texttt{int code -> SR.t code -> 'a code}: a compile-time
 function from dynamically-known size and seed to dynamically-determined result.
 
 This type, along with basic staged monadic generator DSL functionality can be found in Figure~\ref{fig:gen-staged-basic}.
-\texttt{Return} is the constant generator, but this time it 
+The constant generator \texttt{return} has the same code, but this time it 
 runs at compile time. Given \texttt{cx : 'a code}, the code for a \texttt{'a}, it
-returns the generator which always generates that value.
-\texttt{bind g k} sequences generators by passing the result of running the generator \texttt{g} to a continuation \texttt{k}. However, instead of getting access
+returns the generator which always generates that value. Similarly,
+\texttt{bind g k} sequences generators as usual by passing the result of running the generator \texttt{g} to a continuation \texttt{k}. However, instead of getting access
 to the particular value generated by \texttt{g}, the continuation \texttt{k} gets access to \texttt{code} for the value sampled from \texttt{g}:
 at compile time, we only know \texttt{g} will generate \emph{some} \texttt{'a}, but not which one \footnote{Readers familiar with OCaml may notice that \texttt{return : 'a code -> 'a Gen.t} and \texttt{bind : 'a Gen.t -> ('a code -> 'b Gen.t) -> 'b Gen.t}
 do not have the correct types for a monad instance, preventing us from using \texttt{let\%bind} notation. We rectify this issue in Section~\ref{subsection:codecps} by importing some clever ideas from the staging literature.}.
@@ -881,10 +888,12 @@ the arguments \texttt{lo} and \texttt{hi} are of type \texttt{int code}, and get
 Lastly, \texttt{to\_bq} turns a staged generator into code for a normal \bq\
 generator. This function is just a 2-argument version of ``The Trick'' (\texttt{eta}
 from Section~\ref{subsection:msp}).
+\iflater
 \hg{TODO: Be really careful with formatting of the above paragraph. It's very
 easy for some inline code to get split weirdly over a line break or just be
 difficult to parse in general, and that could throw the reader off when the
 content is already pretty low-level}
+\fi
 
 
 \begin{figure}
