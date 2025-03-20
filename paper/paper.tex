@@ -1269,11 +1269,11 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
 \subsection{Staged Type-Derived Generators}
 
 Generators are traditionally handwritten, but some libraries allow users to synthesize 
-them automatically from type definitions. Type-derived generators are highly 
-convenient---the derivation process requires no manual effort---but also limitated: 
-they are unable to account for constraints absent from the type. 
-As a result, generating correct values with complex preconditions is difficult.
-This trade-off can be deceptive, especially for inexperienced PBT users, who might derive a generator, run their test harness, find no bugs, and assume the code is correct---when in reality, most values are never tested at all because they do not satisfy the preconditions.
+them automatically from type definitions. Type-derived generators are 
+convenient---the derivation process requires no manual effort---but also limited: 
+they are unable to account for constraints not encoded in the type. 
+As a result, generating values with complex preconditions is statistically unlikely.
+This state of affairs is not ideal, as inexperienced PBT users, who might derive a generator, run their test harness, find no bugs, and assume the code is correct---when in reality, most values are never tested at all because they do not satisfy the preconditions.
 
 This makes type-derivation a particularly elegant target of \name. Since the process of type derivation is completely automatic,
 the end user does not need to understand the staging syntax---but more importantly, \tr{TODO}
@@ -1447,19 +1447,12 @@ with an ordering property, a bug injection might consist of inserting a value
 into the tree that violates that ordering. Each case study includes a diverse
 set of \textit{tasks}, where a task consists of a specific bug-property pair
 designed to test different aspects of the system (e.g., BST includes tasks that
-test insertion, deletion, and union operations on binary search trees). In particular, BST has 43 tasks, and STLC has 18.
-
-Strategies for BST and STLC are unchanged from \secref{subsection:benchmarking}.
-To ensure a fair comparison, we initialize each strategy with the same random
-seed, ensuring that they produce identical sequences of values. We run each
-strategy on all tasks using a 60-second timeout.  If a bug is not found within
-this limit, the task is considered unsolved.  Tasks where all strategies fail to
-find the bug are excluded from our dataset, as they provide no basis for
-comparison.  Similarly, we exclude tasks where the BQ strategy completes in
-under 5ms, as such negligible runtimes do not yield meaningful insights into
-relative performance. \tr{We probably want to discuss how many tasks get filtered out...} These filters ensure that reported speedups are based on
-cases where optimization has a measurable impact.
-
+test insertion, deletion, and union operations on binary search trees). 
+In particular, BST has 37 tasks, and STLC has 20. Strategies for BST and STLC 
+are implemented in
+\camlname; they are unchanged from their description in \secref{subsection:benchmarking}.\footnote{Etna does 
+not support Scala, so we were unable to test \scalaname, but we see no reason
+we see no reason our results in this section would not extend to \scalaname.}
 
 It is worth noting that the time-to-failure of a given strategy on a given seed
 is not necessarily representative of the strategy's average time-to-failure over
@@ -1468,10 +1461,28 @@ the ``speedup''. This works in most cases, but it is not perfect.  For example,
 it is theoretically possible to choose a seed such that the \textit{first} value
 produced by a generator discovers the bug, which would elide any differential
 speedup (and likewise if both generators fail to find the bug).  To account for
-these cases, we repeat the above process over 10 \tr{(soon to be 30)} seeds.\footnote{Although the
+these cases, we repeat the above process over 30 random seeds---that is, all strategies
+are run on the same seed so that they produce identical sequences of values, and this process
+is repeated 30 times.\footnote{Although the
 variance \textit{between} seeds in Etna can be vast, timing results are
 replicable for a \textit{given} seed. Across 1,000 trials using the same seed, 
 the observed variance in time-to-failure was less than a nanosecond.}
+
+We run each
+strategy on all tasks using a 60-second timeout.  If a bug is not found within
+this limit, the task is considered unsolved.  Tasks where all strategies fail to
+find the bug are excluded from our dataset, as they provide no basis for
+comparison.  Similarly, we exclude tasks where the BQ strategy completes in
+under 5ms, as such negligible runtimes do not yield meaningful insights into
+relative performance. These filters remove
+28/600 (4.67\%) of type-derived STLC's tasks, 
+168/600 (28\%) of STLC's tasks, 
+149/1110 (14.42\%) of type-derived BST's tasks,
+268/1110 (24.1\%) of single-pass BST's tasks, and
+371/1110 (33.42\%) of insertion-based BST's tasks. More sophisticated 
+strategies tend to find bugs faster, leading to a higher number of filtered 
+tasks. By applying these filters, we ensure that our reported speedups reflect 
+optimizations that meaningfully impact performance.
 
 The average individual-task speedups for each strategy and benchmark are shown in 
 \figref{fig:etna}, with trends in bug-finding ability closely mirroring those in performance 
@@ -1479,10 +1490,11 @@ from \secref{subsection:benchmarking}. The distribution of speedups in \figref{f
 substantial variability, with most tasks clustering near the median and a long tail of outliers 
 achieving much larger gains. STLC shows a more bimodal distribution of speedups
 than the other benchmarks, which we attribute to the heterogenous difficulty of its tasks:  
-some tasks regularly hit the 60-second timeout, while others finish in a fraction of a second. We find that tasks of intermediate difficulty 
-tend to achieve larger speedups, whereas very fast or slow tasks cluster near the mean. \tr{To be honest, we don't know EXACTLY why STLC exhibits this bimodal distribution. Maybe it's better to leave this out, and just say ``look, there's high variance, but it's actually a good thing---sometimes you get more than you expect, and you almost never get less than you expect"?}
+some tasks regularly hit the 60-second timeout, while others finish in a fraction of a second. We 
+find that ``easier'' tasks---those that run on the order of milliseconds---regularly achieve speedups in the 
+range of 300 to 800\%, whereas tasks that run on the order of seconds achieve more moderate speedups of up to 250\%.
 Overall, 
-these results give strong evidence that our technique consistently benefits bug-finding ability, sometimes drastically.
+these results give strong evidence that \camlname consistently benefits bug-finding ability, sometimes drastically.
 \begin{figure}[h]
   \includegraphics[scale=0.333]{speedup.png}
   \caption{Geometric average of all speedups---relative to BQ---for each strategy and benchmark, showing that staging leads to better bug-finding ability across the board.}
