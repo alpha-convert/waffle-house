@@ -277,10 +277,15 @@ testing their properties every time they save their code. This means that PBT is
 window to find bugs --- e.g., between 50 milliseconds and 30 seconds~\cite{inpractice}.
 In other words, the goal is to fail as fast as possible. \jwc{First cut at ``fail fast''}
 
+\bcp{Feels like we're missing a trick in the transition here.  Can we
+  say, ``Because performance is important, PBT libraries are already
+  quite tuned.  [Can we substantiate that??]  But more is
+  possible...'' }
+
 Given these strict timelines, the impact of performance in PBT cannot be overstated. One important locus for performance improvement
 is the \textit{generators} that produce random inputs to the properties under
 test. These generators are written with the help of \textit{generator
-libraries}, usually expressed as embedded domain-specific languages (eDSLs) %\cntxt{edsls} 
+libraries}, usually expressed as embedded domain-specific languages (eDSLs) %\cntxt{edsls}
 that provide combinators for building and composing generators. Optimizing these
 libraries is a key opportunity to speed up PBT: if programmers are
 provided with the tools to write fast generators, then they do not themselves
@@ -293,7 +298,7 @@ flexibility and expressiveness also introduces overhead: layered abstractions
 and indirections hinder compiler optimizations, shifting work to
 run time.
 Second, the \rand that underlies the generator's operation---the source of the
-random numbers that are used to make choices in the generator---can 
+random numbers that are used to make choices in the generator---can
 constitute an unexpectedly high proportion of a generator's running time.
 \iflater
 \hg{TODO later, I'm not 100\% sure it's clear how this particular question is
@@ -318,7 +323,7 @@ In Scala 3, we build \scalaname{}, based on ScalaCheck --- a very mature PBT lib
 In both languages, our libraries are direct drop-in replacements that are
 \textit{100\% semantically equivalent}: that is, given identical random seeds, a generator written with our technique
 produces exactly the same sequence of values as the same generator written with the original generator library.
-The semantic equivalence between the original generators and \name{} generators allows us to 
+The semantic equivalence between the original generators and \name{} generators allows us to
 perform clean, fine-grained comparisons, as differences in generation speed are
 solely attributable to the staging and \rand optimizations.
 
@@ -335,8 +340,8 @@ measuring how quickly various generators detect them.
 In summary, we show that monadic PBT generator DSLs incur significant performance costs across languages, and present a general technique for improving their efficiency while preserving their idiomatic abstractions. \jwc{needs a bit about RNG --- BCP thoughts?}
 We make the following contributions:
 \begin{enumerate}
-    \item We identify two key sources of inefficiency in PBT generator libraries, which can significantly impact performance: 
-    abstraction overhead and \rand choice. 
+    \item We identify two key sources of inefficiency in PBT generator libraries, which can significantly impact performance:
+    abstraction overhead and \rand choice.
     \item We present \name{}, a technique based on staging that eliminates the abstraction overhead of generators. We implement \name{} in both OCaml and Scala 3, showcasing its cross-language applicability.
     \item We demonstrate that both \name{} and choosing a faster \rand yield substantial performance improvements to generator running time. Finally, we show
     that these performance improvements extend to significantly improved bug-finding speed. \jwc{This should be sell-ier: 2x speedups, etc. ``bug-finding speed'' isn't a race against time.}
