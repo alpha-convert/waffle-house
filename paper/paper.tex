@@ -339,7 +339,7 @@ We make the following contributions:
     abstraction overhead and \rand choice. 
     \item We present \name{}, a technique based on staging that eliminates the abstraction overhead of generators. We implement \name{} in both OCaml and Scala 3, showcasing its cross-language applicability.
     \item We demonstrate that both \name{} and choosing a faster \rand yield substantial performance improvements to generator running time. Finally, we show
-    that these performance improvements extend to significantly improved bug-finding ability. \jwc{This should be sell-ier: 2x speedups, etc. ``bug-finding ability'' isn't a race against time.}
+    that these performance improvements extend to significantly improved bug-finding speed. \jwc{This should be sell-ier: 2x speedups, etc. ``bug-finding speed'' isn't a race against time.}
 \end{enumerate}
 
 In Section~\ref{section:motiv}, we introduce monadic generator DSLs, discuss how they work, and take an example-guided tour through some of the ways that
@@ -1357,7 +1357,7 @@ We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for ge
 To evaluate our contributions, this section answers the following research questions:
 \begin{itemize}
   \item \textbf{RQ1}: Do generators written using our technique run faster than those written with regular generator combinators?
-  \item \textbf{RQ2}: Do performance speedups translate to better bug-finding ability?
+  \item \textbf{RQ2}: Do performance speedups translate to better bug-finding speed?
   % \item \textbf{RQ3}: Does our technique generalize to other strict functional languages?
 \end{itemize}
 
@@ -1437,8 +1437,8 @@ workloads.
 %    \item Unableled Trees of a fixed size (no weighted union) minimal sampling, lots of binds.
 %  \end{itemize}
 %}
-\subsection{Benchmarking Bug-Finding Ability}
-To answer \textbf{RQ2}, we evaluate the bug-finding ability of our BST and STLC
+\subsection{Benchmarking bug-finding speed}
+To answer \textbf{RQ2}, we evaluate the bug-finding speed of our BST and STLC
 case studies using Etna, a platform for assessing and comparing PBT techniques. 
 Etna allows users to measure the effectiveness of different generator
 implementations by injecting bugs into the system under test and recording the
@@ -1451,7 +1451,7 @@ test insertion, deletion, and union operations on binary search trees).
 In particular, BST has 37 tasks, and STLC has 20. Strategies for BST and STLC 
 are implemented in 
 \camlname; they are unchanged from their description in \secref{subsection:benchmarking}.\footnote{Etna does 
-not support Scala, so we were unable to test \scalaname, but we see no reason
+not support Scala, so we were unable to test \scalaname's bug-finding speed in Etna, but we see no reason
 we see no reason our results in this section would not extend to \scalaname.}
 
 It is worth noting that the time-to-failure of a given strategy on a given seed
@@ -1485,7 +1485,7 @@ tasks. By applying these filters, we ensure that our reported speedups reflect
 optimizations that meaningfully impact performance.
 
 The average individual-task speedups for each strategy and benchmark are shown in 
-\figref{fig:etna}, with trends in bug-finding ability closely mirroring those in performance 
+\figref{fig:etna}, with trends in bug-finding speed closely mirroring those in performance 
 from \secref{subsection:benchmarking}. The distribution of speedups in \figref{fig:swarm} reveals 
 substantial variability, with most tasks clustering near the median and a long tail of outliers 
 achieving much larger gains. STLC shows a more bimodal distribution of speedups
@@ -1494,10 +1494,10 @@ some tasks regularly hit the 60-second timeout, while others finish in a fractio
 find that ``easier'' tasks---those that run on the order of milliseconds---regularly achieve speedups in the 
 range of 300 to 800\%, whereas tasks that run on the order of seconds achieve more moderate speedups of up to 250\%.
 Overall, 
-these results give strong evidence that \camlname consistently benefits bug-finding ability, sometimes drastically.
+these results give strong evidence that \camlname consistently benefits bug-finding speed, sometimes drastically.
 \begin{figure}[h]
   \includegraphics[scale=0.333]{speedup.png}
-  \caption{Geometric average of all speedups---relative to BQ---for each strategy and benchmark, showing that staging leads to better bug-finding ability across the board.}
+  \caption{Geometric average of all speedups---relative to BQ---for each strategy and benchmark, showing that staging leads to better bug-finding speed across the board.}
   \label{fig:etna}
 \end{figure}
 \begin{figure}[h]
