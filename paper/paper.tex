@@ -1380,19 +1380,35 @@ subtrees at each step; a generator of boolean lists that operates similarly to
 the single-pass BST strategy; and a well-typed generator of
 STLC terms, whose behavior is the most complex. 
 For evaluating \scalaname, we implement a subset of the aformentioned 
-strategies---only the boolean list generator, single-pass BST generator, and well-typed STLC term generator.
+strategies---only the boolean list generator, single-pass BST generator, and 
+well-typed STLC term generator.
 
-The runtime of the \camlname generators over a range of sizes is shown in
-\figref{fig:time}. Staging provides only a negligible speedup for type-derived
-and insertion-based BST strategies, whose overhead is dominated by random
-sampling. In this case, performance improvement is primarily attributable the
-\csplitmix \rand.  In contrast, the STLC strategies benefit more from staging, as
-they involve fewer sampling operations but rely heavily on generator
-combinators. The same holds for boolean lists, as sampling booleans is
-inexpensive relative to integers. Our single-pass BST strategy falls somewhere
-in between: it both samples frequently and makes extensive use of generator
-combinators. \tr{Goal is to replace this paragraph with the ref-counting
-chart---I think it will be WAY less boring. But I need to do 3.7 first.}
+The runtime of \camlname generators across different input sizes is summarized in \figref{fig:time}. 
+Our \camlname type-derived BST generator achieves speedups ranging from 8\% to 29.8\%, which increase 
+dramatically to 515--865\% when combined with \csplitmix. The insertion-based BST generator sees 
+13--21\% speedups with staging alone, and 332--435\% when also 
+using \csplitmix. The single-pass BST generator benefits more significantly from 
+staging, with speedups of 131--134\%, which rise to 761--795\% when combined with 
+\csplitmix. We attribute the differential in performance speedup to the fact that 
+BST strategies rely on relatively few calls to generator combinator functions, 
+but sample extensively from the \rand; notably, single-pass BST, which uses the largest
+number of calls to generator combinators, also sees the greatest benefit from staging. 
+
+For STLC, staging accounts for the bulk of performance gains, yielding
+ 71--164\% speedups for the type-derived STLC generator, and 360--446\% for 
+ the well-typed generator. When adding \csplitmix, these numbers increase to 
+ 160--415\% and 383--675\%, respectively. This result makes sense because
+ STLC generators, particularly the well-typed generator, sample very little from
+ randomness libraries, but extensively on generator library functions.
+
+The boolean list generator experiences 261--610\% speedups with 
+staging, and its performance actually slightly \textit{decreases} when 
+combined with \csplitmix (243--583\%). This is likely because sampling 
+booleans is ``cheap'' enough that the overhead of crossing the FFI barrier is 
+greater than that of generating values directly in OCaml.
+
+\tr{We might put a graph of calls to generator library functions vs. speedup here, but
+I'm not sure it's worth it---thoughts?}
 
 As shown in \figref{fig:scala}, \scalaname achieves an even greater performance 
 gain---purely from staging---over ScalaCheck than \camlname does over \bq. This discrepancy arises from
@@ -1502,7 +1518,7 @@ these results give strong evidence that \camlname consistently benefits bug-find
 \end{figure}
 \begin{figure}[h]
   \includegraphics[scale=0.35]{swarm.png}
-  \caption{Swarm distribution of individual-task speedups across strategies and benchmarks, gray dots represent tasks. Plots with extremely low variance have no swarm overlay; in plots with high variance, outliers correspond to large speedups. \tr{Make mean higher-contrast.}}
+  \caption{Swarm distribution of individual-task speedups across strategies and benchmarks---gray dots represent tasks. Plots with extremely low variance have no swarm overlay; in plots with high variance, outliers correspond to large speedups. \tr{Make mean higher-contrast.}}
   \label{fig:swarm}
 \end{figure}
 
