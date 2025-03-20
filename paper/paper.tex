@@ -1405,14 +1405,14 @@ workloads.
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
   \includegraphics[scale=0.45]{time.png}
-  \caption{Time to generate a value using each strategy, averaged over 10,000 trials. Performance benefits scale with generation size; lower is better. BQ is \bq; Staged SR is \camlname using \bq's \texttt{splittable\_random} RNG; Staged CSR is \camlname using \secref{subsection:faster-rng}'s \csplitmix.}
+  \caption{Time to generate a varying-size value using each strategy, averaged over 10,000 trials. Performance benefits scale with generation size; lower is better. BQ is \bq; Staged SR is \camlname using \bq's \texttt{splittable\_random} RNG; Staged CSR is \camlname using \secref{subsection:faster-rng}'s \csplitmix.}
   \label{fig:time}
 \end{figure}
 
 \begin{figure}[h]
   \centering
   \includegraphics[scale=0.32]{scala.png}
- \caption{Staging in ScalaCheck shows greater speedups than in \bq. SC is ScalaCheck; BQ is \bq.}
+ \caption{\scalaname has better performance relative to ScalaCheck than \camlname relative to \bq. SC is ScalaCheck; BQ is \bq. Comparison is for a fixed size of 100.}
  \label{fig:scala}
  \end{figure}
 
@@ -1474,13 +1474,13 @@ Overall,
 these results give strong evidence that our technique consistently benefits bug-finding ability, sometimes drastically.
 \begin{figure}[h]
   \includegraphics[scale=0.333]{speedup.png}
-  \caption{Geometric average of all speedups for each strategy and benchmark, showing that staging leads to better bug-finding ability across the board.}
+  \caption{Geometric average of all speedups---relative to BQ---for each strategy and benchmark, showing that staging leads to better bug-finding ability across the board.}
   \label{fig:etna}
 \end{figure}
 
 \begin{figure}[h]
   \includegraphics[scale=0.41]{swarm.png}
-  \caption{Swarm distribution of individual-task speedups across strategies and benchmarks (each black dot is a task). Plots with extremely low variance have no swarm overlay; in plots with high variance, outliers correspond to large speedups. \tr{Make mean higher-contrast.}}
+  \caption{Swarm distribution of individual-task speedups across strategies and benchmarks, black dots represent tasks. Plots with extremely low variance have no swarm overlay; in plots with high variance, outliers correspond to large speedups. \tr{Make mean higher-contrast.}}
   \label{fig:swarm}
 \end{figure}
 
