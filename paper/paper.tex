@@ -1113,19 +1113,19 @@ well, or just the type signature?}
 
 To support real monadic programming, we'll need to adjust the type of \texttt{'a Gen.t} slightly.
 An initial attempt is to try \texttt{type 'a t = int code -> SR.t code -> 'a}. If we strip the \texttt{code} off the result type,
-the functions \texttt{return (x : 'a) = fun \_ \_ -> x} and \texttt{bind (g : 'a t) (k : 'a -> 'b t) = fun size random -> k (g size random) size random}
+the functions \texttt{return (x : 'a) = fun \_ \_ -> x} and \texttt{bind g k = fun size seed -> k (g size seed) size seed}
 have the proper types for a monad instance. Then, any combinators of type \texttt{'a Gen.t} before simply become \texttt{'a code Gen.t} with this new version.
 
 However, this definition of bind doesn't have call-by value effect semantics, as
-discussed in the previous section!  And because the type of \texttt{g size random} is
-just \texttt{'a} (not necessarily \texttt{'a code}), we cannot perform the
+discussed in the previous section!  And because the type of \texttt{g size seed} is
+now just \texttt{'a} (not necessarily \texttt{'a code}), we cannot perform the
 let-insertion needed to preserve the CBV effects. To solve this problem, we
 turn to a classic technique from the multistage programming literature: writing
 our staged programs in continuation-passing style \cite{bondorf92}.
 \hg{Slow down! This is all very interesting and very technical! Try making each
 of these sentences two sentences, add some citations, and maybe spell this out
 wiht an example}
-\jwc{I could, but i'm just not sure this is critical. In particular, every time I've ever seen this presented in a paper they just drop it and move on. It's too deep in the weeds for it to be worth explaining, too... nobody's going to read this section except staging fans}
+\jwc{I could, but i'm just not sure this is important. It's too deep in the weeds for it to be worth explaining, too... nobody's going to read this section except staging fans}
 
 In Figure~\ref{fig:codecps-and-final-gen}, we follow prior work \cite{kovacs24, carrette05} and define
 the type \texttt{'a CodeCps.t = 'z. ('a -> 'z code) -> 'z code}: a polymorphic continuation transformer with the result type
@@ -1151,7 +1151,6 @@ effect ordering: effectful combinators like \texttt{Gen.int} do their \emph{own}
 that a program like \texttt{Gen.bind Gen.int (fun x -> ...)} generates a let-binding for the result of sampling the randomness library.
 For example, \lstinline{bind (int .<0>. .<1.>) (fun cx -> return .<(.~cx,.~cx)>.)} now correctly generates
 \lstinline{.< fun size random -> let x = SR.int random 0 1 in (x,x) >.}.
-
 This design is less obviously correct, and does require some care. Rather than \texttt{bind} ensuring correct evaluation order once and for all,
 individual combinators must be carefully written to ensure that \texttt{'a code} values that contian effects are \texttt{let\_insert}'d.\footnote{To ensure that the OCaml code is written correctly, we employ a PBT harness to compare its outputs to the corresponding \bq generator over 1,000 random seeds. 
 If no discrepancy arises, we conclude that the generators exhibit equivalent behavior.}
@@ -1219,10 +1218,8 @@ end
 \jwc{Generating recursive datatypes requires recursive generators!}
 
 Different generator DSLs handle defining recursive generators differently. Some allow recursive generators
-to be defined as recursive functions (or in Haskell's case, recursive values), while others
-(like \bq) expose a fixpoint combinator to construct recursive generators.
-Generator fixpoint combinators are simliar to a usual \texttt{fix : ('a -> 'a) -> 'a} combinator,
-except that they operate at monadic type \texttt{fixed\_point : ('a Bq.t -> 'a Bq.t) -> 'a Bq.t}.
+to be defined as recursive functions, while others
+(like \bq and ScalaCheck) expose a fixpoint combinator to construct recursive generators.
 Given a step function that takes a ``handle'' to sample from a recursive generator call, it
 ties the knot and builds a recursive generator.
 
@@ -1237,7 +1234,6 @@ recursive combinators, of type \texttt{'r code -> 'a code Gen.t}, for any type \
 The code for this combinator can be found in Appendix~\jwc{appendix}.
 The recursion API consists of an opaque type \texttt{'a handle}, and a function \texttt{recurse} to perform recursive calls.
 Programmers can then define recursive generators by \texttt{fixed\_point}, which ties the recursive knot.
-\jwc{don't want to handle GADTs}
 
 % \begin{lstlisting}
 %   type ('a,'r) handle = 'r code -> 'a code t
