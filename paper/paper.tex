@@ -925,7 +925,7 @@ end
 \end{figure}
 
 Returning to our running example, Figure~\ref{fig:running-staged} shows the
-int-pair example written with the staged \texttt{Gen.t} monad, as well as the
+int-pair generator written with the staged \texttt{Gen.t} monad, as well as the
 inlined code that results from calling \texttt{Gen.to\_bq} (changing some identifier names for clarity).
 The code generated is identical to the manually inlined version from Section~\ref{section:motiv}, and of course runs equally fast.
 
@@ -950,8 +950,6 @@ let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
 \ref{fig:running-staged}
 \end{figure}
 
-\jwc{Is there anything more we need to say here?}
-
 \subsection{Staging Combinators}
 
 In Section~\ref{section:motiv}, we noted that generator combinators like \texttt{weighted\_union}
@@ -969,7 +967,7 @@ run time.
 \begin{lstlisting}
 module Gen =
 $\dots$
-  let pick (acc : int code) (weighted_gens : (int code * 'a t) list) (size : int code) (random : Sr.t code) : 'a code =
+  let pick (acc : int code) (weighted_gens : (int code * 'a t) list) size random : 'a code =
     match weighted_gens with
     | [] -> .< failwith "Error" >.
     | (wc,g) :: gens' ->
@@ -998,23 +996,27 @@ Crucially, it takes a \emph{compile-time} list \texttt{weighted\_gens} of
 generators and weights. The weights themselves might only be known at run time --- it is
 common to use the current size parameter as a weight, for instance ---
 so they are \texttt{code}s.
-\texttt{Gen.weighted\_union} begins by computing \texttt{sum\_code}, an \texttt{int code}
-that is the sum of the weights. Note that this happens at compile time: we fold over a list
-known at compile time to produce another code value. 
-We then call \texttt{SR.int} to sample a random number \texttt{r} between \texttt{0} and the sum.
-Finally, we splice in the result of calling the helper function \texttt{pick}. \texttt{pick}
-produces a tree of \texttt{if}s by again traversing the list of generators at compile time.
-This tree of \texttt{ifs} ``searches'' for the generator corresponding to the
-sampled value \texttt{r}, and then runs it.
-\hg{I'm not sure this helps me. I think I'd prefer a less detailed explanation
-of the code that conveys the intuition and let the reader actually read the code
-if they want to know specifics. As it stands the explanation is just too dense
-for me to process}
+Instead of building a histogram of the distribution described by the weights at run time and then traversing it,
+the compile time \texttt{weighted\_union} combinator generates a
+tree of \texttt{if}s --- specialized to the list of weights known at compile time --- that searches for the selected generator.
+
+% \texttt{Gen.weighted\_union} begins by computing \texttt{sum\_code}, an \texttt{int code}
+% that is the sum of the weights. Note that this happens at compile time: we fold over a list
+% known at compile time to produce another code value. 
+% We then call \texttt{SR.int} to sample a random number \texttt{r} between \texttt{0} and the sum.
+% Finally, we splice in the result of calling the helper function \texttt{pick}. \texttt{pick}
+% produces a tree of \texttt{if}s by again traversing the list of generators at compile time.
+% This tree of \texttt{ifs} ``searches'' for the generator corresponding to the
+% sampled value \texttt{r}, and then runs it.
+% \hg{I'm not sure this helps me. I think I'd prefer a less detailed explanation
+% of the code that conveys the intuition and let the reader actually read the code
+% if they want to know specifics. As it stands the explanation is just too dense
+% for me to process}
 
 Figure~\ref{fig:staged-weighted-union-example} demonstrates a use of this staged weighted union.
 Given a list (in this case constant) generators with weights ``the current size parameter'', \texttt{2}, and \texttt{1},
 the generated code first computes the sum of these numbers, samples between \texttt{0} and the sum, and then
-traverses a tree of three \texttt{if}s to find the correct value to return.
+traverses the tree of three \texttt{if}s to find the correct value to return.
 
 \begin{figure}
 \begin{lstlisting}
@@ -1031,15 +1033,11 @@ let grades : char Bq.t = Gen.to_bq (
 .< fun size random ->
     let sum = size + 2 + 1 + 0 in
     let r = SR.int random 0 sum in
-    if r <= size then 'a'
-    else
+    if r <= size then 'a' else
       let r' = r - size in
-      if r' <= 2 then 'b'
-      else
+      if r' <= 2 then 'b' else
         let r'' = r' - 2 in
-        if r'' <= 1 then 'c'
-        else
-          failwith "Error"
+        if r'' <= 1 then 'c' else failwith "Error"
 >.
 *)
 \end{lstlisting} 
