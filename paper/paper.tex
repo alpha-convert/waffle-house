@@ -1314,7 +1314,7 @@ discussed in the previous sections.
 \section{Evaluation}
 \label{section:eval}
 % \jwc{Initial section here about eval}\tr{todo}
-All experiments were run on a 64-bit Linux machine with 264 GB RAM and an Intel Xeon Platinum 8375C CPU, running Ubuntu 24.04.1 LTS. The OCaml version of \name and all OCaml benchmarks
+All experiments were run on a 64-bit Linux machine with 264 GB RAM and an Intel Xeon Platinum 8375C CPU, running Ubuntu 24.04.1 LTS. \camlname and all OCaml benchmarks
 were compiled with 4.14.1+BER MetaOCaml \texttt{ocamlopt}, the native code compiler for OCaml, using compiler flag \texttt{-O3}.
 The baseline OCaml generators were written with \bq{} 0.16.
 \scalaname{} and all Scala benchmarks
@@ -1363,7 +1363,7 @@ combinators. \tr{Goal is to replace this paragraph with the ref-counting
 chart---I think it will be WAY less boring. But I need to do 3.7 first.}
 
 As shown in \figref{fig:scala}, \scalaname achieves an even greater performance 
-gain---purely from staging---over ScalaCheck than \name does over \bq. This discrepancy arises from
+gain---purely from staging---over ScalaCheck than \camlname does over \bq. This discrepancy arises from
 ScalaCheck's representation of generators as functions of type \texttt{size ->
 seed -> Option[A]}. Each generator combinator must construct and then
 pattern-match on these \texttt{Option} values, introducing significant boxing
@@ -1384,7 +1384,7 @@ workloads.
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
   \includegraphics[scale=0.45]{time.png}
-  \caption{Time to generate a value using each strategy, averaged over 10,000 trials. Performance benefits scale with generation size; lower is better. BQ is \bq; Staged SR is \name using \bq's \texttt{splittable\_random} RNG; Staged CSR is \name using \secref{subsection:faster-rng}'s \csplitmix.}
+  \caption{Time to generate a value using each strategy, averaged over 10,000 trials. Performance benefits scale with generation size; lower is better. BQ is \bq; Staged SR is \camlname using \bq's \texttt{splittable\_random} RNG; Staged CSR is \camlname using \secref{subsection:faster-rng}'s \csplitmix.}
   \label{fig:time}
 \end{figure}
 
@@ -1482,7 +1482,7 @@ as opposed to picking up any suitable option off the shelf.
 
 Next, we discuss language-by-language the degree to which the \name{} insights about staging could be used.
 \begin{itemize}
-  \item \textbf{Racket} is the next target that we intend to test the \name{} methodology on.
+  \item \textbf{Racket} is the next target that we intend to test on.
   The entire Racket philosophy is intertwined with
   using macros to build small eDSLs like the ones we use to write generators, and so it is a natural fit. Indeed,
   there are at least two \cn{} PBT libraries in Racket.
@@ -1490,7 +1490,7 @@ Next, we discuss language-by-language the degree to which the \name{} insights a
   For this reason, we --- the authorship team of this paper, devoid of much Racket expertise --- decided to not use Racket as a test case in this paper.
 
   \item \textbf{Haskell} is home to the original PBT implementation \cn{}, and
-  so it is natural to ask why we have not yet applied \name{} to it. The basic
+  so it is natural to ask why we have not built a \name{} in it yet. The basic
   answer is that the Haskell compiler (GHC) is designed specially to eliminate
   the run-time overhead of monadic abstractions! Indeed, because Haskell is
   pure, GHC can aggressively inline and beta-reduce nearly anything as part of
@@ -1500,14 +1500,14 @@ Next, we discuss language-by-language the degree to which the \name{} insights a
   to performance overheads for monadic code.  For this reason, Haskell does have
   a multi-stage programming system called Template Haskell \cn{}, which is
   sometimes to build eDSLs in contexts where one does not want to rely on the
-  optimizer's heuristics.  In short: it is possible to apply \name{} to Haskell
+  optimizer's heuristics.  In short: it is possible to build a \name{} version of Haskell
   QuickCheck, but the benefits would be much less pronounced.
   
   \item \textbf{Rust} shares some similarities with functional languages, and
   indeed, it is host to a number of property-based testing libraries \cn{}. However Rust does not
   structurally encourage monadic eDSLs --- it does not have a special monadic syntax --- and so
   PBT libraries in Rust ask programmers to define generators directly as \texttt{seed -> value} functions.
-  For this reason, \name{} does not seem directly applicable to any of the PBT libraries in Rust.
+  For this reason, staging does not seem directly applicable to any of the PBT libraries in Rust.
 \end{itemize}
 
 \section{Related Work}
