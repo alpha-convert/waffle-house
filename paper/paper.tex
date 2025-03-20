@@ -1346,13 +1346,16 @@ discussed in the previous sections.
 \section{Evaluation}
 \label{section:eval}
 % \jwc{Initial section here about eval}\tr{todo}
-All experiments were run on a 64-bit Linux machine with 264 GB RAM and an Intel Xeon Platinum 8375C CPU, running Ubuntu 24.04.1 LTS. \camlname and all OCaml benchmarks
-were compiled with 4.14.1+BER MetaOCaml \texttt{ocamlopt}, the native code compiler for OCaml, using compiler flag \texttt{-O3}.
-The baseline OCaml generators were written with \bq{} 0.16.
-\scalaname{} and all Scala benchmarks
-were run on Scala 3.6.3
-and OpenJDK 21.0.6, using ScalaCheck version 1.17 as the baseline.
-We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for generator performance microbenchmarking.
+To assess the impact of our approach, we evaluate the performance and bug-finding speed of 
+\name generators across a range of benchmarks. Our experiments compare generators 
+built using our technique against those implemented with standard generator combinators, 
+both with and without \csplitmix. Specifically, we implement two fully semantically 
+equivalent staged generator libraries that replicate the behavior of \bq 
+in OCaml and ScalaCheck in Scala. This allows us to assess the effectiveness of our 
+technique across different languages and runtime environments, ensuring a fair comparison 
+with existing combinator-based approaches.
+
+This section presents our experimental setup, details on the benchmarking tools and environments, and answers to the following research questions:
 
 To evaluate our contributions, this section answers the following research questions:
 \begin{itemize}
@@ -1360,6 +1363,14 @@ To evaluate our contributions, this section answers the following research quest
   \item \textbf{RQ2}: Do performance speedups translate to better bug-finding speed?
   % \item \textbf{RQ3}: Does our technique generalize to other strict functional languages?
 \end{itemize}
+
+All experiments were run on a 64-bit Linux machine with 264 GB RAM and an Intel Xeon Platinum 8375C CPU, running Ubuntu 24.04.1 LTS. \camlname and all OCaml benchmarks
+were compiled with 4.14.1+BER MetaOCaml \texttt{ocamlopt}, the native code compiler for OCaml, using compiler flag \texttt{-O3}.
+The baseline OCaml generators were written with \bq{} 0.16.
+\scalaname{} and all Scala benchmarks
+were run on Scala 3.6.3
+and OpenJDK 21.0.6, using ScalaCheck version 1.17 as the baseline.
+We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for generator performance microbenchmarking.
 
 \subsection{Benchmarking Generator Speed}
 \label{subsection:benchmarking}
