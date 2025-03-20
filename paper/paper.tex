@@ -1368,14 +1368,14 @@ one that materializes the tree in a single pass by generating keys, values, and
 subtrees at each step; a generator of boolean lists that operates similarly to
 the single-pass BST strategy; and a custom, correct-by-construction generator of
 STLC terms, whose behavior is the most complex. 
-For evaluating \scalaname, we implement a subset of the afformentioned 
+For evaluating \scalaname, we implement a subset of the aformentioned 
 strategies---only the boolean list generator, single-pass BST generator, and well-typed STLC term generator.
 
 The runtime of the \camlname generators over a range of sizes is shown in
 \figref{fig:time}. Staging provides only a negligible speedup for type-derived
 and insertion-based BST strategies, whose overhead is dominated by random
 sampling. In this case, performance improvement is primarily attributable the
-\csplitmix \rand.  In contrast, STLC strategies benefit more from staging, as
+\csplitmix \rand.  In contrast, the STLC strategies benefit more from staging, as
 they involve fewer sampling operations but rely heavily on generator
 combinators. The same holds for boolean lists, as sampling booleans is
 inexpensive relative to integers. Our single-pass BST strategy falls somewhere
@@ -1436,8 +1436,7 @@ with an ordering property, a bug injection might consist of inserting a value
 into the tree that violates that ordering. Each case study includes a diverse
 set of \textit{tasks}, where a task consists of a specific bug-property pair
 designed to test different aspects of the system (e.g., BST includes tasks that
-test insertion, deletion, and union operations on binary search trees). In our
-case, BST has 43 tasks, and STLC has 18.
+test insertion, deletion, and union operations on binary search trees). In particular, BST has 43 tasks, and STLC has 18.
 
 Strategies for BST and STLC are unchanged from \secref{subsection:benchmarking}.
 To ensure a fair comparison, we initialize each strategy with the same random
@@ -1447,7 +1446,7 @@ this limit, the task is considered unsolved.  Tasks where all strategies fail to
 find the bug are excluded from our dataset, as they provide no basis for
 comparison.  Similarly, we exclude tasks where the BQ strategy completes in
 under 5ms, as such negligible runtimes do not yield meaningful insights into
-relative performance. These filters ensure that reported speedups are based on
+relative performance. \tr{We probably want to discuss how many tasks get filtered out...} These filters ensure that reported speedups are based on
 cases where optimization has a measurable impact.
 
 
@@ -1458,7 +1457,7 @@ the ``speedup''. This works in most cases, but it is not perfect.  For example,
 it is theoretically possible to choose a seed such that the \textit{first} value
 produced by a generator discovers the bug, which would elide any differential
 speedup (and likewise if both generators fail to find the bug).  To account for
-these cases, we repeat the above process over 10 seeds.\footnote{Although the
+these cases, we repeat the above process over 10 \tr{(soon to be 30)} seeds.\footnote{Although the
 variance \textit{between} seeds in Etna can be vast, timing results are
 replicable for a \textit{given} seed. Across 1,000 trials using the same seed, 
 the observed variance in time-to-failure was less than a nanosecond.}
@@ -1470,7 +1469,7 @@ substantial variability, with most tasks clustering near the median and a long t
 achieving much larger gains. STLC shows a more bimodal distribution of speedups
 than the other benchmarks, which we attribute to the heterogenous difficulty of its tasks:  
 some tasks regularly hit the 60-second timeout, while others finish in a fraction of a second. We find that tasks of intermediate difficulty 
-tend to achieve larger speedups, whereas very fast or slow tasks cluster near the mean.
+tend to achieve larger speedups, whereas very fast or slow tasks cluster near the mean. \tr{To be honest, we don't know EXACTLY why STLC exhibits this bimodal distribution. Maybe it's better to leave this out, and just say ``look, there's high variance, but it's actually a good thing---sometimes you get more than you expect, and you almost never get less than you expect"?}
 Overall, 
 these results give strong evidence that our technique consistently benefits bug-finding ability, sometimes drastically.
 \begin{figure}[h]
