@@ -1364,7 +1364,7 @@ This section presents our experimental setup, and answers to the following resea
   % \item \textbf{RQ3}: Does our technique generalize to other strict functional languages?
 \end{itemize}
 
-All experiments were run on a 64-bit Linux machine with 264 GB RAM and an Intel Xeon Platinum 8375C CPU, running Ubuntu 24.04.1 LTS. \camlname and all OCaml benchmarks
+All experiments were run on a 64-bit Linux machine with 264 GB RAM and a 128-core Intel Xeon Platinum 8375C CPU, running Ubuntu 24.04.1 LTS. \camlname and all OCaml benchmarks
 were compiled with 4.14.1+BER MetaOCaml \texttt{ocamlopt}, the native code compiler for OCaml, using compiler flag \texttt{-O3}.
 The baseline OCaml generators were written with \bq{} 0.16.
 \scalaname{} and all Scala benchmarks
@@ -1450,7 +1450,10 @@ workloads.
 \begin{figure}[h]
   \centering
   \includegraphics[scale=0.32]{scala.png}
- \caption{\scalaname has better performance relative to ScalaCheck than \camlname relative to \bq. SC is ScalaCheck; BQ is \bq. Comparison is for a fixed size of 100.}
+ \caption{
+  \jwc{Don't explain the chart in the caption, split this into two different charts --- purple on one, green on the other.}
+  \jwc{Also can we use the language's colors for this?}
+  \scalaname has better performance relative to ScalaCheck than \camlname relative to \bq. SC is ScalaCheck; BQ is \bq. Comparison is for a fixed size of 100.}
  \label{fig:scala}
  \end{figure}
 
