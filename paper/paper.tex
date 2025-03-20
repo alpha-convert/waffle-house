@@ -1267,6 +1267,17 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
 
 
 \subsection{Staged Type-Derived Generators}
+
+Generators are traditionally handwritten, but some libraries allow users to synthesize 
+them automatically from type definitions. Type-derived generators are highly 
+convenient---the derivation process requires no manual effort---but also limitated: 
+they are unable to account for constraints absent from the type. 
+As a result, generating correct values with complex preconditions is difficult.
+This trade-off can be deceptive, especially for inexperienced PBT users, who might derive a generator, run their test harness, find no bugs, and assume the code is correct---when in reality, most values are never tested at all because they do not satisfy the preconditions.
+
+This makes type-derivation a particularly elegant target of \name. Since the process of type derivation is completely automatic,
+the end user does not need to understand the staging syntax---but more importantly, \tr{TODO}
+
 \label{subsection:type-derived}
 \jwc{
   \begin{itemize}
@@ -1366,7 +1377,7 @@ using the approach outlined in \secref{subsection:type-derived}; two custom BST
 generators, one that repeatedly inserts values into an initially empty tree and
 one that materializes the tree in a single pass by generating keys, values, and
 subtrees at each step; a generator of boolean lists that operates similarly to
-the single-pass BST strategy; and a custom, correct-by-construction generator of
+the single-pass BST strategy; and a well-typed generator of
 STLC terms, whose behavior is the most complex. 
 For evaluating \scalaname, we implement a subset of the aformentioned 
 strategies---only the boolean list generator, single-pass BST generator, and well-typed STLC term generator.
@@ -1479,7 +1490,7 @@ these results give strong evidence that our technique consistently benefits bug-
 \end{figure}
 
 \begin{figure}[h]
-  \includegraphics[scale=0.41]{swarm.png}
+  \includegraphics[scale=0.26]{swarm.png}
   \caption{Swarm distribution of individual-task speedups across strategies and benchmarks, black dots represent tasks. Plots with extremely low variance have no swarm overlay; in plots with high variance, outliers correspond to large speedups. \tr{Make mean higher-contrast.}}
   \label{fig:swarm}
 \end{figure}
