@@ -756,8 +756,8 @@ While embedded DSLs are powerful tools, they have well-known drawback:
 the functional abstractions used to build eDSLs prevent compilers from generating efficient machine code \cn.
 This effect is known as ``abstraction overhead'' \cite{carrette05, moller20}: the layers of abstraction that 
 make eDSLs so usable are precisely what prevents them from being fast.
-Indeed, the root causes of the abstraction overheads we discovered in Section~\ref{section:motiv} are
-not unique to generator libraries.
+Indeed, the root causes of many of the issues we discovered in Section~\ref{section:motiv} are
+not unique to generator DSLs.
 In light of this issue, staging is often used as a lightweight compiler for DSLs. The compile-time evaluation stage
 transforms the DSL code, eliminating abstractions to produce code that the host language compiler can generate fast machine code for.
 This recipe has been used to great effect across domains to stage eDSLs for stream processing \cite{moller20,strymonas}, parser combinators \cite{sspc, staged-parsers, krishnaswami19, flap},
@@ -765,7 +765,6 @@ and query processing \cite{rhyme}.
 
 Many languages have some degree of staging functionality, though support varies
 from full native support (Scala 3 \cite{scalamacros}, Haskell \cite{templatehaskell}, \jwc{Racket??}) to compiler extensions (OCaml \cite{metaocaml,macocaml}, Java \cite{mint}).
-Moreover, many more languages have lighter-weight staging-like metaprogramming support in the form of macros.
 For this paper, we have implemented staged PBT libraries both in OCaml --- using the MetaOCaml fork of the OCaml compiler \cn --- and Scala 3 --- using
 \texttt{scala.quoted}. For presentation purposes, all staged code presented in the body of this paper is \camlname{} code written in OCaml:
 \scalaname{} differs almost entirely in syntax alone.
