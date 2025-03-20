@@ -1467,7 +1467,7 @@ workloads.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[scale=0.32]{scala.png}
+  \includegraphics[scale=0.4]{scala.png}
  \caption{
   \jwc{Don't explain the chart in the caption, split this into two different charts --- purple on one, green on the other.}
   \jwc{Also can we use the language's colors for this?}
@@ -1497,7 +1497,7 @@ set of \textit{tasks}, where a task consists of a specific bug-property pair
 designed to test different aspects of the system (e.g., BST includes tasks that
 test insertion, deletion, and union operations on binary search trees). 
 In particular, BST has 37 tasks, and STLC has 20. Strategies for BST and STLC 
-are implemented in 
+are implemented in
 \camlname; they are unchanged from their description in \secref{subsection:benchmarking}.\footnote{Etna does 
 not support Scala, so we were unable to test \scalaname's bug-finding speed in Etna, but we
 we see no reason our results in this section would not extend to \scalaname.}
@@ -1540,18 +1540,18 @@ achieving much larger gains. STLC shows a more bimodal distribution of speedups
 than the other benchmarks, which we attribute to the heterogenous difficulty of its tasks:  
 some tasks regularly hit the 60-second timeout, while others finish in a fraction of a second. We 
 find that ``easier'' tasks---those that run on the order of milliseconds---regularly achieve speedups in the 
-range of 4--9X, whereas tasks that run on the order of seconds achieve more moderate speedups of up to 3.5X.
+range of 4--9x, whereas tasks that run on the order of seconds achieve more moderate speedups of up to 3.5x.
 Overall, 
 these results give strong evidence that \camlname consistently benefits bug-finding speed, sometimes drastically.
 \begin{figure}[h]
-  \includegraphics[scale=0.333]{speedup.png}
+  \includegraphics[scale=0.3]{speedup.png}
   \caption{Geometric average of all speedups---relative to BQ---for each strategy and benchmark, showing that staging leads to better bug-finding speed across the board.
   \jwc{Charts start at one? Can eliminate the BQ bar}
   }
   \label{fig:etna}
 \end{figure}
 \begin{figure}[h]
-  \includegraphics[scale=0.35]{swarm.png}
+  \includegraphics[scale=0.31]{swarm.png}
   \caption{Swarm distribution of individual-task speedups across strategies and benchmarks---gray dots represent tasks. Plots with extremely low variance have no swarm overlay; in plots with high variance, outliers correspond to large speedups. \tr{Make mean higher-contrast.}}
   \label{fig:swarm}
 \end{figure}
