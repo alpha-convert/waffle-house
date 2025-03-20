@@ -341,11 +341,10 @@ We make the following contributions:
     that these performance improvements extend to significantly improved bug-finding ability. \jwc{This should be sell-ier: 2x speedups, etc. ``bug-finding ability'' isn't a race against time.}
 \end{enumerate}
 
-\jwc{Ensure we have a signposting table-of-contents-ish few sentences here, if it's not covered by the contribs.}\todo{Todo Thia}
 In Section~\ref{section:motiv}, we introduce monadic generator DSLs, discuss how they work, and take an example-guided tour through some of the ways that
 they are slower than is possible.
 Then, in Section~\ref{section:faster-generators}, we explain multi-stage programming,
-and develop \name{}, illustrated by \camlname{}.
+and develop both facets of \name{}, using \camlname{} to illustrate.
 Section~\ref{section:eval} evaluates all of the previous work, demonstrating the generator performance improvements
 and how they lead to much faster bug finding.
 
@@ -353,9 +352,8 @@ and how they lead to much faster bug finding.
 \label{section:motiv}
 % \jwc{In this section we answer: ``What are monadic generator libraries, and why are they slow?''}
 % \bcp{That's actually not a bad section title!}
-\todo{Intro of this section}
 
-\subsection{Background: Monadic Generator DSLs}
+% \subsection{Background: Monadic Generator DSLs}
 
 Since property-based testing was first introduced in Haskell's QuickCheck
 library~\cite{claessenQuickCheckLightweightTool2000}, {\em generators} have been
@@ -390,7 +388,7 @@ end
 
 While many DSL designs are possible, the standard design for QuickCheck-style
 generators is via an embedded {\em monadic} language. For the purposes of this
-paper, we use the syntax from OCaml's \bq library, which is presented in
+paper, we use the syntax and types from OCaml's \bq library, which is presented in
 Figure~\ref{fig:bq-api}, but these kinds of DSLs can also be found in languages
 like Haskell, Scala, Python, and many more.
 The library provides some basic generators, for
@@ -482,7 +480,7 @@ particularly well-used one: it makes making a weighted choice between different
 generators, allowing the developer to combine different sub-generators into a
 single program and tune the data distribution. Also important are functions like
 \texttt{size} and \texttt{with\_size} that are used to control the sizes of
-generated values and \texttt{fixed\_point} that is used tto define recursive
+generated values and \texttt{fixed\_point} that is used to define recursive
 generators.
 
 \begin{wrapfigure}{r}{.5\textwidth}
@@ -518,17 +516,14 @@ taking an \texttt{int} representing the current size parameter and a random seed
 and returning a generated value \texttt{'a}. It is an invariant of the library that function of this type are
 deterministic: for a fixed size and seed, it will return the same value. All of the randomness in testing comes from varying the initial seed.
 The monad functions \texttt{return} and \texttt{bind} are defined in the usual way
-for an instance of the reader monad \cn{}. \texttt{Return x} ignores the size and seed and just returns
-\texttt{x}, while \texttt{bind g k} first runs \texttt{g} and then passes the generated value to the continuation \texttt{k}.
-\bq{} uses a mutable seed, so the \texttt{random} passed to \texttt{(k a)} will be different from the one passed to \texttt{g}.
+for an instance of the reader monad \cn{}. 
+% \bq{} uses a mutable seed, so the \texttt{random} passed to \texttt{(k a)} will be different from the one passed to \texttt{g}.
 The \texttt{gen\_int} combinator simply calls out to the randomness library \texttt{Splittable\_random}, aliased as \texttt{SR} here.
-\jwc{Should we do this?}
 
-Different PBT libraries use variations on this basic design. Haskell's QuickCheck uses a reader monad with an immutable state
+Different PBT libraries use variations on this basic design. The largest source of variation is how the random seed is threaded through the generator.
+\bq{} uses a reader monad with a mutable seed, while Haskell's QuickCheck uses a reader monad with an immutable state
 that is ``split'' at \texttt{bind}s \cn. Meanwhile, ScalaCheck (a) uses an immutable state type and state monad \cn{} to thread
 the state through, and (b) has an \texttt{Option} as its return type, to allow generation to fail.
-\jwc{However, the principles are the same, and we will use \bq{} to illustrate.}
-
 
 \begin{figure}
 \begin{lstlisting}
@@ -555,7 +550,6 @@ illustrate, let's return to our running example of a constrained pair of
 integers, written in both \bq{} and ScalaCheck.
 Figure~\ref{fig:overhead-explanation-code} shows two versions of the generator, written in both languages.
 The first versions (\texttt{int\_pair} in \bq{} and \texttt{intPair} in ScalaCheck) are written with the monadic generator combinators from their respective libraries.
-\jwc{Maybe we can avoid rewriting these if we already showed them earlier? Also maybe we duplicate the tutorial discussion of monadic generator libraries to include Scala?}
 The second versions (\texttt{int\_pair\_inlined} and \texttt{intPairInlined})
 are semantically identical to the first, but have been rewritten
 by (1) inlining all generator combinator definitions, and then (2)
@@ -620,7 +614,7 @@ transformations of this form.}.  Even in cases as simple as
 Figure~\ref{fig:overhead-explanation-code}, the indirection of \texttt{return}
 and \texttt{bind} causes these heuristics to not fire.  Moreover, the story is
 even worse for recursive generators, as the heuristics are necessarily even more
-conservative for optimizing recursive functions. \jwc{unclear if we need this sentence, it's sorta obvious}
+conservative for optimizing recursive functions.
 
 \begin{figure}
   \begin{tabular}{lll}
@@ -636,7 +630,7 @@ conservative for optimizing recursive functions. \jwc{unclear if we need this se
 
 While neither of these microbenchmarks exhibit this behavior, more complex
 generators suffer further performance penalties due to \emph{closure
-allocation}. In cases where the compiler cannot statically eliminate it \jwc{``it'' = ``the allocation''},
+allocation}. In cases where the compiler cannot statically eliminate it,
 running a monadic bind allocates a short-lived closure: we allocate a closure
 for the continuation, and then immediately jump into it.
 In strict functional languages like OCaml and Scala,
@@ -667,7 +661,7 @@ the options for which are always known.
 This list is allocated at the call site, and then \emph{immediately}
 destructed by the function. In principle, since the elements of the list and its length $n$ are known statically,
 a compiler could unroll the loops in \texttt{weighted\_union} to depth $n$ and specialize the function to avoid allocating the list.
-Unfortunately, almost~\jwc{Once again, GHC is a notable exception here \cn{}} no compilers perform this kind of optimization.
+Unfortunately, almost~\footnote{Once again, GHC is a notable exception here, performing sophisticated list fusion optimizations \cn{}} no compilers perform this kind of optimization.
 This allocation (or rather, its tendency to cause GC pauses) --- as well as the cost of running the code 
 to traverse arbitrary lists compared to unrolled loops --- has a significant impact on 
 performance.
@@ -683,8 +677,6 @@ perform this search, which incurs further run time overhead.
 
 % \subsubsection{Function call overhead}
 \subsection{Inefficient Randomness Libraries}
-\jwc{We really need to have explained the effect ordering equivalence aspect of the evaluation before here.}
-
 The core of any PBT generator library is a source of randomness: to generate
 random values of some datatype, we some access to random numbers!
 Different PBT libraries use different randomness libraries implementing different algorithms
@@ -706,9 +698,9 @@ Because of this, the speed of a single sample matters a great deal. Unfortunatel
 existing PBT libraries make relatively inefficient choices on this front,
 leading to worse bugfinding power than what is possible.
 
-\hg{This paragraph feels a bit clumsy right now. What if we started with a table
+\iflater\hg{This paragraph feels a bit clumsy right now. What if we started with a table
 of the RNGs used by a bunch of popular PBT frameworks and then argued that
-things like Lehmer are faster?}
+things like Lehmer are faster?}\fi
 
 For example, significantly faster algorithms than SplitMix or JSF exist,
 such as the Lehmer algorithm\cn. In microbenchmarks, the Lehmer algorithm runs almost 2x as fast as SplitMix \cn.
@@ -719,12 +711,11 @@ This is common practice in other areas of testing already:
 fuzzers often simply use a buffer full of arbitrary bytes as a source of entropy
 \cn. Such approaches are also faster than algorithms like SplitMix: bumping a
 pointer and reading from memory (which can be pipelined trivially) will always
-be faster on modern CPUs than any random sampling algorithm with data-dependent arithmetic
-instructions.\hg{Should we just always be doing this? I think we want to argue
+be faster on modern CPUs.
+\hg{Should we just always be doing this? I think we want to argue
 that this is a bridge too far because you still need to generate the buffer
 ahead of time and you can run out of randomness?}
 \jwc{HG: talk about the tradeoffs here.}
-
 \jwc{The point here is that ``you should be thinking about using a more performant RNG, we'll show you that it does have real benefits (and quantify them). But there are tradeoffs here.'}
 
 Of course, simply arguing that the randomness library is on the hot
@@ -746,11 +737,10 @@ By building a version that uses much faster ``unboxed'' 64-bit integer arithmeti
 \section{Speeding up Generator DSLs by Staging and Faster Randomness Libraries}
 \label{section:faster-generators}
 \jwc{This section needs a much better title...}
-\jwc{Emphasize that this is an \emph{COMPLETELY EQUIVALENT drop in replacement!} We din't just build a different library with different distributions.}
+% \jwc{Usual introduction to this section, corresponding to how we talked about it in the intro. ``We present a library that XYZ''.}
 
-\jwc{Usual introduction to this section, corresponding to how we talked about it in the intro. ``We present a library that XYZ''.}
+\jwc{This section needs an intro, and some signposting to say where we're going.}
 
-\hg{TODO: Signposting --- I got a few paragraphs in and realized I wasn't sure what I was reading}
 
 \subsection{Background: Multi-Stage Programming}
 \label{subsection:msp}
@@ -759,34 +749,31 @@ In Muli-stage programming (also known more simply as staging), programs execute
 over the course of multiple stages, with each stage producing the code to be run
 in the next.  This is an old idea in programming languages, with roots going
 back to quasiquotation in LISP \cn{}.  For the purposes of this paper, we will
-primarily consider two stages: compile time and run time. Staged programs thus
+primarily consider two stages, namely compile time and run time. Staged programs thus
 execute twice: once at compile time, which produces more code, which is then
 compiled and run at run time.
 
 \subsubsection{Uses of Staging in eDSL Construction}
 One of the primary uses of staging is in embedded DSL construction \cite{sheard99, lms, trattdsl}.
 \jwc{Cite racket macros for DSLs here:}
-While embedded DSLs are great \jwc{words}, they have well-known drawback: 
+While embedded DSLs are powerful tools, they have well-known drawback: 
 the functional abstractions used to build eDSLs prevent compilers from generating efficient machine code \cn.
-\jwc{Do racket people also use macros to eliminate run time overhead? Or is it just for extensibility?}
-As alluded to previously \jwc{This sentence here because of the section-ordering transpose... may need to mention this earlier.}, this effect is known as ``abstraction overhead'' \cite{carrette05, moller20}: the layers of abstraction that 
+This effect is known as ``abstraction overhead'' \cite{carrette05, moller20}: the layers of abstraction that 
 make eDSLs so usable are precisely what prevents them from being fast.
-\jwc{Something to the effect of ``the issues we noticed in BQ and SC exist across many eDSLs''}
+Indeed, the root causes of the abstraction overheads we discovered in Section~\ref{section:motiv} are
+not unique to generator libraries.
 In light of this issue, staging is often used as a lightweight compiler for DSLs. The compile-time evaluation stage
 transforms the DSL code, eliminating abstractions to produce code that the host language compiler can generate fast machine code for.
-\jwc{This previous paragraph is peak ``shitty first draft''.}
 This recipe has been used to great effect across domains to stage eDSLs for stream processing \cite{moller20,strymonas}, parser combinators \cite{sspc, staged-parsers, krishnaswami19, flap},
 and query processing \cite{rhyme}.
-\jwc{Cite racket things here}
 
 Many languages have some degree of staging functionality, though support varies
-from full native support (Scala 3 \cite{scalamacros}, Haskell \cite{templatehaskell}, Racket \cn{}) to compiler extensions (OCaml \cite{metaocaml,macocaml}, Java \cite{mint}).
+from full native support (Scala 3 \cite{scalamacros}, Haskell \cite{templatehaskell}, \jwc{Racket??}) to compiler extensions (OCaml \cite{metaocaml,macocaml}, Java \cite{mint}).
 Moreover, many more languages have lighter-weight staging-like metaprogramming support in the form of macros.
-See Section~\ref{subsection:other-langs} for a full discussion of just how portable these ideas are. \jwc{this sentence is a placeholder lol}
-
 For this paper, we have implemented staged PBT libraries both in OCaml --- using the MetaOCaml fork of the OCaml compiler \cn --- and Scala 3 --- using
 \texttt{scala.quoted}. For presentation purposes, all staged code presented in the body of this paper is \camlname{} code written in OCaml:
 \scalaname{} differs almost entirely in syntax alone.
+For a further discussion of the potential of building staged generator DSLs in other languages, see Section~\ref{section:other-langs}.
 
 \subsubsection{Staging in MetaOCaml}
 MetaOCaml's staging functionality is exposed through a type \texttt{'a code}. A
@@ -1477,9 +1464,8 @@ these results give strong evidence that our technique consistently benefits bug-
   \label{fig:swarm}
 \end{figure}
 
-\section{Other Languages and Libraries}
-\tr{Subtitle: ``Beyond strict functional languages?''}
-\label{subsection:other-langs}
+\section{Beyond Strict Functional Languages}
+\label{section:other-langs}
 
 In the years since the original QuickCheck paper \cn{}, PBT has had remarkable success
 in languages outside of the Haskell world from which it came.
@@ -1487,23 +1473,21 @@ For this reason, readers who are users and developers of PBT libraries in \emph{
 including non-strict or procedural ones --- might be curious about how the
 techniques brought to bear on OCaml's \bq{} and Scala's ScalaCheck in this paper
 might be imported to their favorite language.
-Below we discuss how \name{} could be applied in other languages.
 
-% While we have done our best to keep the proceeding discussion as
-% language-agnostic as possible, our claims about the \name{} technique have only
-% been thoroughly tested in OCaml and Scala 3, and we are only claiming (in the
-% scientific sense) that we have contributed a technique applicable to PBT
-% libraries in strict functional programming languages.
+We begin by noting that the \name{} principle of choosing fast random number generators
+is completely language-agnostic. In languages like OCaml, where runtime value representations
+make natively-implemented \rand inefficient, calling out to a C implementation or using standard libraries written in C is a surefire win.
+In other languages, serious thought should be put into using as fast of a \rand{} as possible,
+as opposed to picking up any suitable option off the shelf.
 
-
+Next, we discuss language-by-language the degree to which the \name{} insights about staging could be used.
 \begin{itemize}
   \item \textbf{Racket} is the next target that we intend to test the \name{} methodology on.
   The entire Racket philosophy is intertwined with
   using macros to build small eDSLs like the ones we use to write generators, and so it is a natural fit. Indeed,
   there are at least two \cn{} PBT libraries in Racket.
-  \jwc{The Racket macros literature, while extensive, is not about staging!}
-  We have not yet tested the technique in Racket for the simple reason that the authorship team of this paper does not posess
-  much Racket expertise \jwc{can we say this without unblinding?}.
+  However, the racket macros literature, while extensive, does not concern itself with staging for performance purposes.
+  For this reason, we --- the authorship team of this paper, devoid of much Racket expertise --- decided to not use Racket as a test case in this paper.
 
   \item \textbf{Haskell} is home to the original PBT implementation \cn{}, and
   so it is natural to ask why we have not yet applied \name{} to it. The basic
