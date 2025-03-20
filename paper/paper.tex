@@ -762,52 +762,51 @@ By building a version that uses much faster ``unboxed'' 64-bit integer arithmeti
 \subsection{Background: Multi-Stage Programming}
 \label{subsection:msp}
 
-In Muli-stage programming (also known more simply as staging), programs execute
-over the course of multiple stages, with each stage producing the code to be run
+In muli-stage programming (also known more simply as staging), programs execute
+in multiple stages, with each stage producing the code to be run
 in the next. For the purposes of this paper, we will
-primarily consider two stages, namely compile time and run time. Staged programs thus
-execute twice: once at compile time, which produces more code, which is then
+consider two stages: namely compile time and run time. In our context, staged programs
+execute once at compile time, which produces more code, which is then
 compiled and run at run time.
 
-\subsubsection{Uses of Staging in eDSL Construction}
+\paragraph{Uses of Staging in eDSL Construction}
 One of the primary uses of staging is in embedded DSL construction \cite{sheard99, lms, trattdsl}.
 \jwc{Cite racket macros for DSLs here:}
 While embedded DSLs are powerful tools, they have well-known drawback: 
 the functional abstractions used to build eDSLs prevent compilers from generating efficient machine code \cn.
-This effect is known as ``abstraction overhead'' \cite{carrette05, moller20}: the layers of abstraction that 
+This is abstraction overhead \cite{carrette05, moller20}: the layers of abstraction that 
 make eDSLs so usable are precisely what prevents them from being fast.
-Indeed, the root causes of many of the issues we discovered in Section~\ref{section:motiv} are
+Indeed, the root causes of many of the performance issues we discovered in Section~\ref{section:motiv} are
 not unique to generator DSLs.
 In light of this issue, staging is often used as a lightweight compiler for DSLs. The compile-time evaluation stage
 transforms the DSL code, eliminating abstractions to produce code that the host language compiler can generate fast machine code for.
-This recipe has been used to great effect across domains to stage eDSLs for stream processing \cite{moller20,strymonas}, parser combinators \cite{sspc, staged-parsers, krishnaswami19, flap},
+This recipe has been used to great effect to stage eDSLs for stream processing \cite{moller20,strymonas}, parser combinators \cite{sspc, staged-parsers, krishnaswami19, flap},
 and query processing \cite{rhyme}.
 
-Many languages have some degree of staging functionality, though support varies
-from full native support (Scala 3 \cite{scalamacros}, Haskell \cite{templatehaskell}, \jwc{Racket??}) to compiler extensions (OCaml \cite{metaocaml,macocaml}, Java \cite{mint}).
+Many languages have some degree of staging functionality, including
+Scala 3 \cite{scalamacros}, Haskell \cite{templatehaskell}, \jwc{Racket??}, OCaml \cite{metaocaml,macocaml}, and Java \cite{mint}.
 For this paper, we have implemented staged PBT libraries both in OCaml --- using the MetaOCaml fork of the OCaml compiler \cn --- and Scala 3 --- using
 \texttt{scala.quoted}. For presentation purposes, all staged code presented in the body of this paper is \camlname{} code written in OCaml:
-\scalaname{} differs almost entirely in syntax alone.
-For a further discussion of the potential of building staged generator DSLs in other languages, see Section~\ref{section:other-langs}.
+\scalaname{} is very similar.
+For further discussion of the potential for building staged generator DSLs in other languages, see Section~\ref{section:other-langs}.
 
-\subsubsection{Staging in MetaOCaml}
-MetaOCaml's staging functionality is exposed through a type \texttt{'a code}. A
-value of type \texttt{t code} at compile time is a (potentially open) OCaml term
+\paragraph{Staging in MetaOCaml}
+MetaOCaml's staging functionality is exposed through the type \texttt{'a code}. A
+value of type \texttt{t code} is an OCaml term
 of type \texttt{t}.
-
 Values of \texttt{code} type are introduced by \emph{quotes}, written
-\texttt{.<$\ldots$>.}. Brackets delay execution of a program until run time. For
+\texttt{.<$\ldots$>.}. Quotes delay execution of a program until run time. For
 example, the program \texttt{.< 5 + 1 >.} has type \texttt{int code}.  Note that
 this is not the same as \texttt{.< 6 >.}. Because brackets delay computation,
 the code is not \emph{executed} until the next stage (run time).
-Values of type \texttt{code} can be combined together using \emph{escape},
-written \texttt{.\~{}(e)} (or just \texttt{.\~{}x}, when \texttt{x} is a variable).  Escape lets you take a value of type
-\texttt{code}, and ``splice'' it directly into a quote.  For example, this
+Values of type \texttt{code} can be combined together using an \emph{escape},
+written \texttt{.\~{}(e)} (or just \texttt{.\~{}x}, when \texttt{x} is a variable).  Escaping lets you take a value of type
+\texttt{code}, and ``splice'' it directly into a quote.  For example, the
 program \texttt{let x = .<1 * 5>. in .< .\~{}(x) + .\~{}(x) >.} evaluates to
 \texttt{.<(1 * 5) + (1 * 5)>.}.  MetaOCaml ensures correct scoping and macro
 hygiene, ensuring that variables are not shadowed when open terms are spliced.
 
-The power of staging for optimization away abstraction overheads comes from
+The power of staging for optimizing away abstraction overheads comes from
 defining functions that accept and return \texttt{code} values.  A function
 \texttt{f : 'a code -> 'b code} is a function that takes a program computing a
 run-time \texttt{'a} and transforms it into a program computing a run-time
@@ -823,14 +822,14 @@ let eta (f : 'a code -> 'b code) : ('a -> 'b) code = .<fun x -> .\~(f .<x>.)>.
 This program is known as ``the trick'' in the partial evaluation and multi-stage programming literature.
 \cn{} 
 % USE THIS: https://arxiv.org/pdf/2309.08207
-It returns a code for a function that takes an argument \texttt{x}, and then it splats in the result of calling \texttt{f} on just
+It returns a code for a function that takes an argument \texttt{x} and splices in the result of calling \texttt{f} on just
 the quoted \texttt{x}.
 
 The trick is best illustrated by an example. The following program reduces to \texttt{.< fun x -> (1 + x) mod 2 == 0 >}.
 \begin{lstlisting}
 let is_even x = .< .~x mod 2 == 0 >. in
 let succ x = .< 1 + .~x >. in
-eta (succ . is_even)
+eta (fun x -> succ (is_even x))
 \end{lstlisting}
 By composing the two code-transforming functions together at compile time, and only then turning them into a run-time function,
 the functions are fused together.
@@ -838,6 +837,7 @@ This is the basis of how staging is used to eliminate the abstraction of DSLs
 (like a generator DSL). By writing DSL combinators as compile-time functions ---
 and only calling \texttt{eta} at the end on the completed DSL program ---  we
 can ensure that any overhead of using the combinators is eliminated by run time.
+\jwc{BCP: You wrote a ``?'' next to this section. What's the issue?}
 
 % \jwc{
 %   \begin{itemize}
@@ -862,15 +862,14 @@ can ensure that any overhead of using the combinators is eliminated by run time.
 \jwc{Needs a lot more signposting at the top here.}
 
 To build a staged version of a generator DSL, we must rewrite the the generator
-combinators so that they run during the compile time. Of course,
-the compile time stage does not do all the work: the DSL must run at compile time,
-producing inlined code that uses no combinators, which can then be compiled and run at run time
+combinators to do as much as possible at compile time, 
+producing inlined code that uses no combinators, which can be compiled and run
 with different sizes and seeds.
 
 Our job is thus to carefully bisect the DSL, determining which inputs to generator
-combinators are known statically (and can be part of the compile time stage), and
+combinators are known statically (and can be part of the compile time stage) and
 which parts are only known at run time (and must be \texttt{code}).
-In the staging literature, this task is known as ``binding-time analysis'', and it is more of an art than a science.
+In the staging literature, this task is known as ``binding-time analysis'' and it is more an art than a science.
 
 % carefully break up so that you push what you can into the compile time stage.
 % Figuring out which parts of the generator are known statically ()
@@ -885,11 +884,11 @@ In the staging literature, this task is known as ``binding-time analysis'', and 
 The crux of our binding time analysis is that the \emph{only} parts of a generator that are not
 known at compile time are the particular random seed and
 size parameters that will be passed in at run time. Generators themselves are always known entirely at compile time.
-This means our library's generator type \texttt{'a
-Gen.t} should have the type \texttt{int code -> SR.t code -> 'a code}: a compile-time
+This leads us to define our library's generator type \texttt{'a
+Gen.t} as \texttt{int code -> SR.t code -> 'a code}: a compile-time
 function from dynamically-known size and seed to dynamically-determined result.
 
-This type, along with basic staged monadic generator DSL functionality can be found in Figure~\ref{fig:gen-staged-basic}.
+The basic staged monadic generator DSL functionality can be found in Figure~\ref{fig:gen-staged-basic}.
 The constant generator \texttt{return} has the same code, but this time it 
 runs at compile time. Given \texttt{cx : 'a code}, the code for a \texttt{'a}, it
 returns the generator which always generates that value. Similarly,
@@ -941,7 +940,7 @@ module Gen = struct
 end
 \end{lstlisting}
 \caption{Basic Staged Generator Library}
-\ref{fig:gen-staged-basic}
+\label{fig:gen-staged-basic}
 \end{figure}
 
 Returning to our running example, Figure~\ref{fig:running-staged} shows the
@@ -967,7 +966,7 @@ let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
 *)
 \end{lstlisting}
 \caption{Pairs of Ints, Staged}
-\ref{fig:running-staged}
+\label{fig:running-staged}
 \end{figure}
 
 \subsection{Staging Combinators}
