@@ -718,11 +718,11 @@ ahead of time and you can run out of randomness?}
 Of course, simply arguing that the randomness library is on the hot
 path does not guarantee that a faster sampling leads to measurably faster
 generation; for that, we need an experiment. The most obvious experiment is to
-simply swap out the randomness library for \bq{} with a totally different, faster one. But, as
+simply swap out the randomness library of either \bq{} or ScalaCheck with a totally different, faster one. But, as
 discussed previously, generators with different generation orders can be
 difficult to compare. To get around this, we exploit a ``natural experiment:
-OCaml's \texttt{Splittable\_random} library is slow in a way that
-can be improved \emph{without} changing its extensional behavior.
+the \rand{} that \bq{} uses --- OCaml's \texttt{Splittable\_random} library --- is slow in a way that
+can be improved \emph{without} changing its behavior.
 In particular,
 due to implementation details related to the OCaml garbage collector,
 values of the OCaml type \texttt{int64} are not machine words, but rather
@@ -731,7 +731,7 @@ that \emph{all} \texttt{int64} operations (both arithmetic and bitwise) must
 allocate memory cells to contain their output, which has a significant performance benefit.
 By building a version that uses much faster ``unboxed'' 64-bit integer arithmetic, we can demonstrate just how much faster bugs can be found just by using a more performant randomness library.
 
-\section{Speeding up Generator DSLs by Staging and Faster Randomness Libraries}
+\section{\name{}}
 \label{section:faster-generators}
 \jwc{This section needs a much better title...}
 % \jwc{Usual introduction to this section, corresponding to how we talked about it in the intro. ``We present a library that XYZ''.}
@@ -744,8 +744,7 @@ By building a version that uses much faster ``unboxed'' 64-bit integer arithmeti
 
 In Muli-stage programming (also known more simply as staging), programs execute
 over the course of multiple stages, with each stage producing the code to be run
-in the next.  This is an old idea in programming languages, with roots going
-back to quasiquotation in LISP \cn{}.  For the purposes of this paper, we will
+in the next. For the purposes of this paper, we will
 primarily consider two stages, namely compile time and run time. Staged programs thus
 execute twice: once at compile time, which produces more code, which is then
 compiled and run at run time.
@@ -1279,7 +1278,7 @@ with performance in mind. Indeed, much faster randomness libraries\cn and fast s
 of entropy \cn exist. \jwc{... more here?}
 To demonstrate that faster random sampling can significanty impact bugfinding power, we
 use the natural experiment provided by OCaml's inefficient implementation of
-SplitMix. By replacing this slow randomness library with a faster but extensionally equivalent
+SplitMix. By replacing this slow randomness library with a faster but semantically equivalent
 implemetnation, we are able to precisely quantify the bugfinding speedup that using a randomness library gives across a range of PBT scenarios.
 
 We emphasize that while we believe that the insight that faster sampilng translates to faster bug finding
