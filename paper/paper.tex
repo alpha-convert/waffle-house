@@ -306,7 +306,10 @@ raised by the above. We could strengthen that connection}
 \fi
 Together, these observations raise a fundamental question: can generator libraries be expressive and high-level without compromising efficiency?
 
-To address this question, we outline two key principles for designing generator libraries that balance efficiency with flexibility.
+To address this question, we outline two key principles for designing
+generator libraries that balance efficiency with flexibility.\bcp{We
+  just said we want both, not a ``balance'' that trades one off
+  against the other...}
 First, we describe a method of optimizing generator libraries using
 \textit{multi-stage programming}, or ``staging,'' which has long been used to
 build DSLs without abstraction overhead (``without regret''~\cn{}).
@@ -314,12 +317,17 @@ We apply this technique to generators, completely eliminating the run-time overh
 many common generator abstractions.
 Secondly, we demonstrate the impact of different choices of \rand on generator
 performance by conducting a controlled comparison.
-Together, we refer to this recipe for improving generator libraries as \name{} --- \jwc{something pithy here}.
+Together, we refer to this recipe\bcp{``demonstrating the impact'' is
+  not a recipe} for improving generator libraries as \name{} --- \jwc{something pithy here}.
 
 To demonstrate the effectiveness of our approach, we build two different PBT libraries in two different langauges.
 In OCaml, we build \camlname{}, based on \bq{}  --- a
 high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street \cn{}.
-In Scala 3, we build \scalaname{}, based on ScalaCheck --- a very mature PBT library and the de facto choice in Scala \cn{}.
+In Scala 3, we build \scalaname{}, based on ScalaCheck --- a very
+mature PBT library and the {\em de facto} choice\bcp{the wording here
+  implies that there are other choices in Scala, some of which might
+  be reasonable, and tht base\_quickcheck is not the de facto choice
+  in OCaml...} in Scala \cn{}.
 In both languages, our libraries are direct drop-in replacements that are
 \textit{100\% semantically equivalent}: that is, given identical random seeds, a generator written with our technique
 produces exactly the same sequence of values as the same generator written with the original generator library.
@@ -331,7 +339,9 @@ We evaluate the optimizations with a series of case studies in each
 generator library, and show that the \name generators run faster than their unstaged equivalents.
 Further, we show generators that run faster also find bugs faster
 % ability \jwc{The paper is called ``fail faster'' --- we shouldn't say ``bug finding ability'', we should say something like ``how fast you can squash bugs''. This is too passive }
-by running these case studies in the Etna framework~\cite{etna}., a
+by running these case studies in the Etna
+framework~\cite{etna}\bcp{``Etna framework'' sounds like more than
+  what it is}, a
 platform that simulates real-world PBT usage\hg{Don't love this phrase, I'll
 think more about how we should talk about Etna} by injecting bugs into a system and
 measuring how quickly various generators detect them.
@@ -363,13 +373,17 @@ and how they lead to much faster bug finding.
 
 Since property-based testing was first introduced in Haskell's QuickCheck
 library~\cite{claessenQuickCheckLightweightTool2000}, {\em generators} have been
-a key element of the PBT process. While properties are critical for correctly
+a key element of the PBT process. While properties\bcp{this concept
+  comes out of nowhere} are critical for correctly
 expressing a developer's intent for a function, the success of the testing
 ultimately rests on how well the random inputs to that property exercise the
-system under test. QuickCheck's solution to this problem, which has been copied
-dozens of frameworks across as many languages, is to provide a domain-specific
+system under test.\bcp{Is this trying to say that generators are more
+  important than properties?  This seems like a strange assertion.}
+QuickCheck's solution to this problem, which has been copied in
+dozens of frameworks across a wide variety of languages, is to provide a domain-specific
 language (DSL) for writing random data generators that gives developers complete
-control over their distribution of test inputs.
+control\bcp{that might be overstating the case a bit!} over the
+distribution of their test inputs. 
 
 \begin{wrapfigure}{r}{.5\textwidth}
 \begin{lstlisting}
