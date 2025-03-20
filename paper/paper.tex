@@ -225,6 +225,7 @@
 \maketitle
 
 \section{Introduction}
+\label{section:intro}
 
 %\jwc{This paper is about ``Strict functional languages like OCaml and Scala'', but we'll focus on OCaml for presentation.}
 
@@ -904,15 +905,15 @@ module Gen = struct
   let return (cx : 'a code) : 'a t = fun size_c random_c -> cx
 
   let bind (g : 'a t) (k : 'a code -> 'b t) : 'b t =
-    fun size_c random_c ->
+    fun size random ->
       .<
-        let a = .~(g size_c random_c) in
-        .~(k .<a>. size_c random_c)
+        let a = .~(g size random) in
+        .~(k .<a>. size random)
       >.
 
   let int (lo : int code) (hi : int code) : int t =
-    fun size_c random_c ->
-      .< SR.int .~random_c .~lo .~hi >.
+    fun size random ->
+      .< SR.int .~random .~lo .~hi >.
 
   let to_bq (g : 'a code Gen.t) : ('a Bq.t) code =
   .<
@@ -1046,50 +1047,74 @@ let grades : char Bq.t = Gen.to_bq (
 \end{figure}
 
 \subsection{Let-Insertion and Effect Ordering}
-Careful readers might note that the definition of \texttt{bind} in Section~\ref{subsection:basic-design}
-was more complicated than one might expect. In particular, why not define bind in a more standard way: as
-\texttt{let bind' g k = fun size random -> k (g size random) size random}, without the code block
-that let-binds the spliced code \texttt{.\~{}(g size random)}?\hg{Need to spell
-this out --- the vast majority of readers won't have that precise question in
-their heads. Might even be worth comparing the two implementations here side by side}
-Unfortunately, using \texttt{Gen.bind'} leads to incorrect code being generated.
+Careful readers might note that the definition of \texttt{bind} (shown in Figure~\ref{fig:bind-with-let-binding})
+was more complicated than one might expect. In particular, why not define bind in the standard way
+for a reader monad (Figure~\ref{fig:bind-without-let-binding})?
+Unfortunately, the \texttt{bind'} definition is wrong in our context as it leads to incorrect code being generated.
 For example, consider \texttt{Gen.bind' (Gen.int .<0>. .<1>.) (fun x -> Gen.return .<(.~x,.~x)>.)}.
 This generates the run time code \texttt{fun size random -> (SR.int random 0 1, int SR.random 0 1)},
-which is incorrect. 
-This is not equivalent to the behavior of writing the same code with base quickcheck \jwc{Which is a property we want to hold for our eval.}.
-Instead of generating a single integer and returning it twice, it samples two different integers.
+which is incorrect.  Instead of generating a single integer and returning it
+twice, it samples two different integers.
+This matters because, as described in Section~\ref{section:intro}, \camlname and
+\scalaname should be equivalent to their unstaged counterparts.
+
+
+\begin{figure}[h]
+  \begin{subfigure}{.45\textwidth}
+\begin{lstlisting}
+let bind (g : 'a t) (k : 'a code -> 'b t) : 'b t =
+    fun size random ->
+      .<
+        let a = .~(g size random) in
+        .~(k .<a>. size random)
+      >.
+\end{lstlisting}
+\caption{\texttt{bind}, with a let-binding}\label{fig:bind-with-let-binding}
+  \end{subfigure}
+  \begin{subfigure}{.45\textwidth}
+\begin{lstlisting}
+let bind' (g : 'a t) (k : 'a code -> 'b t) : 'b t =
+    fun size random -> k (g size random) size random
+\end{lstlisting}
+\caption{\texttt{bind'}, the ``standard'' bind for the reader monad}\label{fig:bind-without-let-binding}
+  \end{subfigure}
+  \caption{\texttt{bind}, two ways}
+  \label{fig:bind-two-ways}
+\end{figure}
 
 This problem is intimately related to nondeterministic effects in the presence of CBN/CBV evaluation ordering \cn.
 In essence, the behavior of splice \texttt{.\~{}cx} in a staged function \texttt{f(cx : 'a code) = ...} is to \emph{copy}
 the entire block of code, effects and all. To ensure that the randomness effects of the first generator are executed only once,
 but that the value can be used in the continuation multiple times, \texttt{bind} let-binds the result of generation to a variable,
-and then passes that to the continuation.
+and then passes it to the continuation.
 
-The library \jwc{ensure this is consistent with the way we talk about the project, cf cross-language} is careully designed to 
-preserve exactly the effect order of base quickcheck \jwc{and the scala version to preserve the effect ordering of ScalaCheck}.
-\jwc{This fact should go earlier. Not really sure about where this subsection should actually land, but it needs to be said somehwere.}
-\hg{+1, I think this feels sort of out of place here, but I also think moving it
-up would make that part harder to understand too. Is there a way to tie this in
-to our discussion about maintaining the precise set of choices? The two issues
-are different, but they're related}
+% The library \jwc{ensure this is consistent with the way we talk about the project, cf cross-language} is careully designed to 
+% preserve exactly the effect order of base quickcheck \jwc{and the scala version to preserve the effect ordering of ScalaCheck}.
+% \jwc{This fact should go earlier. Not really sure about where this subsection should actually land, but it needs to be said somehwere.}
+% \hg{+1, I think this feels sort of out of place here, but I also think moving it
+% up would make that part harder to understand too. Is there a way to tie this in
+% to our discussion about maintaining the precise set of choices? The two issues
+% are different, but they're related}
 
 \subsection{CodeCPS and a Monad Instance}
 \label{subsection:codecps}
-This is all great so far,\hg{too informal} but there's a subtle issue that prevents the version of the library design discussed so far
-from being used as a proper drop-in replacement for an existing generator DSL: the types of \texttt{return : 'a code -> 'a Gen.t}
+Another subtle issue prevents the version of the library design discussed so far
+from being used as a proper drop-in replacement for an existing generator DSL. In particular, the types of \texttt{return : 'a code -> 'a Gen.t}
 and \texttt{bind : 'a Gen.t -> ('a code -> 'b Gen.t) -> 'b Gen.t} aren't quite right.
 For the type \texttt{'a Gen.t} to actually be a monad, 
 the these types cannot mention \texttt{code}. This is not just a theoretical issue, it is a significant usability concern:
 the syntactic sugar for monadic programming (\texttt{let\%bind} in OCaml, \texttt{foreach} in Scala, \texttt{do} in Haskell, etc)
 that makes it so appealing can \emph{only} be used if the types involved are
 actually the proper monad function types.
+\iflater
 \hg{A pedantic reader may ask: Are we concerned with the monad {\em laws} as
 well, or just the type signature?}
+\fi
 
 To support real monadic programming, we'll need to adjust the type of \texttt{'a Gen.t} slightly.
 An initial attempt is to try \texttt{type 'a t = int code -> SR.t code -> 'a}. If we strip the \texttt{code} off the result type,
 the functions \texttt{return (x : 'a) = fun \_ \_ -> x} and \texttt{bind (g : 'a t) (k : 'a -> 'b t) = fun size random -> k (g size random) size random}
-have the proper types for a monad instance. Then, any combinators of type \texttt{'a Gen.t} before simply become \texttt{'a code Gen.t} with this new version. \jwc{do we want a different name for the first cut?}
+have the proper types for a monad instance. Then, any combinators of type \texttt{'a Gen.t} before simply become \texttt{'a code Gen.t} with this new version.
 
 However, this definition of bind doesn't have call-by value effect semantics, as
 discussed in the previous section!  And because the type of \texttt{g size random} is
@@ -1100,7 +1125,7 @@ our staged programs in continuation-passing style \cite{bondorf92}.
 \hg{Slow down! This is all very interesting and very technical! Try making each
 of these sentences two sentences, add some citations, and maybe spell this out
 wiht an example}
-\jwc{I could, but i'm just not sure this is critical.}
+\jwc{I could, but i'm just not sure this is critical. In particular, every time I've ever seen this presented in a paper they just drop it and move on. It's too deep in the weeds for it to be worth explaining, too... nobody's going to read this section except staging fans}
 
 In Figure~\ref{fig:codecps-and-final-gen}, we follow prior work \cite{kovacs24, carrette05} and define
 the type \texttt{'a CodeCps.t = 'z. ('a -> 'z code) -> 'z code}: a polymorphic continuation transformer with the result type
@@ -1124,14 +1149,12 @@ This gives us the best of both worlds. First, we get a monad instance for \textt
 use the monadic syntactic sugar of our chosen language. Moreover, we also get to maintain the correct
 effect ordering: effectful combinators like \texttt{Gen.int} do their \emph{own} let-insertion, ensuring
 that a program like \texttt{Gen.bind Gen.int (fun x -> ...)} generates a let-binding for the result of sampling the randomness library.
-For example, \texttt{bind (int .<0>. .<1.>) (fun cx -> return .<(.~cx,.~cx)>.)} now correctly generates
-\texttt{.< fun size random -> let x = SR.int random 0 1 in (x,x) >.}. \jwc{Should we do out the whole reduction sequence here? It might be explanatory, but it also might be boring.}
+For example, \lstinline{bind (int .<0>. .<1.>) (fun cx -> return .<(.~cx,.~cx)>.)} now correctly generates
+\lstinline{.< fun size random -> let x = SR.int random 0 1 in (x,x) >.}.
 
 This design is less obviously correct, and does require some care. Rather than \texttt{bind} ensuring correct evaluation order once and for all,
 individual combinators must be carefully written to ensure that \texttt{'a code} values that contian effects are \texttt{let\_insert}'d.\footnote{To ensure that the OCaml code is written correctly, we employ a PBT harness to compare its outputs to the corresponding \bq generator over 1,000 random seeds. 
 If no discrepancy arises, we conclude that the generators exhibit equivalent behavior.}
-
-\jwc{... and all of this works identically in Scala, too.}
 
 \begin{figure}
 \begin{lstlisting}
