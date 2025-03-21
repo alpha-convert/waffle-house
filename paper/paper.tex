@@ -1622,12 +1622,39 @@ Next, we discuss language-by-language the degree to which the staging-related in
 \section{Related Work}
 
 \subsection{Speeding up Property-Based Testing}
-\hg{\begin{itemize}
-  \item Changing the generation order~\cite{runcimanSmallcheckLazySmallcheck2008,braquehaisSimpleIncrementalDevelopment2017}
-  \item Dealing with filtering~\cite{claessenGeneratingConstrainedRandom2015}
-  \item QuickerCheck~\cite{krookQuickerCheckImplementingEvaluating2024}
-  \item Evaluation of PBT generation~\cite{shiEtnaEvaluationPlatform2023}
-\end{itemize}}
+
+Our work is unique in its approach to speeding up PBT, but it is certainly not
+the only work focused on making PBT faster.
+
+Perhaps the best-explored approaches to speeding up bug-finding with PBT is by
+changing the order in which test inputs are sampled. Feedback-driven mechanisms
+like targeted PBT~\cite{loscherTargetedPropertybasedTesting2017} and
+coverage-guided PBT~\cite{lampropoulosCoverageGuidedProperty2019} have the
+potential to speed up testing by changing the generation order to try to find
+``interesting'' inputs faster. Separately, enumerative approaches to
+PBT~\cite{runcimanSmallcheckLazySmallcheck2008,braquehaisSimpleIncrementalDevelopment2017}
+try to get to bugs faster by leveraging the ``small-scope hypothesis'' and
+attempting to quickly exhaust the list of small inputs to the program under
+test. All of these approaches can have significant performance benefits in
+practice, but they are largely orthogonal to our contributions; we expect
+\name{} could be used to speed these existing techniques to varying degrees.
+
+Similarly orthogonal to our approach is techniques for quickly filtering out
+inputs that are invalid for testing. Some of these approaches work statically,
+by automatically deriving generators that produce valid inputs by
+construction~\cite{lampropoulosGeneratingGoodGenerators2017}, while others
+filter dynamically via laziness~\cite{claessenGeneratingConstrainedRandom2015}
+or by solving satisfiability
+problems~\cite{seidelTypeTargetedTesting2015,steinhofelInputInvariants2022,lampropoulosBeginnerLuckLanguage2017}.
+In all cases, these approaches could be further improved by insights from \name.
+
+Perhaps the most direct comparison to our work is
+QuickerCheck~\cite{krookQuickerCheckImplementingEvaluating2024}, an
+implementation of Haskell's QuickCheck that exploits the inherent parallelism of
+PBT to achieve significant performance gains. QuickerCheck, like \name, was
+designed with performance engineering in mind, taking seriously the idea that
+PBT is a performance critical task. Still, despite their similar motivations and
+considerations, the solutions are entirely different and complementary.
 
 \subsection{Staging eDSLs}
 \jwc{A generator is a parser of
