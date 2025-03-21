@@ -309,7 +309,7 @@ building fast DSLs “without regret”~\cn{}---to eliminate the overhead of
 many common generator abstractions.
 Second, we demostrate that entropy source is an undervalued consideration in generator library design
 by isolating its performance contribution, and showing that significant
-speedups are possible.
+speedups are possible---even while maintaining output equivalence.
 These insights culminate in \name, a recipe for building generator libraries that marry high-level design
 with low-level performance.
 
@@ -322,22 +322,10 @@ with low-level performance.
 To evaluate our technique, we implement staged PBT libraries in two strict functional languages: OCaml and Scala 3.
 In OCaml, we build \camlname{}, based on \bq{}---a
 high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street \cn{}.
-In Scala 3, we build \scalaname{}, based on ScalaCheck---a very
-mature PBT library and the {\em de facto} choice\bcp{the wording here
-  implies that there are other choices in Scala, some of which might
-  be reasonable, and tht base\_quickcheck is not the de facto choice
-  in OCaml...} in Scala \cn{}.
-In both languages, our libraries are direct drop-in
-replacements\bcp{that's not quite accurate, is it? I mean, they have
-  the same functionality, but can you take a generator that works with
-base\_quickcheck and just link it against our version without changing
-the generator itself? That's what ``drop-in replacement'' means to me.} that are
-\textit{100\% semantically equivalent}: that is, given identical random seeds, a generator written with our technique
-produces exactly the same sequence of values as the same generator written with the original generator library.
-The semantic equivalence between the original generators and \name{} generators allows us to
-perform clean, fine-grained comparisons, as differences in generation speed are
-solely attributable to the staging and \rand optimizations.
-\jwc{BCP thinks this should be a little stronger: ``and not obscured by the probablistic nature of generation'', or something like that. ``Comparing distributions of speed is hard, comparing pointwise is easier.''. This needs to have its own sentence here.}
+In Scala 3, we build \scalaname{}, based on ScalaCheck---the language's standard PBT library, and by far the most widely-used\cn{}.
+In both languages, our libraries provide identical functionality and behavior: given the same random seed, a generator written with our technique produces exactly the same sequence of values as an equivalent generator written with the original library.
+This semantic equivalence enables pointwise, rather than distributional, comparisons, ensuring that performance differences are attributable \textit{solely} to staging and \rand optimizations.
+% \jwc{BCP thinks this should be a little stronger: ``and not obscured by the probablistic nature of generation'', or something like that. ``Comparing distributions of speed is hard, comparing pointwise is easier.''. This needs to have its own sentence here.}
 
 We evaluate the optimizations with a series of case studies in each
 generator library, and show that the \name generators run faster than their unstaged equivalents.
