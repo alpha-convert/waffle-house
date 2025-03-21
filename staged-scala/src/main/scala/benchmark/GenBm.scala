@@ -116,6 +116,7 @@ val size10 = Gen.Parameters.default.withSize(10)
 val size50 = Gen.Parameters.default.withSize(50)
 val size100 = Gen.Parameters.default.withSize(100)
 val size1000 = Gen.Parameters.default.withSize(1000)
+val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parameter
 
 // Bool List Bespoke - unstaged benchmarks
 @Benchmark
@@ -156,6 +157,16 @@ val size1000 = Gen.Parameters.default.withSize(1000)
 @Fork(1)
   def generateBoolListBespoke1000() = {
     BoolList.Bespoke.gen.apply(size1000,Seed.random())
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBoolListBespoke10000() = {
+    BoolList.Bespoke.gen.apply(size10000,Seed.random())
   }
 
 // Bool List Bespoke - staged benchmarks
@@ -199,6 +210,16 @@ val size1000 = Gen.Parameters.default.withSize(1000)
     BoolList.BespokeStaged.gen(1000)(Seed.random())
   }
 
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBoolListBespokeStaged10000() = {
+    BoolList.BespokeStaged.gen(10000)(Seed.random())
+  }
+
 // BST Type Derived - unstaged benchmarks
 @Benchmark
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -238,6 +259,16 @@ val size1000 = Gen.Parameters.default.withSize(1000)
 @Fork(1)
   def generateBstType1000(): Option[Bst] = {
     BST.TypeDerived.gen.apply(size1000,Seed.random())
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBstType10000(): Option[Bst] = {
+    BST.TypeDerived.gen.apply(size10000,Seed.random())
   }
 
 // BST Type Derived - staged benchmarks
@@ -281,6 +312,16 @@ val size1000 = Gen.Parameters.default.withSize(1000)
     BST.TypeDerivedStaged.gen(1000)(Seed.random())
   }
 
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBstTypeStaged10000(): Bst = {
+    BST.TypeDerivedStaged.gen(10000)(Seed.random())
+  }
+
 // BST Bespoke - unstaged benchmarks
 @Benchmark
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -320,6 +361,16 @@ val size1000 = Gen.Parameters.default.withSize(1000)
 @Fork(1)
   def generateBstBespoke1000(): Option[Bst] = {
     BST.SingleBespoke.gen.apply(size1000,Seed.random())
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBstBespoke10000(): Option[Bst] = {
+    BST.SingleBespoke.gen.apply(size10000,Seed.random())
   }
 
 // BST Bespoke - staged benchmarks
@@ -363,6 +414,16 @@ val size1000 = Gen.Parameters.default.withSize(1000)
     BST.SingleBespokeStaged.gen(1000)(Seed.random())
   }
 
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBstBespokeStaged10000(): Bst = {
+    BST.SingleBespokeStaged.gen(10000)(Seed.random())
+  }
+
 // RBT Type Derived - unstaged benchmarks
 @Benchmark
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -402,6 +463,16 @@ val size1000 = Gen.Parameters.default.withSize(1000)
 @Fork(1)
   def generateRbtType1000(): Option[Rbt] = {
     RBT.TypeDerived.gen.apply(size1000,Seed.random())
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateRbtType10000(): Option[Rbt] = {
+    RBT.TypeDerived.gen.apply(size10000,Seed.random())
   }
 
 // RBT Type Derived - staged benchmarks
@@ -445,6 +516,16 @@ val size1000 = Gen.Parameters.default.withSize(1000)
     RBT.TypeDerivedStaged.gen(1000)(Seed.random())
   }
 
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateRbtTypeStaged10000(): Rbt = {
+    RBT.TypeDerivedStaged.gen(10000)(Seed.random())
+  }
+
 // STLC Term (Bespoke) - unstaged benchmarks
 @Benchmark
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -486,6 +567,16 @@ val size1000 = Gen.Parameters.default.withSize(1000)
     STLC.Bespoke.gen.apply(size1000,Seed.random())
   }
 
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateTerm10000(): Option[Term] = {
+    STLC.Bespoke.gen.apply(size10000,Seed.random())
+  }
+
 // STLC Term (Bespoke) - staged benchmarks
 @Benchmark
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -525,5 +616,15 @@ val size1000 = Gen.Parameters.default.withSize(1000)
 @Fork(1)
   def generateTermStaged1000(): Term = {
     STLC.BespokeStaged.gen(1000)(Seed.random())
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateTermStaged10000(): Term = {
+    STLC.BespokeStaged.gen(10000)(Seed.random())
   }
 }
