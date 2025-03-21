@@ -18,12 +18,15 @@ object SingleBespokeStaged {
                 if(b){
                     StGen.pure('{Bst.E})
                 } else {
-                    for{
-                        k <- StGen.chooseLong(lo,hi)
-                        v <- Nat.staged_generator('{bst_bespoke_limits})
-                        l <- StGen.resize('{${sz}/2}, rec('{(${lo}, ${k}-1)}))
-                        r <- StGen.resize ('{${sz}/2}, rec('{(${k} + 1, ${hi})}))
-                    } yield ('{Bst.Node (${l},${k},${v},${r})})
+                    StGen.frequency(
+                        '{1} -> StGen.pure('{Bst.E}),
+                        sz -> (for{
+                            k <- StGen.chooseLong(lo,hi)
+                            v <- Nat.staged_generator('{bst_bespoke_limits})
+                            l <- StGen.resize('{${sz}/2}, rec('{(${lo}, ${k}-1)}))
+                            r <- StGen.resize ('{${sz}/2}, rec('{(${k} + 1, ${hi})}))
+                        } yield ('{Bst.Node (${l},${k},${v},${r})}))
+                    )
                 }
             )
             )
