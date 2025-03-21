@@ -657,7 +657,7 @@ conservative for optimizing recursive functions.
   ScalaCheck & \texttt{intPair}            & 458                      \\
   ScalaCheck & \texttt{intPairInlined}     & 266                     
   \end{tabular}
-\caption{Microbenchmarks of Generators in \bq{} (using \texttt{core\_bench} \cn) and ScalaCheck (using \texttt{jmh} \cn). Average over 10000 generations with random seeds, and a fixed size}
+\caption{Microbenchmarks of Generators in \bq{} and ScalaCheck. Average over 10000 generations with random seeds and a fixed size.}
 \label{fig:overhead-explanation-perf}
 \end{figure}
 
@@ -665,31 +665,29 @@ More complex
 generators suffer further performance penalties due to \emph{closure
 allocation}. In cases where the compiler cannot statically eliminate it,
 running a monadic bind allocates a short-lived closure
-for the continuation, and then immediately jumps into it.
+for the continuation and then immediately jumps into it.
 In strict functional languages like OCaml and Scala,
-Each individual closure allocation is relatively cheap, but doing lots of allocation in a
+each individual closure allocation is relatively cheap; but doing lots of allocation in a
 generator is very costly because each allocation brings us closer to the next costly GC pause \cn{}.
 This effect is also magnified in recursive generators: each iteration
 through the recursive loop re-allocates closures for \texttt{bind}s, so the amount of allocation
-\emph{per generated value} scales linearly with the number of recursive generator calls.
+per generated value scales linearly with the number of recursive generator calls.
 
-\subsubsection{Overhead of Choice Combinators}
+\paragraph{Overhead of Choice Combinators}
 Like \texttt{return} and \texttt{bind}, combinators like \texttt{weighted\_union} incur a performance penalty
 at run time. Aside from the previously-discussed issues that compilers
 cannot see through the abstraction boundary to optimize these programs,
 choice combinators like \texttt{weighted\_union} come with their own particular abstraction overhead.
 
-In practice, \texttt{weighted\_union} is almost always\footnote{
+In practice, \texttt{weighted\_union} is (almost \footnote{
 There are some generators where \texttt{weighted\_union} is passed a list which
 was itself the result of a generator: the well-typed STLC term generator used in Section~\ref{section:eval} is an example of this.
-} called with an explicitly constructed list, like
+}) always called with an explicitly constructed list, like
 \texttt{weighted\_union [(w1,g1); (w2,g2); (w3,g3)]}. 
 This is because the most common use case for \texttt{weighted\_union} is
 to choose between one of the different constructors of an algebraic datatype,
 the options for which are always known.
-This list is allocated at the call site and then never needed after the call to \texttt{weighted\_union} returns\footnote{
-This overhead is fixable in languages with stack alloctation, which OCaml will soon be \cn{}.
-}.
+This list is allocated at the call site and then never needed after the call to \texttt{weighted\_union} returns.
 Since the elements of the list and its length $n$ are known,
 a compiler could in principle unroll the loops in \texttt{weighted\_union} to depth $n$ and specialize the function at each call site to avoid allocating the list.
 Unfortunately, almost~\footnote{Once again, GHC is a notable exception here, performing sophisticated list fusion optimizations \cn{}} no compilers perform this kind of optimization.
