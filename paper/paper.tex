@@ -287,7 +287,8 @@ One important locus for performance improvement
 is the \textit{generators} that produce random inputs to the properties under
 test. These generators are written with the help of \textit{generator
 libraries}, usually expressed as embedded domain-specific languages (eDSLs) %\cntxt{edsls}
-that provide combinators for building and composing generators. However, careful measurements show that the performance of existing generator libraries falls far short of what
+that provide combinators for building and composing generators. However, careful 
+measurements show that the performance of existing generator libraries falls far short of what
 is possible. 
 
 This is due to two major sources of inefficiency.
@@ -295,7 +296,7 @@ First, the same high-level design approach that gives generator libraries their
 flexibility also introduces layered abstractions and indirections that are difficult for
 compilers to optimize, shifting work to run time.
 Second, the \rand that a generator uses to make choices can
-constitute an unexpectedly high proportion of its runtime. Combined, these factors limit 
+constitute an unexpectedly high proportion of its runtime. These factors combine to limit 
 the effectiveness of PBT.
 \iflater
 \hg{TODO later, I'm not 100\% sure it's clear how this particular question is
@@ -306,17 +307,19 @@ We lay a path forward.
 First, we show how to use \textit{multi-stage programming}---a classic technique for 
 building fast DSLs “without regret”~\cn{}---to eliminate the overhead of 
 many common generator abstractions.
-Second, we characterize the impact of \rand choice through a natural experiment 
-that isolates the performance contribution of the \rand within a generator, underscoring its role as a first-class design consideration.
-Taken together, these insights can be applied to create tomorrow's generator libraries: those that 
-combine high-level design with low-level performance.
+Second, we show that entropy source is an undervalued consideration in generator library design
+by isolating the performance contribution of the \rand in generation time, and providing an alternative
+that behaves equivalently with $5.5\times$ speedups.
+These insights culminate in \name, a recipe for building generator libraries that marry high-level design
+with low-level performance.
 
+% \bcp{It
+% feels a bit grand to call what we've done an ``approach''---it's
+% really just a single performance-enhancing technique, staging, plus
+% the observation that the RNG matters and you should use the fastest
+% one you can.}
 
-To demonstrate the effectiveness and generality of our approach\bcp{It
-feels a bit grand to call what we've done an ``approach''---it's
-really just a single performance-enhancing technique, staging, plus
-the observation that the RNG matters and you should use the fastest
-one you can.}, which we call \name, we implement staged PBT libraries in multiple languages.
+To evaluate our technique, we implement staged PBT libraries in two strict functional languages: OCaml and Scala 3.
 In OCaml, we build \camlname{}, based on \bq{}---a
 high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street \cn{}.
 In Scala 3, we build \scalaname{}, based on ScalaCheck---a very
