@@ -274,53 +274,49 @@ Property-based testing (PBT) is a software testing technique that uses
 random test inputs to validate logical specifications. Recent studies on PBT usage~\cite{inpractice} in industry have shown that
 practitioners often interleave PBT with their software development process, sometimes
 testing their properties every time they save their code. This means that PBT is often given a very short time
-window to find bugs --- e.g., between 50 milliseconds and 30 seconds~\cite{inpractice}.
-The goal of PBT is to fail tests as fast as possible. \jwc{First cut at ``fail fast''}
-
+window to find bugs---e.g., between 50 milliseconds and 30 seconds~\cite{inpractice}.
+The faster a test fails, the better.
+% The goal of PBT is to fail tests as fast as possible. \jwc{First cut at ``fail fast''}
+\iflater 
 \bcp{Feels like we're missing a trick in the transition here.  Can we
   say, ``Because performance is important, PBT libraries are already
   quite tuned.  [Can we substantiate that??]  But more is
   possible...'' }
+\fi
 
 One important locus for performance improvement
 is the \textit{generators} that produce random inputs to the properties under
 test. These generators are written with the help of \textit{generator
 libraries}, usually expressed as embedded domain-specific languages (eDSLs) %\cntxt{edsls}
-that provide combinators for building and composing generators. Optimizing these
-libraries is a key opportunity to speed up PBT: if programmers are
-provided with the tools to write fast generators, then they do not themselves
-need to be experts in performance tuning to find bugs fast.
+that provide combinators for building and composing generators. However, careful measurements show that the performance of existing generator libraries falls far short of what
+is possible. 
 
-However, careful measurements show that the performance of existing generator libraries falls significantly short of what
-is possible. This is due to two major sources of inefficiency.
+This is due to two major sources of inefficiency.
 First, the same high-level design approach that gives generator libraries their
 flexibility also introduces layered abstractions and indirections that are difficult for
 compilers to optimize, shifting work to run time.
-Second, the \rand that the generator uses to make choices can
-constitute an unexpectedly high proportion of its runtime.
+Second, the \rand that a generator uses to make choices can
+constitute an unexpectedly high proportion of its runtime. Combined, these factors limit 
+the effectiveness of PBT.
 \iflater
 \hg{TODO later, I'm not 100\% sure it's clear how this particular question is
 raised by the above. We could strengthen that connection}
 \fi
-Together, these observations raise a fundamental question: can generator libraries be expressive and high-level without compromising efficiency?
 
-To address this question, we outline two key principles for designing
-generator libraries that marry efficiency with flexibility.
-First, we describe a method of optimizing generator libraries using
-\textit{multi-stage programming}, or ``staging,'' which has long been used to
-build DSLs without abstraction overhead (``without regret''~\cn{}).
-We apply this technique to generators, completely eliminating the run-time overhead of
+We lay a path forward.
+First, we show how to use \textit{multi-stage programming}---a classic technique for 
+building fast DSLs “without regret”~\cn{}---to eliminate the overhead of 
 many common generator abstractions.
-Secondly, we demonstrate the impact of different choices of \rand on generator
-performance by conducting a controlled comparison, showing that showing that certain 
-implementations significantly reduce overhead.
-Together, these insights highlight practical strategies for improving generator libraries, 
-combining the efficiency gains of staging with a careful evaluation of \rand to optimize performance.
+Second, we precisely characterize the impact of \rand choice through a natural experiment that preserves 
+generator behavior while improving execution speed, demonstrating that the entropy source itself should be treated as a first-class 
+concern in generator library design.
+Taken together, these insights can be applied to create tomorrow's generator libraries: those that 
+combine high-level design with low-level performance.
 
-To demonstrate the effectiveness of our approach, we build two different PBT libraries in two different langauges.
-In OCaml, we build \camlname{}, based on \bq{}  --- a
+To demonstrate the effectiveness and generality of our approach, which we call \name, we implement staged PBT libraries in multiple languages.
+In OCaml, we build \camlname{}, based on \bq{}---a
 high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street \cn{}.
-In Scala 3, we build \scalaname{}, based on ScalaCheck --- a very
+In Scala 3, we build \scalaname{}, based on ScalaCheck---a very
 mature PBT library and the {\em de facto} choice\bcp{the wording here
   implies that there are other choices in Scala, some of which might
   be reasonable, and tht base\_quickcheck is not the de facto choice
