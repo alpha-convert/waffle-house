@@ -269,53 +269,48 @@
 %}
 
 %\jwc{``Property based testing is a race against time...''}
-
-Property-based testing (PBT) is a software-testing technique that uses
+Property-based testing (PBT) is a software testing technique that uses
 random test inputs to validate logical specifications. Recent studies on PBT usage~\cite{inpractice} in industry have shown that
 practitioners often interleave PBT with their software development process, sometimes
 testing their properties every time they save their code. This means that PBT is often given a very short time
 window to find bugs---e.g., between 50 milliseconds and 30 seconds~\cite{inpractice}.
-The faster it finds a failing test, the better.
+The faster a test fails, the better.
 % The goal of PBT is to fail tests as fast as possible. \jwc{First cut at ``fail fast''}
-\iflater
+\iflater 
 \bcp{Feels like we're missing a trick in the transition here.  Can we
   say, ``Because performance is important, PBT libraries are already
   quite tuned.  [Can we substantiate that??]  But more is
   possible...'' }
-\jwc{Agreed. Maybe one way to do this is to say someting in the next pagraph like ``much work has been poured building DSLs that let programers cleverly generate inputs to maximize the potential of finding bugs. Comparably less work has been poured into just making them fast.''}
 \fi
 
 One important locus for performance improvement
 is the \textit{generators} that produce random inputs to the properties under
 test. These generators are written with the help of \textit{generator
 libraries}, usually expressed as embedded domain-specific languages (eDSLs) %\cntxt{edsls}
-that provide combinators for building and composing
-generators. However, careful measurements show that the performance of
-existing generator libraries---even well-engineered and widely used
-ones---falls far short of what is possible.
+that provide combinators for building and composing generators. However, careful measurements show that the performance of existing generator libraries falls far short of what
+is possible. 
 
 This is due to two major sources of inefficiency.
 First, the same high-level design approach that gives generator libraries their
 flexibility also introduces layered abstractions and indirections that are difficult for
 compilers to optimize, shifting work to run time.
 Second, the \rand that a generator uses to make choices can
-be responsible for a surprisingly high proportion of its runtime. Combined, these factors limit
+constitute an unexpectedly high proportion of its runtime. Combined, these factors limit 
 the effectiveness of PBT.
 \iflater
 \hg{TODO later, I'm not 100\% sure it's clear how this particular question is
 raised by the above. We could strengthen that connection}
 \fi
 
-We address both sources of inefficiency.
-First, we show how to use \textit{multi-stage programming}---a classic technique for
-building fast DSLs “without regret”~\cn{}---to eliminate the overhead of
+We lay a path forward.
+First, we show how to use \textit{multi-stage programming}---a classic technique for 
+building fast DSLs “without regret”~\cn{}---to eliminate the overhead of 
 many common generator abstractions.
-Second, we characterize the impact of \rand choice through a controlled experiment 
-that isolates the performance contribution of the \rand within a generator, underscoring its role as a first-class design consideration.\bcp{We've done more than this, though: We've also
-  demonstrated that you can get an X\% improvement in performance by
-  using a specific RNG.}
+Second, we characterize the impact of \rand choice through a natural experiment 
+that isolates the performance contribution of the \rand within a generator, underscoring its role as a first-class design consideration.
 Taken together, these insights can be applied to create tomorrow's generator libraries: those that 
 combine high-level design with low-level performance.
+
 
 To demonstrate the effectiveness and generality of our approach\bcp{It
 feels a bit grand to call what we've done an ``approach''---it's
