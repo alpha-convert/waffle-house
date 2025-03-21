@@ -307,9 +307,9 @@ We lay a path forward.
 First, we show how to use \textit{multi-stage programming}---a classic technique for 
 building fast DSLs “without regret”~\cn{}---to eliminate the overhead of 
 many common generator abstractions.
-Second, we show that entropy source is an undervalued consideration in generator library design
-by isolating the performance contribution of the \rand in generation time, and providing an alternative
-that behaves equivalently with $5.5\times$ speedups.
+Second, we demostrate that entropy source is an undervalued consideration in generator library design
+by isolating its performance contribution, and showing that significant
+speedups are possible.
 These insights culminate in \name, a recipe for building generator libraries that marry high-level design
 with low-level performance.
 
