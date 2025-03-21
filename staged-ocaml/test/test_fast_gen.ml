@@ -380,8 +380,8 @@ let () =
   *)
 
 
-(* open Bst_benchmark *)
-open Stlc_benchmark
+open Bst_benchmark
+(* open Stlc_benchmark *)
 
 (* 
 let () =
