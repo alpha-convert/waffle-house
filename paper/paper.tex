@@ -307,7 +307,7 @@ We chart a path forward.
 First, we show how to use \textit{multi-stage programming}, a classic technique for 
 building fast DSLs “without regret”~\cn{}, to eliminate the overhead of 
 many common generator abstractions. We refer to this approach as \name.
-Second, we demonstrate that the source of entropy is an underappreciated design factor by 
+Second, we demonstrate that a generator's source of entropy is an underappreciated design factor by 
 isolating its runtime cost and showing that significant speedups can be achieved 
 while preserving output equivalence.
 These insights lay the groundwork for generator libraries that combine high-level 
@@ -1506,14 +1506,14 @@ overhead.
 
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
-  \includegraphics[scale=0.45]{time.png}
+  \includegraphics[scale=0.32]{time.png}
   \caption{Time to generate using each strategy. Performance benefits scale with generation size (lower lines translate to greater performance benefit). BQ is \bq; Staged SR is \camlname using \bq's \texttt{splittable\_random} RNG; Staged CSR is \camlname using \secref{subsection:faster-rng}'s \csplitmix.}
   \label{fig:time}
 \end{figure}
 
 \begin{figure}[h]
   \centering
-  \includegraphics[scale=0.4]{scala.png}
+  \includegraphics[scale=0.46]{scala.png}
  \caption{
   \jwc{Don't explain the chart in the caption, split this into two different charts --- purple on one, green on the other.}
   \jwc{Also can we use the language's colors for this?}
