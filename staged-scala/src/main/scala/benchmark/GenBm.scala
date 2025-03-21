@@ -113,7 +113,6 @@ def chLng(l: Long, h: Long)(p: Gen.Parameters, seed: Seed): (Option[Long],Seed) 
 class GenBm {
 
 val size10 = Gen.Parameters.default.withSize(10)
-val size50 = Gen.Parameters.default.withSize(50)
 val size100 = Gen.Parameters.default.withSize(100)
 val size1000 = Gen.Parameters.default.withSize(1000)
 val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parameter
@@ -129,15 +128,6 @@ val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parame
     BoolList.Bespoke.gen.apply(size10,Seed.random())
   }
 
-@Benchmark
-@BenchmarkMode(Array(Mode.AverageTime))
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
-  def generateBoolListBespoke50() = {
-    BoolList.Bespoke.gen.apply(size50,Seed.random())
-  }
 
 @Benchmark
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -178,16 +168,6 @@ val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parame
 @Fork(1)
   def generateBoolListBespokeStaged10() = {
     BoolList.BespokeStaged.gen(10)(Seed.random())
-  }
-
-@Benchmark
-@BenchmarkMode(Array(Mode.AverageTime))
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
-  def generateBoolListBespokeStaged50() = {
-    BoolList.BespokeStaged.gen(50)(Seed.random())
   }
 
 @Benchmark
@@ -237,16 +217,6 @@ val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parame
 @Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
 @Fork(1)
-  def generateBstType50(): Option[Bst] = {
-    BST.TypeDerived.gen.apply(size50,Seed.random())
-  }
-
-@Benchmark
-@BenchmarkMode(Array(Mode.AverageTime))
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
   def generateBstType100(): Option[Bst] = {
     BST.TypeDerived.gen.apply(size100,Seed.random())
   }
@@ -280,16 +250,6 @@ val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parame
 @Fork(1)
   def generateBstTypeStaged10(): Bst = {
     BST.TypeDerivedStaged.gen(10)(Seed.random())
-  }
-
-@Benchmark
-@BenchmarkMode(Array(Mode.AverageTime))
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
-  def generateBstTypeStaged50(): Bst = {
-    BST.TypeDerivedStaged.gen(50)(Seed.random())
   }
 
 @Benchmark
@@ -339,16 +299,6 @@ val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parame
 @Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
 @Fork(1)
-  def generateBstBespoke50(): Option[Bst] = {
-    BST.SingleBespoke.gen.apply(size50,Seed.random())
-  }
-
-@Benchmark
-@BenchmarkMode(Array(Mode.AverageTime))
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
   def generateBstBespoke100(): Option[Bst] = {
     BST.SingleBespoke.gen.apply(size100,Seed.random())
   }
@@ -382,16 +332,6 @@ val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parame
 @Fork(1)
   def generateBstBespokeStaged10(): Bst = {
     BST.SingleBespokeStaged.gen(10)(Seed.random())
-  }
-
-@Benchmark
-@BenchmarkMode(Array(Mode.AverageTime))
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
-  def generateBstBespokeStaged50(): Bst = {
-    BST.SingleBespokeStaged.gen(50)(Seed.random())
   }
 
 @Benchmark
@@ -435,15 +375,6 @@ val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parame
     RBT.TypeDerived.gen.apply(size10,Seed.random())
   }
 
-@Benchmark
-@BenchmarkMode(Array(Mode.AverageTime))
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
-  def generateRbtType50(): Option[Rbt] = {
-    RBT.TypeDerived.gen.apply(size50,Seed.random())
-  }
 
 @Benchmark
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -484,16 +415,6 @@ val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parame
 @Fork(1)
   def generateRbtTypeStaged10(): Rbt = {
     RBT.TypeDerivedStaged.gen(10)(Seed.random())
-  }
-
-@Benchmark
-@BenchmarkMode(Array(Mode.AverageTime))
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
-  def generateRbtTypeStaged50(): Rbt = {
-    RBT.TypeDerivedStaged.gen(50)(Seed.random())
   }
 
 @Benchmark
@@ -543,16 +464,6 @@ val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parame
 @Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
 @Fork(1)
-  def generateTerm50(): Option[Term] = {
-    STLC.Bespoke.gen.apply(size50,Seed.random())
-  }
-
-@Benchmark
-@BenchmarkMode(Array(Mode.AverageTime))
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
   def generateTerm100(): Option[Term] = {
     STLC.Bespoke.gen.apply(size100,Seed.random())
   }
@@ -586,16 +497,6 @@ val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parame
 @Fork(1)
   def generateTermStaged10(): Term = {
     STLC.BespokeStaged.gen(10)(Seed.random())
-  }
-
-@Benchmark
-@BenchmarkMode(Array(Mode.AverageTime))
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
-  def generateTermStaged50(): Term = {
-    STLC.BespokeStaged.gen(50)(Seed.random())
   }
 
 @Benchmark
