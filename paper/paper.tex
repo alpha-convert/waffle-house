@@ -1378,17 +1378,17 @@ discussed in the previous sections.
 \section{Evaluation}
 \label{section:eval}
 % \jwc{Initial section here about eval}\tr{todo}
-To assess the impact of our interventions, we evaluate the raw generator performance and bug-finding speed of
+We evaluate the raw generator performance and bug-finding speed of
 \name generators across a range of benchmarks. Our experiments compare generators
-built using our technique---with and without \csplitmix \jwc{this is the first mention of csplitmix!}---against those implemented with
+built using our technique---with and without our improved SplitMix (``\csplitmix'')---against those implemented with
 existing generator libraries and their default randomness mechanisms. Specifically,
 we implement semantically
 equivalent staged generator libraries that replicate the behavior of \bq
 in OCaml and ScalaCheck in Scala, allowing us to assess the effectiveness of our
 technique across different languages and runtime
-environments.\bcp{This says ``assess the impact'' twice...}
+environments.
 
-This section presents our experimental setup, and address the following research questions:
+This section presents our experimental setup, and addresses the following research questions:
 
 \begin{itemize}
   \item \textbf{RQ1}: Do generators written using our technique run faster than those written with regular generator combinators?
@@ -1409,21 +1409,21 @@ We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for pe
 To answer \textbf{RQ1}, we microbenchmark generators, comparing generators in \camlname to semantically identical ones in \bq,
 and generators in \scalaname to those in ScalaCheck.
  We vary the choice of \rand in our \camlname generators, using both \bq's default
-\texttt{splittable\_random} and our improved SplitMix (\csplitmix), as discussed
-in \secref{subsection:faster-rng}.
-
-For \camlname, our test cases consist of generators for boolean lists, binary search trees (BST), and simply
+\texttt{splittable\_random} and \csplitmix, as discussed
+in \secref{subsection:faster-rng}. Our test cases consist of generators for boolean lists, binary search trees (BST), and simply
 typed lambda calculus (STLC) terms. We implement generators for these benchmarks
 variety of \textit{strategies}, varying in structure and
-sophistication. These include type-derived generators for BSTs and STLC terms,
+sophistication.
+
+\subsubsection{OCaml}
+\label{subsubsection:ocaml}
+
+In \camlname, our strategies include type-derived generators for BSTs and STLC terms
 using the approach outlined in \secref{subsection:type-derived}; two custom BST
 generators, one that repeatedly inserts values into an initially empty tree and
 one that materializes the tree in a single pass by generating keys, values, and
 subtrees at each step; a generator of boolean lists that operates similarly to
-the single-pass BST strategy; and a generator of STLC terms that is correct by construction (``well-typed''), whose behavior is the most complex.
-For evaluating \scalaname, we implement a subset of the aformentioned
-strategies---the boolean list generator, single-pass BST generator, and
-well-typed STLC term generator.
+the single-pass BST strategy; and a generator of STLC terms that is correct by construction (``well-typed'').
 
 The runtime of \camlname generators across different input sizes is summarized in \figref{fig:time}.
 Our \camlname type-derived BST generator achieves speedups ranging from $1.08-1.29\times$, which increase
@@ -1437,11 +1437,11 @@ but sample extensively from the \rand; notably, single-pass BST, which uses the 
 number of calls to generator combinators, also sees the greatest benefit from staging. \tr{Call this out earlier? Unless we have the fancy plot.}
 
 For STLC, staging accounts for the bulk of performance gains, yielding
- $1.71-2.64\times$ speedups for the type-derived STLC generator and $4.60-5.46\times$ for
- the well-typed generator. Adding \csplitmix, these numbers increase to
- $2.60-5.15\times$ and $4.83-7.75\times$. This result makes sense because
- STLC generators, particularly the well-typed generator, sample very little from
- randomness libraries but rely extensively on generator library functions.
+$1.71-2.64\times$ speedups for the type-derived STLC generator and $4.60-5.46\times$ for
+the well-typed generator. Adding \csplitmix, these numbers increase to
+$2.60-5.15\times$ and $4.83-7.75\times$. This result makes sense because
+STLC generators, particularly the well-typed generator, sample very little from
+randomness libraries but rely extensively on generator library functions.
 
 The boolean list generator experiences $3.61-7.10\times$ speedups with
 staging, and its performance actually slightly \textit{decreases} when
@@ -1449,8 +1449,11 @@ combined with \csplitmix ($3.43-6.83\times$). This is likely because sampling
 booleans is cheap enough that the overhead of crossing the FFI barrier is
 greater than that of generating values directly in OCaml.
 
-\tr{We might put a graph of calls to generator library functions vs. speedup here, but
-I'm not sure it's worth it---thoughts?}
+\subsubsection{Scala 3}
+In \scalaname, we implement a subset of the \camlname
+strategies: the boolean list generator, single-pass BST generator, and
+well-typed STLC term generator. ScalaCheck does not support type derivation,
+so those strategies are excluded.
 
 As shown in \figref{fig:scala}, \scalaname achieves an even greater performance
 gain---purely from staging---over ScalaCheck than \camlname does over \bq. This difference arises from
@@ -1459,6 +1462,8 @@ seed -> Option[A]}. Each generator combinator must construct and then
 pattern-match on these \texttt{Option} values, introducing significant boxing
 and unboxing overhead at each step.  Staging eliminates this
 overhead.
+
+
 
 These results show that staging and \rand choice play distinct and
 complementary roles in generator performance. Sampling-heavy generators see
