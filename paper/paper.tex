@@ -406,14 +406,13 @@ end
 \label{fig:bq-api}
 \end{wrapfigure}
 
-While many DSL designs are possible, the standard design for QuickCheck-style
-generators is via an embedded {\em monadic} language. For the purposes of this
-paper, we use the syntax and types from OCaml's \bq library, which is presented in
-Figure~\ref{fig:bq-api}, but these kinds of DSLs can also be found in languages
+The standard design for QuickCheck-style
+generators is via an embedded {\em monadic} language. We use the syntax and types from OCaml's \bq library, which is presented in
+Figure~\ref{fig:bq-api}, but similar DSLs can also be found in languages
 like Haskell, Scala, Python, and many more.
 The library provides some basic generators, for
 example \texttt{gen\_int} for generating random integers in a range, along with
-the ``monadic interface'' consisting of \texttt{return} and \texttt{bind}.  The
+the functions \texttt{return} and \texttt{bind}.  The
 generator \texttt{return x} is the constant generator, always generating the
 value \texttt{x}. Running a generator \texttt{bind g k} runs the generator
 \texttt{g}, producing a value \texttt{a}, and then runs the generator \texttt{k
@@ -429,8 +428,8 @@ random data generators: \texttt{gen\_int} provides a base source of randomness,
 and \texttt{return} and \texttt{bind} allow generators to be composed to create
 larger, more complex generators. Figure~\ref{fig:simple-bind} shows a generator
 built with these operations; it first samples an int between $0$ and $100$,
-names it $x$, samples another between $0$ an $x$, and then returns the pair of
-them both.
+names it $x$, samples another between $0$ and $x$, and then returns the pair of
+them.
 
 \begin{figure}[h]
   \begin{subfigure}{.49\textwidth}
@@ -449,7 +448,7 @@ let int_pair : (int * int) Bq.t =
   let%bind y = Bq.gen_int 0 x in
   return (x,y)
 \end{lstlisting}
-\caption{An equivalent generator using macros for \texttt{bind}.}\label{fig:simple-macro}
+\caption{An equivalent generator using the macro for \texttt{bind}.}\label{fig:simple-macro}
   \end{subfigure}
   \caption{Simple monadic generators for a pair of ordered integers.}\label{fig:simple-pair}
 \end{figure}
@@ -459,7 +458,7 @@ sugar for them. In OCaml\footnote{OCaml actually has a few ways to implement
 monadic syntax; this is the one provided by Jane Street's libraries.}, this
 looks like \texttt{let\%bind x = e in e'}, which desugars to
 \texttt{bind e (fun x => e')}. Figure~\ref{fig:simple-macro} shows the same
-generator as before, now written the monadic syntax.
+generator, written the monadic syntax.
 
 % \subsubsection{Subtleties of Bind}
 % The \texttt{bind} function in monadic generator libraries sequences generators
@@ -494,9 +493,9 @@ generator as before, now written the monadic syntax.
 % generators.\hg{Update this}
 
 Generator libraries also include other functions that make generator
-construction easier; some examples of these are also shown in
+construction easier; some examples of these are included in
 Figure~\ref{fig:bq-api}.  The \texttt{weighted\_union} function is a
-particularly well-used one: it makes making a weighted choice between different
+particularly well used one: it makes making a weighted choice between different
 generators, allowing the developer to combine different sub-generators into a
 single program and tune the data distribution. Also important are functions like
 \texttt{size} and \texttt{with\_size} that are used to control the sizes of
@@ -519,12 +518,12 @@ let tree_of g = fixed_point (fun rg ->
 \caption{A generator using a variety of convenience functions.}\label{fig:tree_of}
 \end{wrapfigure}
 
-The generator in Figure~\ref{fig:tree_of} uses all of the aforementioned
+The generator in Figure~\ref{fig:tree_of} uses all of these
 features. It uses \texttt{fixed\_point} to define a recursive generator that
 reads the current value of \texttt{size} to determine how to generate a tree.
-The generator uses \texttt{weighted\_union} to make a random choice between an
+It uses \texttt{weighted\_union} to make a random choice between an
 empty tree and a node, choosing a node with weight proportional to the current
-size and choosing a leaf otherwise. When generating a node, the generator uses
+size and choosing a leaf otherwise. When generating a node, it uses
 \texttt{with\_size} to reduce the value of the size parameter for future
 iterations.
 
@@ -532,18 +531,20 @@ iterations.
 Just how large is the abstraction overhead of monadic generator DSLs, and where does it come from?
 Figure~\ref{fig:bq-internals} shows the internals of (a simplified version of) \bq{}.
 A generator \texttt{'a Bq.t} is just a function of type~\texttt{int -> SR.t -> 'a},
+\jwc{introduce what SR is}
 taking an \texttt{int} representing the current size parameter and a random seed \texttt{SR.t},
-and returning a generated value \texttt{'a}. It is an invariant of the library that function of this type are
-deterministic: for a fixed size and seed, it will return the same value. All of the randomness in testing comes from varying the initial seed.
+and returning a generated value \texttt{'a}. It is an invariant of the generator library that every function of this type is
+deterministic: for a fixed size and seed, it will always return the same value, so all of the randomness in testing comes from varying the initial seed.
 The monad functions \texttt{return} and \texttt{bind} are defined in the usual way
-for an instance of the reader monad \cn{}. 
+for an instance of the reader monad \cn{} \jwc{explain better}.
 % \bq{} uses a mutable seed, so the \texttt{random} passed to \texttt{(k a)} will be different from the one passed to \texttt{g}.
-The \texttt{gen\_int} combinator simply calls out to the randomness library \texttt{Splittable\_random}, aliased as \texttt{SR} here.
+The \texttt{gen\_int} combinator simply calls out to the randomness library \texttt{Splittable\_random}, aliased as \texttt{SR} here. \jwc{lift this explanation, explain what splittable random is before here.}
 
 Different PBT libraries use variations on this basic design. The largest source of variation is how the random seed is threaded through the generator.
-\bq{} uses a reader monad with a mutable seed, while Haskell's QuickCheck uses a reader monad with an immutable state
+\bcp{Sentence starts with lowerase} \bq{} uses a reader monad with a mutable seed, while Haskell's QuickCheck uses a reader monad with an immutable state
 that is ``split'' at \texttt{bind}s \cn. Meanwhile, ScalaCheck (a) uses an immutable state type and state monad \cn{} to thread
 the state through, and (b) has an \texttt{Option} as its return type, to allow generation to fail.
+\bcp{This discussion should go elsewhere...}
 
 \begin{figure}
 \begin{lstlisting}
@@ -568,17 +569,16 @@ end
 Just how much run-time overhead does this monadic abstraction introduce? To
 illustrate, let's return to our running example of a constrained pair of
 integers, written in both \bq{} and ScalaCheck.
-Figure~\ref{fig:overhead-explanation-code} shows two versions of the generator, written in both languages.
+Figure~\ref{fig:simplify} shows two versions of the generator, written in both languages.
 The first versions (\texttt{int\_pair} in \bq{} and \texttt{intPair} in ScalaCheck) are written with the monadic generator combinators from their respective libraries.
 The second versions (\texttt{int\_pair\_inlined} and \texttt{intPairInlined})
 are semantically identical to the first, but have been rewritten
 by (1) inlining all generator combinator definitions, and then (2)
-repeatedly reducing simplifiable terms like \lstinline{(fun x -> e) e'} --- where an anonymous function is defined and then immediatly called~\footnote{This is usually known as a ``$\beta$-redex''.
-Note that when reducing, we do not reduce to \lstinline{e[e'/x]}, as this does not preserve the order of effects.
-}
---- to \lstinline{let x = e' in e}.
+repeatedly reducing simplifiable terms like \lstinline{(fun x -> e) e'} where an anonymous function is defined and then immediately called, to \lstinline{let x = e' in e}.
 
-\begin{figure}
+
+\begin{figure}[h]
+  \begin{subfigure}{.49\textwidth}
 \begin{lstlisting}
 let int_pair : (int * int) Bq.t =
   let%bind x = (Bq.gen_int 0 100) in
@@ -590,7 +590,11 @@ let int_pair_inlined : int -> SR.t -> int * int =
     let x = Splittable_random.int sr ~lo:0 ~hi:100 in
     let y = Splittable_random.int sr ~lo:0 ~hi:x in
     (x,y)
-
+\end{lstlisting}
+\caption{Simplifying a Generator in OCaml}\label{fig:simplify-ocaml}
+  \end{subfigure}
+  \begin{subfigure}{.49\textwidth}
+\begin{lstlisting}
 def intPair : Gen[(Long,Long)] = for {
   x <- Gen.choose(0,1000)
   y <- Gen.choose(0,x)
@@ -610,15 +614,23 @@ def intPairInlined : (Gen.Parameters, Seed) => (Option[(Long,Long)],Seed) = {
     }
 }
 \end{lstlisting}
-\caption{Int Pair Generators in \bq{} and ScalaCheck}
-\label{fig:overhead-explanation-code}
+\caption{Simplifying a Generator in Scala}\label{fig:simplify-scala}
+  \end{subfigure}
+  \caption{Simplifying Generators}\label{fig:simplify}
 \end{figure}
 
-The performance impact of this inling is large (Figure~\ref{fig:overhead-explanation-perf}). In both languages, the
-inlined version takes (on average) half as much time to generate a single pair of
+% \begin{figure}
+% \begin{lstlisting}
+% \end{lstlisting}
+% \caption{Int Pair Generators in \bq{} and ScalaCheck}
+% \label{fig:overhead-explanation-code}
+% \end{figure}
+
+The performance impact of this simplification is large (Figure~\ref{fig:overhead-explanation-perf}). In both languages, the
+inlined version takes on average half as much time to generate a single pair of
 \texttt{int}s. 
 Microbenchmarks of more realistic generators (see Section~\ref{section:eval})
-show an even more dramatic performance boost for inlining in this manner.
+show an even more dramatic performance boost.
 
 Because the inlined versions of the generator are identical to the un-inlined
 versions except for mechanical, semantics-preserving transformations,
@@ -630,7 +642,7 @@ use heuristics to determine if and when to perform this particular kind of
 simplification~\footnote{As we discuss in Section~\ref{section:other-langs}, purity
 means that Haskell is a slightly different story. GHC can and often does
 transformations of this form.}.  Even in cases as simple as
-Figure~\ref{fig:overhead-explanation-code}, the indirection of \texttt{return}
+Figure~\ref{fig:simplify}, the indirection of \texttt{return}
 and \texttt{bind} causes these heuristics to not fire.  Moreover, the story is
 even worse for recursive generators, as the heuristics are necessarily even more
 conservative for optimizing recursive functions.
