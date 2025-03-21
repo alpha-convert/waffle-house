@@ -307,9 +307,8 @@ We lay a path forward.
 First, we show how to use \textit{multi-stage programming}---a classic technique for 
 building fast DSLs “without regret”~\cn{}---to eliminate the overhead of 
 many common generator abstractions.
-Second, we precisely characterize the impact of \rand choice through a natural experiment that preserves 
-generator behavior while improving execution speed, demonstrating that the entropy source itself should be treated as a first-class 
-concern in generator library design.
+Second, we characterize the impact of \rand choice through a natural experiment 
+that isolates the performance contribution of the \rand within a generator, underscoring its role as a first-class design consideration.
 Taken together, these insights can be applied to create tomorrow's generator libraries: those that 
 combine high-level design with low-level performance.
 
