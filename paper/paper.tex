@@ -270,14 +270,14 @@
 
 %\jwc{``Property based testing is a race against time...''}
 
-Property-based testing (PBT) is a software testing technique that uses
+Property-based testing (PBT) is a software-testing technique that uses
 random test inputs to validate logical specifications. Recent studies on PBT usage~\cite{inpractice} in industry have shown that
 practitioners often interleave PBT with their software development process, sometimes
 testing their properties every time they save their code. This means that PBT is often given a very short time
 window to find bugs---e.g., between 50 milliseconds and 30 seconds~\cite{inpractice}.
-The faster a test fails, the better.
+The faster it finds a failing test, the better.
 % The goal of PBT is to fail tests as fast as possible. \jwc{First cut at ``fail fast''}
-\iflater 
+\iflater
 \bcp{Feels like we're missing a trick in the transition here.  Can we
   say, ``Because performance is important, PBT libraries are already
   quite tuned.  [Can we substantiate that??]  But more is
@@ -288,31 +288,41 @@ One important locus for performance improvement
 is the \textit{generators} that produce random inputs to the properties under
 test. These generators are written with the help of \textit{generator
 libraries}, usually expressed as embedded domain-specific languages (eDSLs) %\cntxt{edsls}
-that provide combinators for building and composing generators. However, careful measurements show that the performance of existing generator libraries falls far short of what
-is possible. 
+that provide combinators for building and composing
+generators. However, careful measurements show that the performance of
+existing generator libraries---even well-engineered and widely used
+ones---falls far short of what is possible.
 
 This is due to two major sources of inefficiency.
 First, the same high-level design approach that gives generator libraries their
 flexibility also introduces layered abstractions and indirections that are difficult for
 compilers to optimize, shifting work to run time.
 Second, the \rand that a generator uses to make choices can
-constitute an unexpectedly high proportion of its runtime. Combined, these factors limit 
+be responsible for a surprisingly high proportion of its runtime. Combined, these factors limit
 the effectiveness of PBT.
 \iflater
 \hg{TODO later, I'm not 100\% sure it's clear how this particular question is
 raised by the above. We could strengthen that connection}
 \fi
 
-We lay a path forward.
-First, we show how to use \textit{multi-stage programming}---a classic technique for 
-building fast DSLs “without regret”~\cn{}---to eliminate the overhead of 
+We address both sources of inefficiency.
+First, we show how to use \textit{multi-stage programming}---a classic technique for
+building fast DSLs “without regret”~\cn{}---to eliminate the overhead of
 many common generator abstractions.
-Second, we characterize the impact of \rand choice through a natural experiment 
-that isolates the performance contribution of the \rand within a generator, underscoring its role as a first-class design consideration.
-Taken together, these insights can be applied to create tomorrow's generator libraries: those that 
+Second, we characterize the impact of \rand choice through a natural experiment
+that isolates the performance contribution of the \rand within a
+generator, underscoring its role as a first-order design
+consideration.\bcp{We've done more than this, though: We've also
+  demonstrated that you can get an X\% improvement in performance by
+  using a specific RNG.}
+Taken together, these insights can be applied to create tomorrow's generator libraries: those that
 combine high-level design with low-level performance.
 
-To demonstrate the effectiveness and generality of our approach, which we call \name, we implement staged PBT libraries in multiple languages.
+To demonstrate the effectiveness and generality of our approach\bcp{It
+feels a bit grand to call what we've done an ``approach''---it's
+really just a single performance-enhancing technique, staging, plus
+the observation that the RNG matters and you should use the fastest
+one you can.}, which we call \name, we implement staged PBT libraries in multiple languages.
 In OCaml, we build \camlname{}, based on \bq{}---a
 high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street \cn{}.
 In Scala 3, we build \scalaname{}, based on ScalaCheck---a very
@@ -320,7 +330,11 @@ mature PBT library and the {\em de facto} choice\bcp{the wording here
   implies that there are other choices in Scala, some of which might
   be reasonable, and tht base\_quickcheck is not the de facto choice
   in OCaml...} in Scala \cn{}.
-In both languages, our libraries are direct drop-in replacements that are
+In both languages, our libraries are direct drop-in
+replacements\bcp{that's not quite accurate, is it? I mean, they have
+  the same functionality, but can you take a generator that works with
+base\_quickcheck and just link it against our version without changing
+the generator itself? That's what ``drop-in replacement'' means to me.} that are
 \textit{100\% semantically equivalent}: that is, given identical random seeds, a generator written with our technique
 produces exactly the same sequence of values as the same generator written with the original generator library.
 The semantic equivalence between the original generators and \name{} generators allows us to
@@ -375,7 +389,7 @@ QuickCheck's solution to this problem, which has been copied in
 dozens of frameworks across a wide variety of languages, is to provide a domain-specific
 language (DSL) for writing random data generators that gives developers complete
 control\bcp{that might be overstating the case a bit!} over the
-distribution of their test inputs. 
+distribution of their test inputs.
 
 \begin{wrapfigure}{r}{.5\textwidth}
 \begin{lstlisting}
@@ -487,7 +501,7 @@ generator, written the monadic syntax.
 Generator libraries also include other functions that make generator
 construction easier; some examples of these are included in
 Figure~\ref{fig:bq-api}.  The \texttt{weighted\_union} function is a
-particularly well used one: it makes making a weighted choice between different
+particularly well-used one: it makes making a weighted choice between different
 generators, allowing the developer to combine different sub-generators into a
 single program and tune the data distribution. Also important are functions like
 \texttt{size} and \texttt{with\_size} that are used to control the sizes of
@@ -620,7 +634,7 @@ def intPairInlined : (Gen.Parameters, Seed) => (Option[(Long,Long)],Seed) = {
 
 The performance impact of this simplification is large (Figure~\ref{fig:overhead-explanation-perf}). In both languages, the
 inlined version takes on average half as much time to generate a single pair of
-\texttt{int}s. 
+\texttt{int}s.
 Microbenchmarks of more realistic generators (see Section~\ref{section:eval})
 show an even more dramatic performance boost.
 
@@ -645,7 +659,7 @@ conservative for optimizing recursive functions.
   \bq{}         & \texttt{int\_pair}          & 70                       \\
   \bq{}         & \texttt{int\_pair\_inlined} & 35                       \\
   ScalaCheck & \texttt{intPair}            & 458                      \\
-  ScalaCheck & \texttt{intPairInlined}     & 266                     
+  ScalaCheck & \texttt{intPairInlined}     & 266
   \end{tabular}
 \caption{Microbenchmarks of Generators in \bq{} (using \texttt{core\_bench} \cn) and ScalaCheck (using \texttt{jmh} \cn). Average over 10000 generations with random seeds, and a fixed size}
 \label{fig:overhead-explanation-perf}
@@ -673,7 +687,7 @@ In practice, \texttt{weighted\_union} is almost always\footnote{
 There are some generators where \texttt{weighted\_union} is passed a list which
 was itself the result of a generator: the well-typed STLC term generator used in Section~\ref{section:eval} is an example of this.
 } called with an explicitly constructed list, like
-\texttt{weighted\_union [(w1,g1); (w2,g2); (w3,g3)]}. 
+\texttt{weighted\_union [(w1,g1); (w2,g2); (w3,g3)]}.
 This is because the most common use case for \texttt{weighted\_union} is
 to choose between one of the different constructors of an algebraic datatype,
 the options for which are always known.
@@ -683,8 +697,8 @@ This overhead is fixable in languages with stack alloctation, which OCaml will s
 Since the elements of the list and its length $n$ are known,
 a compiler could in principle unroll the loops in \texttt{weighted\_union} to depth $n$ and specialize the function at each call site to avoid allocating the list.
 Unfortunately, almost~\footnote{Once again, GHC is a notable exception here, performing sophisticated list fusion optimizations \cn{}} no compilers perform this kind of optimization.
-This allocation (or rather, its tendency to cause GC pauses) --- as well as the cost of running the code 
-to traverse arbitrary lists compared to unrolled loops --- has a significant impact on 
+This allocation (or rather, its tendency to cause GC pauses) --- as well as the cost of running the code
+to traverse arbitrary lists compared to unrolled loops --- has a significant impact on
 performance.
 
 Last, many PBT libraries --- including both \bq and ScalaCheck --- implement their \texttt{weighted\_union} combinators
@@ -727,7 +741,7 @@ For example, significantly faster algorithms than SplitMix or JSF exist,
 such as the Lehmer algorithm\cn. In microbenchmarks, the Lehmer algorithm runs almost 2x as fast as SplitMix \cn.
 % https://github.com/lemire/testingRNG/tree/master
 Moreover, PBT libraries could even consider eschewing the requirement that a source of
-entropy pass statistical tests like BigCrush\cn. \hg{This needs more discussion} 
+entropy pass statistical tests like BigCrush\cn. \hg{This needs more discussion}
 This is common practice in other areas of testing already:
 fuzzers often simply use a buffer full of arbitrary bytes as a source of entropy
 \cn. Such approaches are also faster than algorithms like SplitMix: bumping a
@@ -776,9 +790,9 @@ compiled and run at run time.
 \paragraph{Uses of Staging in eDSL Construction}
 One of the primary uses of staging is in embedded DSL construction \cite{sheard99, lms, trattdsl}.
 \jwc{Cite racket macros for DSLs here:}
-While embedded DSLs are powerful tools, they have well-known drawback: 
+While embedded DSLs are powerful tools, they have well-known drawback:
 the functional abstractions used to build eDSLs prevent compilers from generating efficient machine code \cn.
-This is abstraction overhead \cite{carrette05, moller20}: the layers of abstraction that 
+This is abstraction overhead \cite{carrette05, moller20}: the layers of abstraction that
 make eDSLs so usable are precisely what prevents them from being fast.
 Indeed, the root causes of many of the performance issues we discovered in Section~\ref{section:motiv} are
 not unique to generator DSLs.
@@ -824,7 +838,7 @@ let eta (f : 'a code -> 'b code) : ('a -> 'b) code = .<fun x -> .\~(f .<x>.)>.
 \end{lstlisting}
 
 This program is known as ``the trick'' in the partial evaluation and multi-stage programming literature.
-\cn{} 
+\cn{}
 % USE THIS: https://arxiv.org/pdf/2309.08207
 It returns a code for a function that takes an argument \texttt{x} and splices in the result of calling \texttt{f} on just
 the quoted \texttt{x}.
@@ -866,7 +880,7 @@ can ensure that any overhead of using the combinators is eliminated by run time.
 \jwc{Needs a lot more signposting at the top here.}
 
 To build a staged version of a generator DSL, we must rewrite the the generator
-combinators to do as much as possible at compile time, 
+combinators to do as much as possible at compile time,
 producing inlined code that uses no combinators, which can be compiled and run
 with different sizes and seeds.
 
@@ -1025,7 +1039,7 @@ tree of \texttt{if}s specialized to the list of weights known at compile time, t
 
 % \texttt{Gen.weighted\_union} begins by computing \texttt{sum\_code}, an \texttt{int code}
 % that is the sum of the weights. Note that this happens at compile time: we fold over a list
-% known at compile time to produce another code value. 
+% known at compile time to produce another code value.
 % We then call \texttt{SR.int} to sample a random number \texttt{r} between \texttt{0} and the sum.
 % Finally, we splice in the result of calling the helper function \texttt{pick}. \texttt{pick}
 % produces a tree of \texttt{if}s by again traversing the list of generators at compile time.
@@ -1063,7 +1077,7 @@ let grades : char Bq.t = Gen.to_bq (
         if r'' <= 1 then 'c' else failwith "Error"
 >.
 *)
-\end{lstlisting} 
+\end{lstlisting}
 \caption{Use of Staged Weighted Union}
 \label{fig:staged-weighted-union-example}
 \end{figure}
@@ -1110,7 +1124,7 @@ the entire block of code, effects and all. To ensure that the randomness effects
 but that the value can be used in the continuation multiple times, the correct \texttt{bind} let-binds the result of generation to a variable
 and then passes it to the continuation.
 
-% The library \jwc{ensure this is consistent with the way we talk about the project, cf cross-language} is careully designed to 
+% The library \jwc{ensure this is consistent with the way we talk about the project, cf cross-language} is careully designed to
 % preserve exactly the effect order of base quickcheck \jwc{and the scala version to preserve the effect ordering of ScalaCheck}.
 % \jwc{This fact should go earlier. Not really sure about where this subsection should actually land, but it needs to be said somehwere.}
 % \hg{+1, I think this feels sort of out of place here, but I also think moving it
@@ -1123,7 +1137,7 @@ and then passes it to the continuation.
 Another subtle issue prevents the version of the library design discussed so far
 from being used as a drop-in replacement for an existing generator DSL: the types of \texttt{return : 'a code -> 'a Gen.t}
 and \texttt{bind : 'a Gen.t -> ('a code -> 'b Gen.t) -> 'b Gen.t} aren't quite right.
-For the type \texttt{'a Gen.t} to actually be a monad, 
+For the type \texttt{'a Gen.t} to actually be a monad,
 these types cannot mention \texttt{code}. This is not just a theoretical issue; it is a significant usability concern.
 The syntactic sugar for monadic programming (\texttt{let\%bind} in OCaml, \texttt{foreach} in Scala, \texttt{do} in Haskell, etc)
 that makes it smooth can \emph{only} be used if
@@ -1175,7 +1189,7 @@ For example, \lstinline{bind (int .<0>. .<1.>) (fun cx -> return .<(.~cx,.~cx)>.
 \lstinline{.< fun size random -> let x = SR.int random 0 1 in (x,x) >.}.
 This design is less obviously correct, and does require some care. Rather than \texttt{bind} ensuring correct evaluation order once and for all,
 individual combinators must be carefully written to ensure that \texttt{'a code} values that contian effects are \texttt{let\_insert}'d.
-To ensure that the OCaml code is written correctly, we employ a PBT harness to compare its outputs to the corresponding \bq generator over 1,000 random seeds. 
+To ensure that the OCaml code is written correctly, we employ a PBT harness to compare its outputs to the corresponding \bq generator over 1,000 random seeds.
 If no discrepancy arises, we conclude that the generators exhibit equivalent behavior.
 
 \begin{figure}
@@ -1204,11 +1218,11 @@ module Gen = struct
       CodeCps.bind (g size random) (fun x ->
         (f x) size random
       )
-  
+
   let int (lo : int code) (hi : int code) : int code t =
     fun size random -> let_insert .< SR.int .~random .~lo .~hi >.
 end
-\end{lstlisting} 
+\end{lstlisting}
 \caption{CodeCPS and The Final Gen Monad}
 \label{fig:codecps-and-final-gen}
 \end{figure}
@@ -1268,7 +1282,7 @@ Programmers can then define recursive generators by \texttt{fixed\_point}, which
 %       Codecps.let_insert c
 
 %   let recursive (step : ('a,'r) handle -> 'r code -> 'a code t) (x0 : 'r code) : 'a code t =
-%     fun size_c random_c -> 
+%     fun size_c random_c ->
 %       Codecps.return @@
 %         .< let rec go x size random = .~(
 %               Codecps.code_generate @@
@@ -1292,10 +1306,10 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
 
 \subsection{Staged Type-Derived Generators}
 
-Generators are traditionally handwritten, but some libraries allow users to synthesize 
-them automatically from type definitions. Type-derived generators are 
-convenient---the derivation process requires no manual effort---but also limited: 
-they are unable to account for constraints not encoded in the type. 
+Generators are traditionally handwritten, but some libraries allow users to synthesize
+them automatically from type definitions. Type-derived generators are
+convenient---the derivation process requires no manual effort---but also limited:
+they are unable to account for constraints not encoded in the type.
 As a result, generating values with complex preconditions is statistically unlikely.
 This state of affairs is not ideal, as inexperienced PBT users, who might derive a generator, run their test harness, find no bugs, and assume the code is correct---when in reality, most values are never tested at all because they do not satisfy the preconditions.
 
@@ -1308,7 +1322,7 @@ the end user does not need to understand the staging syntax---but more important
     \item In PBT in practice, we learned that in many cases, programmers don't
     even write custom generators, instead relying on type-derived generators.
     \item These generators just produce arbitrary values of a given type, not necessarily enforcing validity conditions.
-    \item If 
+    \item If
     \item Let's talk about how type-deriving works. In languages with typeclasses, it works
     by typeclass resolution. In OCaml it works by PPX system, but the principle
     is the same. You define rules to go from generators of a subtypes to a generator of the larger type, and then apply those rules to build up a full generator.
@@ -1370,14 +1384,14 @@ discussed in the previous sections.
 \section{Evaluation}
 \label{section:eval}
 % \jwc{Initial section here about eval}\tr{todo}
-To assess the impact of our approach, we evaluate the performance and bug-finding speed of 
-\name generators across a range of benchmarks. Our experiments compare generators 
-built using our technique---with and without \csplitmix---against those implemented with 
-existing generator libraries (and their default randomness mechanisms). Specifically, 
-we implement 
-two fully semantically 
-equivalent staged generator libraries that replicate the behavior of \bq 
-in OCaml and ScalaCheck in Scala, allowing us to assess the effectiveness of our 
+To assess the impact of our approach, we evaluate the performance and bug-finding speed of
+\name generators across a range of benchmarks. Our experiments compare generators
+built using our technique---with and without \csplitmix---against those implemented with
+existing generator libraries (and their default randomness mechanisms). Specifically,
+we implement
+two fully semantically
+equivalent staged generator libraries that replicate the behavior of \bq
+in OCaml and ScalaCheck in Scala, allowing us to assess the effectiveness of our
 technique across different languages and runtime environments.
 
 This section presents our experimental setup, as well as answers to the following research questions:
@@ -1413,39 +1427,39 @@ generators, one that repeatedly inserts values into an initially empty tree and
 one that materializes the tree in a single pass by generating keys, values, and
 subtrees at each step; a generator of boolean lists that operates similarly to
 the single-pass BST strategy; and a well-typed generator of
-STLC terms, whose behavior is the most complex. 
-For evaluating \scalaname, we implement a subset of the aformentioned 
-strategies---the boolean list generator, single-pass BST generator, and 
+STLC terms, whose behavior is the most complex.
+For evaluating \scalaname, we implement a subset of the aformentioned
+strategies---the boolean list generator, single-pass BST generator, and
 well-typed STLC term generator.
 
-The runtime of \camlname generators across different input sizes is summarized in \figref{fig:time}. 
-Our \camlname type-derived BST generator achieves speedups ranging from 1.08--1.29x, which increase 
-dramatically to 6.13--9.65x when combined with \csplitmix. The insertion-based BST generator sees 
-1.13--1.21x speedups with staging alone, and 4.32--5.36x when also 
-using \csplitmix. The single-pass BST generator benefits more significantly from 
-staging, with speedups of 2.31--2.34x, which rise to 8.61--8.95x when combined with 
-\csplitmix. We attribute the differential in performance speedup to the fact that 
-BST strategies rely on relatively few calls to generator combinator functions, 
+The runtime of \camlname generators across different input sizes is summarized in \figref{fig:time}.
+Our \camlname type-derived BST generator achieves speedups ranging from 1.08--1.29x, which increase
+dramatically to 6.13--9.65x when combined with \csplitmix. The insertion-based BST generator sees
+1.13--1.21x speedups with staging alone, and 4.32--5.36x when also
+using \csplitmix. The single-pass BST generator benefits more significantly from
+staging, with speedups of 2.31--2.34x, which rise to 8.61--8.95x when combined with
+\csplitmix. We attribute the differential in performance speedup to the fact that
+BST strategies rely on relatively few calls to generator combinator functions,
 but sample extensively from the \rand; notably, single-pass BST, which uses the largest
-number of calls to generator combinators, also sees the greatest benefit from staging. 
+number of calls to generator combinators, also sees the greatest benefit from staging.
 
 For STLC, staging accounts for the bulk of performance gains, yielding
- 1.71--2.64x speedups for the type-derived STLC generator, and 4.60--5.46x for 
- the well-typed generator. When adding \csplitmix, these numbers increase to 
+ 1.71--2.64x speedups for the type-derived STLC generator, and 4.60--5.46x for
+ the well-typed generator. When adding \csplitmix, these numbers increase to
  2.60--5.15x and 4.83--7.75x, respectively. This result makes sense because
  STLC generators, particularly the well-typed generator, sample very little from
  randomness libraries, but extensively on generator library functions.
 
-The boolean list generator experiences 3.61--7.10x speedups with 
-staging, and its performance actually slightly \textit{decreases} when 
-combined with \csplitmix (3.43--6.83x). This is likely because sampling 
-booleans is ``cheap'' enough that the overhead of crossing the FFI barrier is 
+The boolean list generator experiences 3.61--7.10x speedups with
+staging, and its performance actually slightly \textit{decreases} when
+combined with \csplitmix (3.43--6.83x). This is likely because sampling
+booleans is ``cheap'' enough that the overhead of crossing the FFI barrier is
 greater than that of generating values directly in OCaml.
 
 \tr{We might put a graph of calls to generator library functions vs. speedup here, but
 I'm not sure it's worth it---thoughts?}
 
-As shown in \figref{fig:scala}, \scalaname achieves an even greater performance 
+As shown in \figref{fig:scala}, \scalaname achieves an even greater performance
 gain---purely from staging---over ScalaCheck than \camlname does over \bq. This discrepancy arises from
 ScalaCheck's representation of generators as functions of type \texttt{size ->
 seed -> Option[A]}. Each generator combinator must construct and then
@@ -1493,7 +1507,7 @@ workloads.
 %}
 \subsection{Benchmarking bug-finding speed}
 To answer \textbf{RQ2}, we evaluate the bug-finding speed of our BST and STLC
-case studies using Etna, a platform for assessing and comparing PBT techniques. 
+case studies using Etna, a platform for assessing and comparing PBT techniques.
 Etna allows users to measure the effectiveness of different generator
 implementations by injecting bugs into the system under test and recording the
 time taken for a relevant property to fail in response. For example, in a tree
@@ -1501,10 +1515,10 @@ with an ordering property, a bug injection might consist of inserting a value
 into the tree that violates that ordering. Each case study includes a diverse
 set of \textit{tasks}, where a task consists of a specific bug-property pair
 designed to test different aspects of the system (e.g., BST includes tasks that
-test insertion, deletion, and union operations on binary search trees). 
-In particular, BST has 37 tasks, and STLC has 20. Strategies for BST and STLC 
+test insertion, deletion, and union operations on binary search trees).
+In particular, BST has 37 tasks, and STLC has 20. Strategies for BST and STLC
 are implemented in
-\camlname; they are unchanged from their description in \secref{subsection:benchmarking}.\footnote{Etna does 
+\camlname; they are unchanged from their description in \secref{subsection:benchmarking}.\footnote{Etna does
 not support Scala, so we were unable to test \scalaname's bug-finding speed in Etna, but we
 we see no reason our results in this section would not extend to \scalaname.}
 
@@ -1519,7 +1533,7 @@ these cases, we repeat the above process over 30 random seeds---that is, all str
 are run on the same seed so that they produce identical sequences of values, and this process
 is repeated 30 times.\footnote{Although the
 variance \textit{between} seeds in Etna can be vast, timing results are
-replicable for a \textit{given} seed. Across 1,000 trials using the same seed, 
+replicable for a \textit{given} seed. Across 1,000 trials using the same seed,
 the observed variance in time-to-failure was less than a nanosecond.}
 
 We run each
@@ -1529,25 +1543,25 @@ find the bug are excluded from our dataset, as they provide no basis for
 comparison.  Similarly, we exclude tasks where the BQ strategy completes in
 under 5ms, as such negligible runtimes do not yield meaningful insights into
 relative performance. These filters remove
-28/600 (4.67\%) of type-derived STLC's tasks, 
-168/600 (28\%) of STLC's tasks, 
+28/600 (4.67\%) of type-derived STLC's tasks,
+168/600 (28\%) of STLC's tasks,
 149/1110 (14.42\%) of type-derived BST's tasks,
 268/1110 (24.1\%) of single-pass BST's tasks, and
-371/1110 (33.42\%) of insertion-based BST's tasks. More sophisticated 
-strategies tend to find bugs faster, leading to a higher number of filtered 
-tasks. By applying these filters, we ensure that our reported speedups reflect 
+371/1110 (33.42\%) of insertion-based BST's tasks. More sophisticated
+strategies tend to find bugs faster, leading to a higher number of filtered
+tasks. By applying these filters, we ensure that our reported speedups reflect
 optimizations that meaningfully impact performance.
 
-The average individual-task speedups for each strategy and benchmark are shown in 
-\figref{fig:etna}, with trends in bug-finding speed closely mirroring those in performance 
-from \secref{subsection:benchmarking}. The distribution of speedups in \figref{fig:swarm} reveals 
-substantial variability, with most tasks clustering near the median and a long tail of outliers 
+The average individual-task speedups for each strategy and benchmark are shown in
+\figref{fig:etna}, with trends in bug-finding speed closely mirroring those in performance
+from \secref{subsection:benchmarking}. The distribution of speedups in \figref{fig:swarm} reveals
+substantial variability, with most tasks clustering near the median and a long tail of outliers
 achieving much larger gains. STLC shows a more bimodal distribution of speedups
-than the other benchmarks, which we attribute to the heterogenous difficulty of its tasks:  
-some tasks regularly hit the 60-second timeout, while others finish in a fraction of a second. We 
-find that ``easier'' tasks---those that run on the order of milliseconds---regularly achieve speedups in the 
+than the other benchmarks, which we attribute to the heterogenous difficulty of its tasks:
+some tasks regularly hit the 60-second timeout, while others finish in a fraction of a second. We
+find that ``easier'' tasks---those that run on the order of milliseconds---regularly achieve speedups in the
 range of 4--9x, whereas tasks that run on the order of seconds achieve more moderate speedups of up to 3.5x.
-Overall, 
+Overall,
 these results give strong evidence that \camlname consistently benefits bug-finding speed, sometimes drastically.
 \begin{figure}[h]
   \includegraphics[scale=0.3]{speedup.png}
@@ -1600,7 +1614,7 @@ Next, we discuss language-by-language the degree to which the \name{} insights a
   sometimes to build eDSLs in contexts where one does not want to rely on the
   optimizer's heuristics.  In short: it is possible to build a \name{} version of Haskell
   QuickCheck, but the benefits would be much less pronounced.
-  
+
   \item \textbf{Rust} shares some similarities with functional languages, and
   indeed, it is host to a number of property-based testing libraries \cn{}. However Rust does not
   structurally encourage monadic eDSLs --- it does not have a special monadic syntax --- and so
