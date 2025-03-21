@@ -11,12 +11,15 @@ object SingleBespoke {
       if (lo >= hi || sz <= 1) {
         Gen.const(Bst.E)
       } else {
-        for {
-        k <- Gen.Choose.chooseLong.choose(lo, hi)
-        v <- Nat.generator(bst_bespoke_limits)
-        l <- Gen.resize(sz / 2, go(lo, k - 1))
-        r <- Gen.resize (sz / 2, go(k + 1, hi))
-        } yield (Bst.Node (l,k,v,r))
+        Gen.frequency(
+          1 -> Gen.const(Bst.E),
+          sz -> (for {
+            k <- Gen.Choose.chooseLong.choose(lo, hi)
+            v <- Nat.generator(bst_bespoke_limits)
+            l <- Gen.resize(sz / 2, go(lo, k - 1))
+            r <- Gen.resize (sz / 2, go(k + 1, hi))
+            } yield (Bst.Node (l,k,v,r))
+        ))
       }
     )
   }
