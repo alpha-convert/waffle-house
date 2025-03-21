@@ -360,6 +360,9 @@ We make the following contributions:
     \item We present \name{}, a technique based on staging that eliminates the abstraction overhead of generators. We implement \name{} in both OCaml and Scala 3, showcasing its cross-language applicability.
     \item We demonstrate that both \name{} and choosing a faster \rand yield substantial performance improvements to generator running time. Finally, we show
     that these performance improvements extend to significantly improved bug-finding speed. \jwc{This should be sell-ier: 2x speedups, etc. ``bug-finding speed'' isn't a race against time.}
+    \jwc{We precisely quantify the performance effects of staging and faster rng across a range of testing scenarios --- i.e. a contrib is the fact that we can exactly pin down when one helps versus the other. The ``logically smarter'' your generator is, the more you get out of staging, the ``dumber'', the more you get out of rng.}
+    \bcp{Agree with this. We need to beef up our claims here about what we learned about PBT-specifics.}
+    \jwc{And this needs to be flowed through the rest of the paper.}
 \end{enumerate}
 
 In Section~\ref{section:motiv}, we introduce monadic generator DSLs, discuss how they work, and take an example-guided tour through some of the ways that
