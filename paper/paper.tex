@@ -674,27 +674,29 @@ choice combinators like \texttt{weighted\_union} come with their own particular 
 In practice, \texttt{weighted\_union} is (almost \footnote{
 There are some generators where \texttt{weighted\_union} is passed a list which
 was itself the result of a generator: the well-typed STLC term generator used in Section~\ref{section:eval} is an example of this.
-}) always called with an explicitly constructed list, like
+}) always called with an explicitly constructed list, as in
 \texttt{weighted\_union [(w1,g1); (w2,g2); (w3,g3)]}. 
 This is because the most common use case for \texttt{weighted\_union} is
 to choose between one of the different constructors of an algebraic datatype,
 the options for which are always known.
 This list is allocated at the call site and then never needed after the call to \texttt{weighted\_union} returns.
-Since the elements of the list and its length $n$ are known,
-a compiler could in principle unroll the loops in \texttt{weighted\_union} to depth $n$ and specialize the function at each call site to avoid allocating the list.
-Unfortunately, almost~\footnote{Once again, GHC is a notable exception here, performing sophisticated list fusion optimizations \cn{}} no compilers perform this kind of optimization.
-This allocation (or rather, its tendency to cause GC pauses) --- as well as the cost of running the code 
-to traverse arbitrary lists compared to unrolled loops --- has a significant impact on 
+Since the elements of the list and its length \texttt{n} are known,
+a compiler could in principle unroll the loops in \texttt{weighted\_union} to depth \texttt{n} and specialize the function at each call site to avoid allocating the list.
+Unfortunately, (almost\footnote{GHC is a notable exception here, performing sophisticated list fusion optimizations \cn{}}) no compilers perform this kind of optimization.
+This allocation (or rather, its tendency to cause GC pauses)---as well as the cost of running the code 
+to traverse arbitrary lists compared to unrolled loops---has a significant impact on 
 performance.
 
 Last, many PBT libraries --- including both \bq and ScalaCheck --- implement their \texttt{weighted\_union} combinators
-in ways that are asymptotically more efficient but slower in practice than the naive algorithm.
-Weighted union works by the Fitness Proportionate Selection algorithm \cn{}, which (1) samples a number $r$
+in ways that are asymptotically more efficient but slower in common cases than a more naive algorithm.
+Weighted union uses the Fitness Proportionate Selection algorithm \cn{}, which (1) samples a number $r$
 between $0$ and the sum of the weights, and then (2) finds the first generator for which the cumulative
 weights in the list before it exceeds $r$. This second part can be accomplished in $O(\log_2 n)$ time by
-binary searching the list. However, since the lists are short in practice, a linear scan is almost always faster \cn{}.
+a binary search. However, since the lists are short in practice, a linear scan is almost always faster \cn{}.
 Moreover, both \bq{} and ScalaCheck allocate auxiliary data structures (an array in \bq{} and a BST in ScalaCheck) to
 perform this search, which incurs further run time overhead.
+\bcp{Are we advocating a linear scan? If not, then maybe we don't need to make this point}\jwc{We are, but we do need to make this point, since
+it's important to understanding why we get more speedup than you might expect}
 
 % \subsubsection{Function call overhead}
 \subsection{Inefficient Randomness Libraries}
