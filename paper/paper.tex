@@ -1411,8 +1411,8 @@ and generators in \scalaname to those in ScalaCheck.
  We vary the choice of \rand in our \camlname generators, using both \bq's default
 \texttt{splittable\_random} and \csplitmix, as discussed
 in \secref{subsection:faster-rng}. Our test cases consist of generators for boolean lists, binary search trees (BST), and simply
-typed lambda calculus (STLC) terms. We implement generators for these benchmarks
-variety of \textit{strategies}, varying in structure and
+typed lambda calculus (STLC) terms. We implement generators for these benchmarks using a
+variety of \textit{strategies} varying in structure and
 sophistication.
 
 \subsubsection{OCaml}
@@ -1429,7 +1429,7 @@ The runtime of \camlname generators across different input sizes is summarized i
 Our \camlname type-derived BST generator achieves speedups ranging from $1.08-1.29\times$, which increase
 dramatically, to $6.13-9.65\times$, when combined with \csplitmix. The insertion-based BST generator sees
 $1.13-1.21\times$ speedups with staging alone, and $4.32-5.36\times$ when also
-using \csplitmix. The single-pass BST generator benefits more significantly from
+using \csplitmix. The single-pass BST generator benefits more from
 staging, with speedups of $2.31-2.34\times$, rising to $8.61-8.95\times$ when combined with
 \csplitmix. We attribute the difference in performance speedup to the fact that
 BST strategies rely on relatively few calls to generator combinator functions,
