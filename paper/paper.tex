@@ -1354,11 +1354,12 @@ the end user does not need to understand the staging syntax---but more important
 \label{subsection:faster-rng}
 
 \jwc{Unclear what we should call this section}
+\bcp{``Performance opportunities in the RNG?''}
 As we discussed in Section~\ref{section:motiv}, choosing an inefficient randomness library is
-another bottleneck for finding bugs fast. While generator libraries by
+another impediment to finding bugs fast. While generator libraries by
 and large use sensible sources of randomness, they are not explicitly chosen
 with performance in mind. Indeed, much faster randomness libraries\cn and fast sources
-of entropy \cn exist. \jwc{... more here?}
+of entropy \cn exist. \bcp{... more here?}
 To demonstrate that faster random sampling can significanty impact bugfinding power, we
 use the controlled experiment provided by OCaml's inefficient implementation of
 SplitMix. By replacing this slow randomness library with a faster but semantically equivalent
@@ -1610,6 +1611,9 @@ Next, we discuss language-by-language the degree to which the staging-related in
   there are at least two \cn{} PBT libraries in Racket.
   However, the racket macros literature, while extensive, does not concern itself with staging for performance purposes.
   For this reason, we --- the authorship team of this paper, devoid of much Racket expertise --- decided to not use Racket as a test case in this paper.
+
+  \item \textbf{F#} 
+  % https://learn.microsoft.com/en-us/dotnet/fsharp/language-reference/code-quotations
 
   \item \textbf{Haskell} is home to the original PBT implementation \cn{}, and
   so it is natural to ask why we have not built a \name{} in it yet. The basic
