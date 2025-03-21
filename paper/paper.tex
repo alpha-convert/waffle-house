@@ -269,59 +269,57 @@
 %}
 
 %\jwc{``Property based testing is a race against time...''}
-
-Property-based testing (PBT) is a software-testing technique that uses
+Property-based testing (PBT) is a software testing technique that uses
 random test inputs to validate logical specifications. Recent studies on PBT usage~\cite{inpractice} in industry have shown that
 practitioners often interleave PBT with their software development process, sometimes
 testing their properties every time they save their code. This means that PBT is often given a very short time
 window to find bugs---e.g., between 50 milliseconds and 30 seconds~\cite{inpractice}.
-The faster it finds a failing test, the better.
+The faster a test fails, the better.
 % The goal of PBT is to fail tests as fast as possible. \jwc{First cut at ``fail fast''}
-\iflater
+\iflater 
 \bcp{Feels like we're missing a trick in the transition here.  Can we
   say, ``Because performance is important, PBT libraries are already
   quite tuned.  [Can we substantiate that??]  But more is
   possible...'' }
-\jwc{Agreed. Maybe one way to do this is to say someting in the next pagraph like ``much work has been poured building DSLs that let programers cleverly generate inputs to maximize the potential of finding bugs. Comparably less work has been poured into just making them fast.''}
 \fi
 
 One important locus for performance improvement
 is the \textit{generators} that produce random inputs to the properties under
 test. These generators are written with the help of \textit{generator
 libraries}, usually expressed as embedded domain-specific languages (eDSLs) %\cntxt{edsls}
-that provide combinators for building and composing
-generators. However, careful measurements show that the performance of
-existing generator libraries---even well-engineered and widely used
-ones---falls far short of what is possible.
+that provide combinators for building and composing generators. However, careful 
+measurements show that the performance of existing generator libraries falls far short of what
+is possible. 
 
 This is due to two major sources of inefficiency.
 First, the same high-level design approach that gives generator libraries their
 flexibility also introduces layered abstractions and indirections that are difficult for
 compilers to optimize, shifting work to run time.
 Second, the \rand that a generator uses to make choices can
-be responsible for a surprisingly high proportion of its runtime. Combined, these factors limit
+constitute an unexpectedly high proportion of its runtime. These factors combine to limit 
 the effectiveness of PBT.
 \iflater
 \hg{TODO later, I'm not 100\% sure it's clear how this particular question is
 raised by the above. We could strengthen that connection}
 \fi
 
-We address both sources of inefficiency.
-First, we show how to use \textit{multi-stage programming}---a classic technique for
-building fast DSLs “without regret”~\cn{}---to eliminate the overhead of
+We lay a path forward.
+First, we show how to use \textit{multi-stage programming}---a classic technique for 
+building fast DSLs “without regret”~\cn{}---to eliminate the overhead of 
 many common generator abstractions.
-Second, we characterize the impact of \rand choice through a controlled experiment 
-that isolates the performance contribution of the \rand within a generator, underscoring its role as a first-class design consideration.\bcp{We've done more than this, though: We've also
-  demonstrated that you can get an X\% improvement in performance by
-  using a specific RNG.}
-Taken together, these insights can be applied to create tomorrow's generator libraries: those that 
-combine high-level design with low-level performance.
+Second, we demostrate that entropy source is an undervalued consideration in generator library design
+by isolating its performance contribution, and showing that significant
+speedups are possible.
+These insights culminate in \name, a recipe for building generator libraries that marry high-level design
+with low-level performance.
 
-To demonstrate the effectiveness and generality of our approach\bcp{It
-feels a bit grand to call what we've done an ``approach''---it's
-really just a single performance-enhancing technique, staging, plus
-the observation that the RNG matters and you should use the fastest
-one you can.}, which we call \name, we implement staged PBT libraries in multiple languages.
+% \bcp{It
+% feels a bit grand to call what we've done an ``approach''---it's
+% really just a single performance-enhancing technique, staging, plus
+% the observation that the RNG matters and you should use the fastest
+% one you can.}
+
+To evaluate our technique, we implement staged PBT libraries in two strict functional languages: OCaml and Scala 3.
 In OCaml, we build \camlname{}, based on \bq{}---a
 high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street \cn{}.
 In Scala 3, we build \scalaname{}, based on ScalaCheck---a very
@@ -339,6 +337,7 @@ produces exactly the same sequence of values as the same generator written with 
 The semantic equivalence between the original generators and \name{} generators allows us to
 perform clean, fine-grained comparisons, as differences in generation speed are
 solely attributable to the staging and \rand optimizations.
+\jwc{BCP thinks this should be a little stronger: ``and not obscured by the probablistic nature of generation'', or something like that. ``Comparing distributions of speed is hard, comparing pointwise is easier.''. This needs to have its own sentence here.}
 
 We evaluate the optimizations with a series of case studies in each
 generator library, and show that the \name generators run faster than their unstaged equivalents.
@@ -360,6 +359,9 @@ We make the following contributions:
     \item We present \name{}, a technique based on staging that eliminates the abstraction overhead of generators. We implement \name{} in both OCaml and Scala 3, showcasing its cross-language applicability.
     \item We demonstrate that both \name{} and choosing a faster \rand yield substantial performance improvements to generator running time. Finally, we show
     that these performance improvements extend to significantly improved bug-finding speed. \jwc{This should be sell-ier: 2x speedups, etc. ``bug-finding speed'' isn't a race against time.}
+    \jwc{We precisely quantify the performance effects of staging and faster rng across a range of testing scenarios --- i.e. a contrib is the fact that we can exactly pin down when one helps versus the other. The ``logically smarter'' your generator is, the more you get out of staging, the ``dumber'', the more you get out of rng.}
+    \bcp{Agree with this. We need to beef up our claims here about what we learned about PBT-specifics.}
+    \jwc{And this needs to be flowed through the rest of the paper.}
 \end{enumerate}
 
 In Section~\ref{section:motiv}, we introduce monadic generator DSLs, discuss how they work, and take an example-guided tour through some of the ways that
@@ -370,6 +372,7 @@ Section~\ref{section:eval} evaluates all of the previous work, demonstrating the
 and how they lead to much faster bug finding.
 
 \section{What are Generator Libraries, and why are they Slow?}
+\tr{This needs to introduce PBT WAY better.}
 \label{section:motiv}
 % \jwc{In this section we answer: ``What are monadic generator libraries, and why are they slow?''}
 % \bcp{That's actually not a bad section title!}
@@ -1439,26 +1442,26 @@ strategies---the boolean list generator, single-pass BST generator, and
 well-typed STLC term generator.
 
 The runtime of \camlname generators across different input sizes is summarized in \figref{fig:time}.
-Our \camlname type-derived BST generator achieves speedups ranging from 1.08--1.29x, which increase
-dramatically to 6.13--9.65x when combined with \csplitmix. The insertion-based BST generator sees
-1.13--1.21x speedups with staging alone, and 4.32--5.36x when also
+Our \camlname type-derived BST generator achieves speedups ranging from $1.08-1.29\times$, which increase
+dramatically to $6.13-9.65\times$ when combined with \csplitmix. The insertion-based BST generator sees
+$1.13-1.21\times$ speedups with staging alone, and $4.32-5.36\times$ when also
 using \csplitmix. The single-pass BST generator benefits more significantly from
-staging, with speedups of 2.31--2.34x, which rise to 8.61--8.95x when combined with
+staging, with speedups of $2.31-2.34\times$, which rise to $8.61-8.95\times$ when combined with
 \csplitmix. We attribute the differential in performance speedup to the fact that
 BST strategies rely on relatively few calls to generator combinator functions,
 but sample extensively from the \rand; notably, single-pass BST, which uses the largest
 number of calls to generator combinators, also sees the greatest benefit from staging.
 
 For STLC, staging accounts for the bulk of performance gains, yielding
- 1.71--2.64x speedups for the type-derived STLC generator, and 4.60--5.46x for
+ $1.71-2.64\times$ speedups for the type-derived STLC generator, and $4.60-5.46\times$ for
  the well-typed generator. When adding \csplitmix, these numbers increase to
- 2.60--5.15x and 4.83--7.75x, respectively. This result makes sense because
+ $2.60-5.15\times$ and $4.83-7.75\times$, respectively. This result makes sense because
  STLC generators, particularly the well-typed generator, sample very little from
  randomness libraries, but extensively on generator library functions.
 
-The boolean list generator experiences 3.61--7.10x speedups with
+The boolean list generator experiences $3.61-7.10\times$ speedups with
 staging, and its performance actually slightly \textit{decreases} when
-combined with \csplitmix (3.43--6.83x). This is likely because sampling
+combined with \csplitmix ($3.43-6.83\times$). This is likely because sampling
 booleans is ``cheap'' enough that the overhead of crossing the FFI barrier is
 greater than that of generating values directly in OCaml.
 
