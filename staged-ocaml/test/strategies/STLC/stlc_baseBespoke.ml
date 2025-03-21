@@ -1,13 +1,16 @@
-open Stlc_impl
-open Expr
-open Typ
 open Base
+open Fast_gen;;
+open Codelib;;
+open Fast_gen.Codecps;;
 
 module G = Fast_gen.Bq_generator
 open G
+open Base
 open Let_syntax
+open Type_defn
 
-let genTyp : Typ.t G.t =
+type t = expr [@@deriving sexp, quickcheck]
+let genTyp : Type_defn.typ G.t =
   recursive () @@ fun go _ ->
     let%bind n = size in
     if n <= 1 then return TBool
@@ -19,13 +22,13 @@ let genTyp : Typ.t G.t =
         return (TFun (t1,t2))
     ]
 
-let genVar g t : Expr.t option G.t =
-  let vars = List.filter_mapi ~f:(fun i t' -> if Typ.equal t t' then Some (Some (Expr.Var i)) else None) g in
+let genVar g t : expr option G.t =
+  let vars = List.filter_mapi ~f:(fun i t' -> if Type_defn.equal t t' then Some (Some (Var i)) else None) g in
   match vars with
   | [] -> return None
   | _ -> of_list vars
 
-let genConst t : Expr.t G.t =
+let genConst t : expr G.t =
   recursive t @@ fun go t ->
     match t with
     | TBool -> map ~f:(fun b -> Bool b) bool
@@ -47,3 +50,5 @@ let genExpr =
   let%bind n = size in
   let%bind t = genTyp in
   genExactExpr n [] t
+
+let quickcheck_generator = genExpr

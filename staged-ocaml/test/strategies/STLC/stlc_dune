@@ -1,0 +1,26 @@
+(include_subdirs unqualified)
+
+(library
+ (name STLC)
+ (modules
+  impl
+  spec
+  type_defn
+  test
+  baseBespoke
+  baseBespoke_Staged_SR
+  baseBespoke_Staged_C
+  baseBespoke_Staged_CSR
+  baseType
+  baseType_Staged_C
+  baseType_Staged_SR
+  baseType_Staged_CSR
+  display)
+  (libraries qcheck crowbar fast_gen util core core_unix ppxlib)
+  (preprocess
+    (pps ppx_jane ppxlib.metaquot)))
+
+(env
+ (dev
+  (flags
+   (:standard -g -w "-26-27-32-33-34-37-39-6"))))

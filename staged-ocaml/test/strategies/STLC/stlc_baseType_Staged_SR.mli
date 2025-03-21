@@ -1,0 +1,1 @@
+include Base_quickcheck.Test.S with type t = Type_defn.expr
