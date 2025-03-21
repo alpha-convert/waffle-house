@@ -365,8 +365,7 @@ module Bm = Benchmark
   let g4 = G_C.jit M4.gen in
   Benchmark.bm ~bench_name:"Int list (uniform inclusive)" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged CSR",g3; "Staged C", g4] ~sizes:[10;50;100] ~seeds:[100] ~quota:(Core_bench.Bench.Quota.Span (Core.sec 5.)) *)
 
-  (*
-let () =
+(* let () =
   let module TC = IntTC in
   let module M1 = TC.F(G_Bq) in
   let module M2 = TC.F(G_SR) in
@@ -376,14 +375,27 @@ let () =
   let g2 = G_SR.jit M2.gen in
   let g3 = G_C.jit M3.gen in
   let g4 = G_C_SR.jit M4.gen in
-  Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged C", g3; "Staged CSR", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:100000
-  *)
+  Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged C", g3; "Staged CSR", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~quota:(Core_bench.Bench.Quota.Num_calls 10000) *)
 
-
-open Boollist_benchmark
+(* open Boollist_benchmark *)
 (* open Bst_benchmark *)
 (* open Stlc_benchmark *)
 
+(* let () = Count_binds.run ~size:100 ~num_trials:10000 "boollist" Boollist.quickcheck_generator
+let () = Count_binds.run ~size:100 ~num_trials:10000 "bst single pass" Bst_baseSingleBespoke.quickcheck_generator
+let () = Count_binds.run ~size:100 ~num_trials:10000 "stlc bespoke" Stlc_baseBespoke.quickcheck_generator
+ *)
+let () = Trace_generator.run ~size:100 ~num_trials:10000 "boollist" Boollist.quickcheck_generator
+let () = Trace_generator.run ~size:100 ~num_trials:10000 "bst single pass" Bst_baseSingleBespoke.quickcheck_generator
+let () = Trace_generator.run ~size:100 ~num_trials:10000 "stlc bespoke" Stlc_baseBespoke.quickcheck_generator
+
+
+          (* BST type
+          STLC type
+          STLC bespoke
+          BST bespoke
+          BST single pass
+          bool list *)
 (* 
 let () =
   let open Alcotest in

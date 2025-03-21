@@ -44,8 +44,8 @@ module For_monad = Base.Monad.Make (struct
     type nonrec 'a t = 'a t
 
     let return = Base_quickcheck.Generator.return
-    let bind = Base_quickcheck.Generator.bind
-    (* let bind x ~f = incr num_binds; Base_quickcheck.Generator.bind x ~f *)
+    (* let bind = Base_quickcheck.Generator.bind *)
+    let bind x ~f = incr num_binds; Base_quickcheck.Generator.bind x ~f
     let map = `Custom Base_quickcheck.Generator.map
   end)
 
