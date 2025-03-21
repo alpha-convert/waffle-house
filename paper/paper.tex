@@ -372,6 +372,7 @@ Section~\ref{section:eval} evaluates all of the previous work, demonstrating the
 and how they lead to much faster bug finding.
 
 \section{What are Generator Libraries, and why are they Slow?}
+\tr{This needs to introduce PBT WAY better.}
 \label{section:motiv}
 % \jwc{In this section we answer: ``What are monadic generator libraries, and why are they slow?''}
 % \bcp{That's actually not a bad section title!}
@@ -1441,26 +1442,26 @@ strategies---the boolean list generator, single-pass BST generator, and
 well-typed STLC term generator.
 
 The runtime of \camlname generators across different input sizes is summarized in \figref{fig:time}.
-Our \camlname type-derived BST generator achieves speedups ranging from 1.08--1.29x, which increase
-dramatically to 6.13--9.65x when combined with \csplitmix. The insertion-based BST generator sees
-1.13--1.21x speedups with staging alone, and 4.32--5.36x when also
+Our \camlname type-derived BST generator achieves speedups ranging from $1.08-1.29\times$, which increase
+dramatically to $6.13-9.65\times$ when combined with \csplitmix. The insertion-based BST generator sees
+$1.13-1.21\times$ speedups with staging alone, and $4.32-5.36\times$ when also
 using \csplitmix. The single-pass BST generator benefits more significantly from
-staging, with speedups of 2.31--2.34x, which rise to 8.61--8.95x when combined with
+staging, with speedups of $2.31-2.34\times$, which rise to $8.61-8.95\times$ when combined with
 \csplitmix. We attribute the differential in performance speedup to the fact that
 BST strategies rely on relatively few calls to generator combinator functions,
 but sample extensively from the \rand; notably, single-pass BST, which uses the largest
 number of calls to generator combinators, also sees the greatest benefit from staging.
 
 For STLC, staging accounts for the bulk of performance gains, yielding
- 1.71--2.64x speedups for the type-derived STLC generator, and 4.60--5.46x for
+ $1.71-2.64\times$ speedups for the type-derived STLC generator, and $4.60-5.46\times$ for
  the well-typed generator. When adding \csplitmix, these numbers increase to
- 2.60--5.15x and 4.83--7.75x, respectively. This result makes sense because
+ $2.60-5.15\times$ and $4.83-7.75\times$, respectively. This result makes sense because
  STLC generators, particularly the well-typed generator, sample very little from
  randomness libraries, but extensively on generator library functions.
 
-The boolean list generator experiences 3.61--7.10x speedups with
+The boolean list generator experiences $3.61-7.10\times$ speedups with
 staging, and its performance actually slightly \textit{decreases} when
-combined with \csplitmix (3.43--6.83x). This is likely because sampling
+combined with \csplitmix ($3.43-6.83\times$). This is likely because sampling
 booleans is ``cheap'' enough that the overhead of crossing the FFI barrier is
 greater than that of generating values directly in OCaml.
 
