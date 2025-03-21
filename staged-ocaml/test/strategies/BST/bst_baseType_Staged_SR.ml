@@ -1,8 +1,10 @@
-open Bst_impl;;
+open Util.Limits
+open Bst_type;;
 
 module G = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 
-  let gen =
+  type t = tree [@@deriving sexp, quickcheck]
+  let staged_code =
     G.recursive (G.C.lift ())
       (fun go ->
           fun _ ->
@@ -15,10 +17,10 @@ module G = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
                           (G.bind (G.recurse go (G.C.lift ()))
                               ~f:(fun _x__006_ ->
                                     G.bind
-                                      Nat.staged_quickcheck_generator_sr_t
+                                      (Nat.staged_quickcheck_generator_sr_t (G.C.lift bst_type_limits))
                                       ~f:(fun _x__007_ ->
                                             G.bind
-                                              Nat.staged_quickcheck_generator_sr_t
+                                              (Nat.staged_quickcheck_generator_sr_t (G.C.lift bst_type_limits))
                                               ~f:(fun _x__008_ ->
                                                     G.bind
                                                       (G.recurse go
@@ -40,3 +42,8 @@ module G = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
               G.weighted_union [_pair__004_; _pair__005_] in
             G.bind G.size
               ~f:(fun x -> G.if_z x _gen__002_ _gen__003_))
+
+  let quickcheck_generator = 
+    G.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"] staged_code
+    
+  let sexp_of_t = sexp_of_t

@@ -44,7 +44,8 @@ module For_monad = Base.Monad.Make (struct
     type nonrec 'a t = 'a t
 
     let return = Base_quickcheck.Generator.return
-    let bind x ~f = incr num_binds; Base_quickcheck.Generator.bind x ~f
+    let bind = Base_quickcheck.Generator.bind
+    (* let bind x ~f = incr num_binds; Base_quickcheck.Generator.bind x ~f *)
     let map = `Custom Base_quickcheck.Generator.map
   end)
 
@@ -68,7 +69,6 @@ let int_inclusive ~lo ~hi = Base_quickcheck.Generator.int_inclusive lo hi
 let int_uniform_inclusive ~lo ~hi = Base_quickcheck.Generator.int_uniform_inclusive lo hi
 let int_log_uniform_inclusive ~lo ~hi = Base_quickcheck.Generator.int_log_uniform_inclusive lo hi
 let int_log_inclusive ~lo ~hi = Base_quickcheck.Generator.int_log_inclusive lo hi
-
 
 let float_uniform_exclusive ~lo ~hi = Base_quickcheck.Generator.float_uniform_exclusive lo hi
 let float_uniform_inclusive ~lo ~hi = Base_quickcheck.Generator.create (fun ~size:_ ~random -> Splittable_random.float random ~lo ~hi)
