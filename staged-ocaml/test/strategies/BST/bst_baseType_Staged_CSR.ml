@@ -1,11 +1,11 @@
 open Util.Limits
-open Type;;
+open Bst_type;;
 open Fast_gen;;
 open Core;;
 
 module G = Fast_gen.Staged_generator.MakeStaged(Fast_gen.C_sr_dropin_random)
 
-  type t = Type.tree [@@deriving sexp, quickcheck]
+  type t = Bst_type.tree [@@deriving sexp, quickcheck]
 
   let staged_code =
     G.recursive (G.C.lift ())

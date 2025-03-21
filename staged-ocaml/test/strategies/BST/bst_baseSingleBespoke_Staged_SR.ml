@@ -1,6 +1,6 @@
 open Util.Limits;;
 open Base;;
-open Type;;
+open Bst_type;;
 open Fast_gen;;
 open Nat;;
 module G = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
@@ -8,10 +8,10 @@ open G
 open Let_syntax
 open Codelib;;
 
-type t = Type.tree [@@deriving sexp, quickcheck]
+type t = tree [@@deriving sexp, quickcheck]
 
 
-let staged_quickcheck_generator (lo: int code) (hi: int code) : Type.tree code G.t =
+let staged_quickcheck_generator (lo: int code) (hi: int code) : tree code G.t =
   recursive (.< (.~lo, .~hi ) >.) 
   (fun go lohi -> 
     let%bind sz = size in
@@ -35,5 +35,5 @@ let staged_code =
   staged_quickcheck_generator (G.C.lift 0) (G.C.lift bst_bespoke_limits)
 
 let quickcheck_generator = 
-  G.jit ~extra_cmi_paths:["/home/ubuntu/etna2/workloads/OCaml/BST/_build/default/lib/.BST.objs/byte"] staged_code
+  G.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"] staged_code
   

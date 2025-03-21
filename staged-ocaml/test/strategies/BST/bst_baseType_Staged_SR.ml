@@ -1,9 +1,9 @@
 open Util.Limits
-open Type;;
+open Bst_type;;
 
 module G = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
 
-  type t = Type.tree [@@deriving sexp, quickcheck]
+  type t = tree [@@deriving sexp, quickcheck]
   let staged_code =
     G.recursive (G.C.lift ())
       (fun go ->

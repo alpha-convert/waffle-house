@@ -1,7 +1,6 @@
 open Core;;
 (* open Ppx_staged;; *)
 open Nat;;
-module G = Fast_gen.Staged_generator.MakeStaged(Fast_gen.C_sr_dropin_random)
 
 type tree =
 | E

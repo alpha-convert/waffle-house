@@ -1,12 +1,12 @@
 open Util.Limits
 open Core;;
-open Type;;
+open Bst_type;;
 open Fast_gen;;
 open Fast_gen.Bq_generator;;
 
 module BQ = Fast_gen.Bq_generator;;
 
-type t = Type.tree [@@deriving sexp, quickcheck]
+type t = tree [@@deriving sexp, quickcheck]
 
 open BQ.Let_syntax
 

@@ -1,1 +1,0 @@
-include Base_quickcheck.Test.S with type t = Bst_type.tree

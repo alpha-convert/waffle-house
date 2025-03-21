@@ -1,5 +1,5 @@
 open Util.Limits
-open Type
+open Bst_type
 open Nat;;
 module G = Fast_gen.Staged_generator.MakeStaged(Fast_gen.C_sr_dropin_random)
 open G
@@ -11,4 +11,4 @@ let staged_code =
   ~f:(fun l -> return .< repeat_insert .~l >.)
 
 let quickcheck_generator = 
-  G.jit ~extra_cmi_paths:["/home/ubuntu/etna2/workloads/OCaml/BST/_build/default/lib/.BST.objs/byte"] staged_code
+  G.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"] staged_code
