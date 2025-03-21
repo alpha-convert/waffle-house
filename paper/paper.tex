@@ -352,7 +352,7 @@ We make the following contributions:
 In Section~\ref{section:motiv}, we introduce monadic generator DSLs, discuss how they work, and take an example-guided tour through some of the ways that
 they are slower than is possible.
 Then, in Section~\ref{section:faster-generators}, we explain multi-stage programming,
-and develop both facets of \name{}, using \camlname{} to illustrate.
+develop \name{} (using \camlname{} to illustrate), and discuss how we isolate the performance of \rand{} to benchmark their impact on bug-finding speed.
 Section~\ref{section:eval} evaluates all of the previous work, demonstrating the generator performance improvements
 and how they lead to much faster bug finding.
 
@@ -1375,7 +1375,7 @@ discussed in the previous sections.
 % \jwc{Initial section here about eval}\tr{todo}
 To assess the impact of our approach, we evaluate the performance and bug-finding speed of 
 \name generators across a range of benchmarks. Our experiments compare generators 
-built using our technique---with and without \csplitmix---against those implemented with 
+built using our technique---with and without \csplitmix \jwc{this is the first mention of csplitmix!}---against those implemented with 
 existing generator libraries (and their default randomness mechanisms). Specifically, 
 we implement 
 two fully semantically 
@@ -1575,13 +1575,13 @@ including non-strict or procedural ones --- might be curious about how the
 techniques brought to bear on OCaml's \bq{} and Scala's ScalaCheck in this paper
 might be imported to their favorite language.
 
-We begin by noting that the \name{} principle of choosing fast random number generators
+We begin by noting that the principle of choosing fast random number generators
 is completely language-agnostic. In languages like OCaml, where runtime value representations
 make natively-implemented \rand inefficient, calling out to a C implementation or using standard libraries written in C is a surefire win.
 In other languages, serious thought should be put into using as fast of a \rand{} as possible,
 as opposed to picking up any suitable option off the shelf.
 
-Next, we discuss language-by-language the degree to which the \name{} insights about staging could be used.
+Next, we discuss language-by-language the degree to which the staging-related insights of this paper are portable.
 \begin{itemize}
   \item \textbf{Racket} is the next target that we intend to test on.
   The entire Racket philosophy is intertwined with
