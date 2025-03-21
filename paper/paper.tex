@@ -304,13 +304,13 @@ raised by the above. We could strengthen that connection}
 \fi
 
 We lay a path forward.
-First, we show how to use \textit{multi-stage programming}---a classic technique for 
-building fast DSLs “without regret”~\cn{}---to eliminate the overhead of 
-many common generator abstractions.
-Second, we demostrate that entropy source is an undervalued consideration in generator library design
-by isolating its performance contribution, and showing that significant
-speedups are possible---even while maintaining output equivalence.
-These insights culminate in \name, a recipe for building generator libraries that marry high-level design
+First, we show how to use \textit{multi-stage programming}, a classic technique for 
+building fast DSLs “without regret”~\cn{}, to eliminate the overhead of 
+many common generator abstractions. We refer to this approach as \name.
+Second, we show that the source of entropy is an underappreciated factor in 
+generator library design by isolating its run-time cost and demonstrating that 
+substantial speedups are possible, while maintaining output equivalence.
+These insights give a recipe for building generator libraries that marry high-level design
 with low-level performance.
 
 % \bcp{It
@@ -323,8 +323,8 @@ To evaluate our technique, we implement staged PBT libraries in two strict funct
 In OCaml, we build \camlname{}, based on \bq{}---a
 high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street \cn{}.
 In Scala 3, we build \scalaname{}, based on ScalaCheck---the language's standard PBT library, and by far the most widely-used\cn{}.
-In both languages, our libraries provide identical functionality and behavior: given the same random seed, a generator written with our technique produces exactly the same sequence of values as an equivalent generator written with the original library.
-This semantic equivalence enables pointwise, rather than distributional, comparisons, ensuring that performance differences are attributable \textit{solely} to staging and \rand optimizations.
+In both languages, our libraries preserve the semantics of the original: given the same random seed, generators written using \camlname or \scalaname produce exactly the same sequence of values as equivalent generators using ScalaCheck or \bq, respectively.
+This semantic equivalence enables pointwise, as opposed to distributional, comparisons, ensuring that performance differences are attributable \textit{solely} to staging and \rand optimizations.
 % \jwc{BCP thinks this should be a little stronger: ``and not obscured by the probablistic nature of generation'', or something like that. ``Comparing distributions of speed is hard, comparing pointwise is easier.''. This needs to have its own sentence here.}
 
 We evaluate the optimizations with a series of case studies in each
@@ -332,20 +332,18 @@ generator library, and show that the \name generators run faster than their unst
 Further, we show generators that run faster also find bugs faster
 % ability \jwc{The paper is called ``fail faster'' --- we shouldn't say ``bug finding ability'', we should say something like ``how fast you can squash bugs''. This is too passive }
 by running these case studies in the Etna
-framework~\cite{etna}\bcp{``Etna framework'' sounds like more than
-  what it is}, a
-platform that simulates real-world PBT usage\hg{Don't love this phrase, I'll
-think more about how we should talk about Etna} by injecting bugs into a system and
+platform~\cite{etna}, which simulates real-world PBT usage \iflater\hg{Don't love this phrase, I'll
+think more about how we should talk about Etna}\fi by injecting bugs into a system and
 measuring how quickly various generators detect them.
 
 
-In summary, we show that monadic PBT generator DSLs incur significant performance costs across languages, and present a general technique for improving their efficiency while preserving their idiomatic abstractions. \jwc{needs a bit about RNG --- BCP thoughts?}
+In summary, we show that PBT generator DSLs incur significant performance costs across languages, and present a general technique for improving their efficiency while preserving their idiomatic abstractions. \jwc{needs a bit about RNG --- BCP thoughts?}
 We make the following contributions:
 \begin{enumerate}
     \item We identify two key sources of inefficiency in PBT generator libraries, which can significantly impact performance:
     abstraction overhead and \rand choice.
-    \item We present \name{}, a technique based on staging that eliminates the abstraction overhead of generators. We implement \name{} in both OCaml and Scala 3, showcasing its cross-language applicability.
-    \item We demonstrate that both \name{} and choosing a faster \rand yield substantial performance improvements to generator running time. Finally, we show
+    \item We present \name{}, a technique for eliminates the abstraction overhead of generators. We implement \name{} in both OCaml and Scala 3, showcasing its cross-language applicability.
+    \item We demonstrate that programs written using \name{} yield performance improvements to generator running time. Finally, we show
     that these performance improvements extend to significantly improved bug-finding speed. \jwc{This should be sell-ier: 2x speedups, etc. ``bug-finding speed'' isn't a race against time.}
     \jwc{We precisely quantify the performance effects of staging and faster rng across a range of testing scenarios --- i.e. a contrib is the fact that we can exactly pin down when one helps versus the other. The ``logically smarter'' your generator is, the more you get out of staging, the ``dumber'', the more you get out of rng.}
     \bcp{Agree with this. We need to beef up our claims here about what we learned about PBT-specifics.}
@@ -1380,22 +1378,21 @@ discussed in the previous sections.
 \section{Evaluation}
 \label{section:eval}
 % \jwc{Initial section here about eval}\tr{todo}
-To assess the impact of our approach, we evaluate the performance and bug-finding speed of
+To assess the impact of our interventions, we evaluate the raw generator performance and bug-finding speed of
 \name generators across a range of benchmarks. Our experiments compare generators
 built using our technique---with and without \csplitmix \jwc{this is the first mention of csplitmix!}---against those implemented with
-existing generator libraries (and their default randomness mechanisms). Specifically,
-we implement
-two fully semantically
+existing generator libraries and their default randomness mechanisms. Specifically,
+we implement semantically
 equivalent staged generator libraries that replicate the behavior of \bq
 in OCaml and ScalaCheck in Scala, allowing us to assess the effectiveness of our
 technique across different languages and runtime
 environments.\bcp{This says ``assess the impact'' twice...}
 
-This section presents our experimental setup, as well as answers to the following research questions:
+This section presents our experimental setup, and address the following research questions:
 
 \begin{itemize}
   \item \textbf{RQ1}: Do generators written using our technique run faster than those written with regular generator combinators?
-  \item \textbf{RQ2}: Do performance speedups translate to better bug-finding speed?
+  \item \textbf{RQ2}: Do observed generation speedups translate to better bug-finding speed?
   % \item \textbf{RQ3}: Does our technique generalize to other strict functional languages?
 \end{itemize}
 
@@ -1405,11 +1402,11 @@ The baseline OCaml generators were written with \bq{} 0.16.
 \scalaname{} and all Scala benchmarks
 were run on Scala 3.6.3
 and OpenJDK 21.0.6, using ScalaCheck version 1.17 as the baseline.
-We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for generator performance microbenchmarking.
+We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for performance microbenchmarking. \tr{Etna?}
 
 \subsection{Benchmarking Generator Speed}
 \label{subsection:benchmarking}
-To answer \textbf{RQ1}, we microbenchmark generators, comparing generators in \camlname to identical ones in \bq,
+To answer \textbf{RQ1}, we microbenchmark generators, comparing generators in \camlname to semantically identical ones in \bq,
 and generators in \scalaname to those in ScalaCheck.
  We vary the choice of \rand in our \camlname generators, using both \bq's default
 \texttt{splittable\_random} and our improved SplitMix (\csplitmix), as discussed
@@ -1417,58 +1414,57 @@ in \secref{subsection:faster-rng}.
 
 For \camlname, our test cases consist of generators for boolean lists, binary search trees (BST), and simply
 typed lambda calculus (STLC) terms. We implement generators for these benchmarks
-using a variety of \textit{strategies}, which vary in structure and
+variety of \textit{strategies}, varying in structure and
 sophistication. These include type-derived generators for BSTs and STLC terms,
 using the approach outlined in \secref{subsection:type-derived}; two custom BST
 generators, one that repeatedly inserts values into an initially empty tree and
 one that materializes the tree in a single pass by generating keys, values, and
 subtrees at each step; a generator of boolean lists that operates similarly to
-the single-pass BST strategy; and a well-typed generator of
-STLC terms, whose behavior is the most complex.
+the single-pass BST strategy; and a generator of STLC terms that is correct by construction (``well-typed''), whose behavior is the most complex.
 For evaluating \scalaname, we implement a subset of the aformentioned
 strategies---the boolean list generator, single-pass BST generator, and
 well-typed STLC term generator.
 
 The runtime of \camlname generators across different input sizes is summarized in \figref{fig:time}.
 Our \camlname type-derived BST generator achieves speedups ranging from $1.08-1.29\times$, which increase
-dramatically to $6.13-9.65\times$ when combined with \csplitmix. The insertion-based BST generator sees
+dramatically, to $6.13-9.65\times$, when combined with \csplitmix. The insertion-based BST generator sees
 $1.13-1.21\times$ speedups with staging alone, and $4.32-5.36\times$ when also
 using \csplitmix. The single-pass BST generator benefits more significantly from
-staging, with speedups of $2.31-2.34\times$, which rise to $8.61-8.95\times$ when combined with
-\csplitmix. We attribute the differential in performance speedup to the fact that
+staging, with speedups of $2.31-2.34\times$, rising to $8.61-8.95\times$ when combined with
+\csplitmix. We attribute the difference in performance speedup to the fact that
 BST strategies rely on relatively few calls to generator combinator functions,
 but sample extensively from the \rand; notably, single-pass BST, which uses the largest
-number of calls to generator combinators, also sees the greatest benefit from staging.
+number of calls to generator combinators, also sees the greatest benefit from staging. \tr{Call this out earlier? Unless we have the fancy plot.}
 
 For STLC, staging accounts for the bulk of performance gains, yielding
- $1.71-2.64\times$ speedups for the type-derived STLC generator, and $4.60-5.46\times$ for
- the well-typed generator. When adding \csplitmix, these numbers increase to
- $2.60-5.15\times$ and $4.83-7.75\times$, respectively. This result makes sense because
+ $1.71-2.64\times$ speedups for the type-derived STLC generator and $4.60-5.46\times$ for
+ the well-typed generator. Adding \csplitmix, these numbers increase to
+ $2.60-5.15\times$ and $4.83-7.75\times$. This result makes sense because
  STLC generators, particularly the well-typed generator, sample very little from
- randomness libraries, but extensively on generator library functions.
+ randomness libraries but rely extensively on generator library functions.
 
 The boolean list generator experiences $3.61-7.10\times$ speedups with
 staging, and its performance actually slightly \textit{decreases} when
 combined with \csplitmix ($3.43-6.83\times$). This is likely because sampling
-booleans is ``cheap'' enough that the overhead of crossing the FFI barrier is
+booleans is cheap enough that the overhead of crossing the FFI barrier is
 greater than that of generating values directly in OCaml.
 
 \tr{We might put a graph of calls to generator library functions vs. speedup here, but
 I'm not sure it's worth it---thoughts?}
 
 As shown in \figref{fig:scala}, \scalaname achieves an even greater performance
-gain---purely from staging---over ScalaCheck than \camlname does over \bq. This discrepancy arises from
+gain---purely from staging---over ScalaCheck than \camlname does over \bq. This difference arises from
 ScalaCheck's representation of generators as functions of type \texttt{size ->
 seed -> Option[A]}. Each generator combinator must construct and then
 pattern-match on these \texttt{Option} values, introducing significant boxing
-and unboxing overhead at each step.  Staging allows us to eliminate this
-overhead, resulting in substantial speedups in aggregate.
+and unboxing overhead at each step.  Staging eliminates this
+overhead.
 
-These results show that staging and \rand choice serve distinct but
+These results show that staging and \rand choice play distinct and
 complementary roles in generator performance. Sampling-heavy generators see
 greater improvements from faster randomness libraries, while combinator-heavy
-ones benefit more from staging. Since both factors influence performance in
-different ways, generator libraries should use both in order to handle diverse
+ones benefit more from staging. Since both factors influence performance 
+significantly, generator libraries should use both in order to handle diverse
 workloads.
 
 % \subsubsection{Scala} To show that the benefit of staging extends to
@@ -1478,7 +1474,7 @@ workloads.
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
   \includegraphics[scale=0.45]{time.png}
-  \caption{Time to generate a varying-size value using each strategy, averaged over 10,000 trials. Performance benefits scale with generation size; lower is better. BQ is \bq; Staged SR is \camlname using \bq's \texttt{splittable\_random} RNG; Staged CSR is \camlname using \secref{subsection:faster-rng}'s \csplitmix.}
+  \caption{Time to generate using each strategy. Performance benefits scale with generation size (lower lines translate to greater performance benefit). BQ is \bq; Staged SR is \camlname using \bq's \texttt{splittable\_random} RNG; Staged CSR is \camlname using \secref{subsection:faster-rng}'s \csplitmix.}
   \label{fig:time}
 \end{figure}
 
