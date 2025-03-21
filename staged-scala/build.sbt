@@ -13,5 +13,6 @@ lazy val root = project
 
     libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.17.0",
 
+    javaOptions += "-Xss200m"
 
   )

@@ -117,6 +117,88 @@ val size50 = Gen.Parameters.default.withSize(50)
 val size100 = Gen.Parameters.default.withSize(100)
 val size1000 = Gen.Parameters.default.withSize(1000)
 
+// Bool List Bespoke - unstaged benchmarks
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBoolListBespoke10() = {
+    BoolList.Bespoke.gen.apply(size10,Seed.random())
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBoolListBespoke50() = {
+    BoolList.Bespoke.gen.apply(size50,Seed.random())
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBoolListBespoke100() = {
+    BoolList.Bespoke.gen.apply(size100,Seed.random())
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBoolListBespoke1000() = {
+    BoolList.Bespoke.gen.apply(size1000,Seed.random())
+  }
+
+// Bool List Bespoke - staged benchmarks
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBoolListBespokeStaged10() = {
+    BoolList.BespokeStaged.gen(10)(Seed.random())
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBoolListBespokeStaged50() = {
+    BoolList.BespokeStaged.gen(50)(Seed.random())
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBoolListBespokeStaged100() = {
+    BoolList.BespokeStaged.gen(100)(Seed.random())
+  }
+
+@Benchmark
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Fork(1)
+  def generateBoolListBespokeStaged1000() = {
+    BoolList.BespokeStaged.gen(1000)(Seed.random())
+  }
+
 // BST Type Derived - unstaged benchmarks
 @Benchmark
 @BenchmarkMode(Array(Mode.AverageTime))
