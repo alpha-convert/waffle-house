@@ -700,23 +700,22 @@ it's important to understanding why we get more speedup than you might expect}
 
 % \subsubsection{Function call overhead}
 \subsection{Inefficient Randomness Libraries}
-The core of any PBT generator library is a source of randomness: to generate
-random values of some datatype, we some access to random numbers!
+The core of any PBT generator library is a source of randomness.
 Different PBT libraries use different randomness libraries implementing different algorithms
 \footnote{The common term for such an algorithm or library is a ``Random Number
 Generator'' (RNG) we will avoid this term and instead say ``randomness library''
 to avoid confusing RNG implementations with the PBT gnenerator libraries that
 use them.}.
 Following the original Haskell QuickCheck implementation, \bq\ uses the SplitMix
-algorithm \cn, implemented as a (stateful) OCaml library called \texttt{Splittable\_random}. Meanwhile,
+algorithm \cn, implemented by \texttt{Splittable\_random}. Meanwhile,
 ScalaCheck uses the JSF algorithm \cn.
 % https://www.pcg-random.org/posts/bob-jenkins-small-prng-passes-practrand.html
 % https://burtleburtle.net/bob/rand/smallprng.html
 
-The randomness library sits at the heart of the hot path.
+The randomness library is the hottest part of the hot path.
 Even basic generators --- like ones generating a single \texttt{int} or \texttt{float} uniformly within a range --- can sample \emph{unboundedly many}
-random numbers, since they usually use versions of rejection sampling to find a value within the range \cn.
-Moreover, generator combinators like \texttt{list} usually make $O(n)$ calls to even those basic generators.
+random numbers, since they usually use versions of rejection sampling to find a value within the range \cn{}\bcp{Really? I want to know more about that!!}\jwc{Well this is totally standard, and it's how sampling in a bounded range works. You take a thing that samples uniformly over \texttt{int64\_t} and do a combination of clever things and basic rejection sampling to get a value in the range.}.
+Moreover, generator combinators like \texttt{list} usually make $O(n)$ calls to the \texttt{int} or \texttt{float} generators.
 Because of this, the speed of a single sample matters a great deal. Unfortunately,
 existing PBT libraries make relatively inefficient choices on this front,
 leading to worse bugfinding power than what is possible.
@@ -726,7 +725,7 @@ of the RNGs used by a bunch of popular PBT frameworks and then argued that
 things like Lehmer are faster?}\fi
 
 For example, significantly faster algorithms than SplitMix or JSF exist,
-such as the Lehmer algorithm\cn. In microbenchmarks, the Lehmer algorithm runs almost 2x as fast as SplitMix \cn.
+for example the Lehmer algorithm\cn. In microbenchmarks, the Lehmer algorithm runs almost 2x as fast as SplitMix \cn.
 % https://github.com/lemire/testingRNG/tree/master
 Moreover, PBT libraries could even consider eschewing the requirement that a source of
 entropy pass statistical tests like BigCrush\cn. \hg{This needs more discussion} 
@@ -740,9 +739,11 @@ that this is a bridge too far because you still need to generate the buffer
 ahead of time and you can run out of randomness?}
 \jwc{HG: talk about the tradeoffs here.}
 \jwc{The point here is that ``you should be thinking about using a more performant RNG, we'll show you that it does have real benefits (and quantify them). But there are tradeoffs here.'}
+\bcp{But this is not the point that the reader is set up to expect: we've toldthem that we're going to make generation faster, not that we're going to give them tips so that htey can make it faster by themselves}
+\jwc{This actually isn't the case. In the intro, we're very careful to say that we show that choosing a faster randomness library \emph{leads to faster bugfinding}. And we do demonstrate this.}
 
 Of course, simply arguing that the randomness library is on the hot
-path does not guarantee that a faster sampling leads to measurably faster
+path for PBT does not guarantee that a faster sampling leads to measurably faster
 generation; for that, we need an experiment. The most obvious experiment is to
 simply swap out the randomness library of either \bq{} or ScalaCheck with a totally different, faster one. But, as
 discussed previously, generators with different generation orders can be
