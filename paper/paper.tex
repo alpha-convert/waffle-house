@@ -307,7 +307,7 @@ We lay a path forward.
 First, we show how to use \textit{multi-stage programming}---a classic technique for 
 building fast DSLs “without regret”~\cn{}---to eliminate the overhead of 
 many common generator abstractions.
-Second, we characterize the impact of \rand choice through a natural experiment 
+Second, we characterize the impact of \rand choice through a controlled experiment 
 that isolates the performance contribution of the \rand within a generator, underscoring its role as a first-class design consideration.
 Taken together, these insights can be applied to create tomorrow's generator libraries: those that 
 combine high-level design with low-level performance.
@@ -745,9 +745,12 @@ ahead of time and you can run out of randomness?}
 Of course, simply arguing that the randomness library is on the hot
 path for PBT does not guarantee that a faster sampling leads to measurably faster
 generation; for that, we need an experiment. The most obvious experiment is to
-simply swap out the randomness library of either \bq{} or ScalaCheck with a totally different, faster one. But, as
-discussed previously, generators with different generation orders can be
-difficult to compare. To get around this, we exploit a ``natural experiment:
+simply swap out the randomness library of either \bq{} or ScalaCheck with a totally different, faster one.
+But, as discussed previously, \camlname{} and \scalaname{} are designed to be 100\% semantically equivalent replacements for
+their unstaged counterparts, ensuring that any bug-finding speedups are solely attributable to generator performance and not lucky seeds.
+Choosing a different \rand{} would break this property, making it much more challenging to assess the performance compared to the baseline.
+But, as discussed previously, generators with different generation orders can be
+difficult to compare \bcp{This was not discussed previously!}. To get around this, we exploit a coincidence:
 the \rand{} that \bq{} uses --- OCaml's \texttt{Splittable\_random} library --- is slow in a way that
 can be improved \emph{without} changing its behavior.
 In particular,
@@ -1340,7 +1343,7 @@ and large use sensible sources of randomness, they are not explicitly chosen
 with performance in mind. Indeed, much faster randomness libraries\cn and fast sources
 of entropy \cn exist. \jwc{... more here?}
 To demonstrate that faster random sampling can significanty impact bugfinding power, we
-use the natural experiment provided by OCaml's inefficient implementation of
+use the controlled experiment provided by OCaml's inefficient implementation of
 SplitMix. By replacing this slow randomness library with a faster but semantically equivalent
 implemetnation, we are able to precisely quantify the bugfinding speedup that using a randomness library gives across a range of PBT scenarios.
 
