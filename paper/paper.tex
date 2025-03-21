@@ -339,6 +339,7 @@ produces exactly the same sequence of values as the same generator written with 
 The semantic equivalence between the original generators and \name{} generators allows us to
 perform clean, fine-grained comparisons, as differences in generation speed are
 solely attributable to the staging and \rand optimizations.
+\jwc{BCP thinks this should be a little stronger: ``and not obscured by the probablistic nature of generation'', or something like that. ``Comparing distributions of speed is hard, comparing pointwise is easier.''. This needs to have its own sentence here.}
 
 We evaluate the optimizations with a series of case studies in each
 generator library, and show that the \name generators run faster than their unstaged equivalents.
