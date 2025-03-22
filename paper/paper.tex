@@ -709,7 +709,7 @@ ScalaCheck uses the JSF algorithm \cn.
 
 The randomness library is the hottest part of the hot path.
 Even basic generators --- like ones generating a single \texttt{int} or \texttt{float} uniformly within a range --- can sample \emph{unboundedly many}
-random numbers, since they usually use versions of rejection sampling to find a value within the range \cn{}\bcp{Really? I want to know more about that!!}\jwc{Well this is totally standard, and it's how sampling in a bounded range works. You take a thing that samples uniformly over \texttt{int64\_t} and do a combination of clever things and basic rejection sampling to get a value in the range.}.
+random numbers, since they usually use versions of rejection sampling \cn{} to find a value within the range.
 Moreover, generator combinators like \texttt{list} usually make $O(n)$ calls to the \texttt{int} or \texttt{float} generators.
 Because of this, the speed of a single sample matters a great deal. Unfortunately,
 existing PBT libraries make relatively inefficient choices on this front,
@@ -757,11 +757,10 @@ By building a version that uses much faster ``unboxed'' 64-bit integer arithmeti
 
 \section{\name{}}
 \label{section:faster-generators}
-\jwc{This section needs a much better title...}
-% \jwc{Usual introduction to this section, corresponding to how we talked about it in the intro. ``We present a library that XYZ''.}
+With a sense of the inefficiences pervasive in generator libraries, we set out in this section to find solutions.
+\todo{JWC}
 
-\jwc{This section needs an intro, and some signposting to say where we're going.}
-
+\jwc{This paragraph is a first draft, and needs to be edited!!!}
 
 \subsection{Background: Multi-Stage Programming}
 \label{subsection:msp}
@@ -863,13 +862,10 @@ can ensure that any overhead of using the combinators is eliminated by run time.
 
 \subsection{Design of a Staged Generator DSL}
 \label{subsection:basic-design}
-\jwc{Needs a lot more signposting at the top here.}
-
 To build a staged version of a generator DSL, we must rewrite the the generator
-combinators to do as much as possible at compile time,
-producing inlined code that uses no combinators, which can be compiled and run
+combinators to do as much as possible at compile time.
+The compile time stage will then produce simplified code, free of any DSL combinators, which can be compiled and run
 with different sizes and seeds.
-
 Our job is thus to carefully bisect the DSL, determining which inputs to generator
 combinators are known statically (and can be part of the compile time stage) and
 which parts are only known at run time (and must be \texttt{code}).
