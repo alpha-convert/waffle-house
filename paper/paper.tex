@@ -1234,9 +1234,7 @@ end
 % \jwc{Describe split --- this section is approximately experts-only, but you can just point at the Andras paper and the things it cites.}
 
 \subsection{Recursive Generators}
-\jwc{Generating recursive datatypes requires recursive generators!}
-
-Different generator DSLs handle defining recursive generators differently. Some allow recursive generators
+Generating recursive datatypes requires recursive generators. Different generator DSLs handle defining recursive generators differently. Some allow recursive generators
 to be defined as recursive functions, while others
 (including both \bq and ScalaCheck) expose a fixpoint combinator to construct recursive generators.
 Given a step function that takes a ``handle'' to sample from a recursive generator call, it
