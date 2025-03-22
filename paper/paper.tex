@@ -1158,19 +1158,23 @@ let-binds \texttt{let x = .\~{}cx}, and then passes \texttt{.<x>.} to the
 continuation.
 \hg{I'm getting lost in the inline code again}
 
-We can then redefine our staged generator monad type to be
+We can then redefine\footnote{
+The type \texttt{'a Gen.t} from before is like \texttt{'a code Gen.t} with this new definition. This type change
+carries through all of our combinators. For example, \texttt{Gen.int} now returns \texttt{int code Gen.t}.
+} our staged generator monad type to be
 \texttt{'a Gen.t = int code -> SR.t code -> 'a CodeCPS.t}, as shown in Figure~\ref{fig:codecps-and-final-gen}.
 \jwc{any types that were \texttt{'a Gen.t} before are now \texttt{'a code Gen.t}}.
+
 This gives us the best of both worlds. First, we get a monad instance for \texttt{'a Gen.t} with the correct types, which lets us
 use the monadic syntactic sugar of our chosen language. Moreover, we also get to maintain the correct
 effect ordering: effectful combinators like \texttt{Gen.int} do their \emph{own} let-insertion, ensuring
 that a program like \texttt{Gen.bind Gen.int (fun x -> ...)} generates a let-binding for the result of sampling the randomness library.
-For example, \lstinline{bind (int .<0>. .<1.>) (fun cx -> return .<(.~cx,.~cx)>.)} now correctly generates
-\lstinline{.< fun size random -> let x = SR.int random 0 1 in (x,x) >.}.
+For example, \texttt{bind (int .<0>. .<1.>) (fun cx -> return .<(.~cx,.~cx)>.)} now correctly generates
+\texttt{.< fun size random -> let x = SR.int random 0 1 in (x,x) >.}.
 This design is less obviously correct, and does require some care. Rather than \texttt{bind} ensuring correct evaluation order once and for all,
-individual combinators must be carefully written to ensure that \texttt{'a code} values that contian effects are \texttt{let\_insert}'d.
-To ensure that the OCaml code is written correctly, we employ a PBT harness to compare its outputs to the corresponding \bq generator over 1,000 random seeds.
-If no discrepancy arises, we conclude that the generators exhibit equivalent behavior.
+individual combinators must be carefully written to ensure that \texttt{'a code} values that contain effects are \texttt{let\_insert}'d.
+To ensure that the library is written correctly, we built a PBT harness to compare staged generators to their \bq equivalents over 1,000 random seeds.
+By differentially testing \cn{} a large suite of generators in this way, we gained confidence that \camlname is equivalent to \bq{}.
 
 \begin{figure}
 \begin{lstlisting}
