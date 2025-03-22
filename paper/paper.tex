@@ -335,7 +335,6 @@ This semantic equivalence enables pointwise---as opposed to distributional---bug
 We evaluate the optimizations with a series of case studies in each
 generator library, and show that the \name{} generators run faster than their unstaged equivalents.
 Further, we show generators that run faster also find bugs faster
-% ability \jwc{The paper is called ``fail faster'' --- we shouldn't say ``bug finding ability'', we should say something like ``how fast you can squash bugs''. This is too passive }
 by running these case studies in the Etna
 platform~\cite{etna}, which simulates real-world PBT usage \iflater\hg{Don't love this phrase, I'll
 think more about how we should talk about Etna}\fi by injecting bugs into a system and
@@ -348,11 +347,9 @@ We make the following contributions:
     \item We identify two key sources of inefficiency in PBT generator libraries, which can significantly impact performance:
     abstraction overhead and \rand choice.
     \item We present \name{}, a technique for eliminates the abstraction overhead of generators. We implement \name{} in both OCaml and Scala 3, showcasing its cross-language applicability.
-    \item We demonstrate that programs written using \name{} yield performance improvements to generator running time. Finally, we show
-    that these performance improvements extend to significantly improved bug-finding speed. \jwc{This should be sell-ier: 2x speedups, etc. ``bug-finding speed'' isn't a race against time.}
-    \jwc{We precisely quantify the performance effects of staging and faster rng across a range of testing scenarios --- i.e. a contrib is the fact that we can exactly pin down when one helps versus the other. The ``logically smarter'' your generator is, the more you get out of staging, the ``dumber'', the more you get out of rng.}
-    \bcp{Agree with this. We need to beef up our claims here about what we learned about PBT-specifics.}
-    \jwc{And this needs to be flowed through the rest of the paper.}
+    \item We demonstrate that writing generators using \name{} and fast \rands{} yields performance improvements.
+    We precisely quantify the impact of each optimization separately, and explain how they play distinct yet complementary roles in improving generator performance.
+    Finally, we show that these performance improvements extend to significantly improved bug-finding speed, finding some bugs as much as \todo{\%\%} faster.
 \end{enumerate}
 
 In Section~\ref{section:motiv}, we introduce monadic generator DSLs, discuss how they work, and take an example-guided tour through some of the ways that
