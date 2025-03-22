@@ -1506,18 +1506,15 @@ overhead.
 
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
-  \includegraphics[scale=0.31]{time.png}
-  \caption{Time to generate using each strategy. Performance benefits scale with generation size (lower lines translate to greater performance benefit). BQ is \bq; Staged SR is \camlname using \bq's \texttt{splittable\_random} RNG; Staged CSR is \camlname using \secref{subsection:faster-rng}'s \csplitmix.}
+  \includegraphics[scale=0.43]{time.png}
+  \caption{Time to generate values of varying sizes using each \camlname strategy. Lower lines translate to greater performance benefit. BQ is \bq; Staged SR is \camlname using \bq's \texttt{splittable\_random} RNG; Staged CSR is \camlname using \csplitmix.}
   \label{fig:time}
 \end{figure}
 
 \begin{figure}[h]
   \centering
   \includegraphics[scale=0.49]{scala.png}
- \caption{
-  \jwc{Don't explain the chart in the caption, split this into two different charts --- purple on one, green on the other.}
-  \jwc{Also can we use the language's colors for this?}
-  \scalaname has better performance relative to ScalaCheck than \camlname relative to \bq. SC is ScalaCheck; BQ is \bq. Comparison is for a fixed size of 100.}
+ \caption{Time to generate values of varying sizes using each \scalaname strategy. SC is ScalaCheck; Staged is \scalaname.}
  \label{fig:scala}
  \end{figure}
 
@@ -1592,13 +1589,12 @@ these results give strong evidence that \camlname consistently benefits bug-find
 \begin{figure}[h]
   \includegraphics[scale=0.3]{speedup.png}
   \caption{Geometric average of all speedups---relative to BQ---for each strategy and benchmark, showing that staging leads to better bug-finding speed across the board.
-  \jwc{Charts start at one? Can eliminate the BQ bar}
   }
   \label{fig:etna}
 \end{figure}
 \begin{figure}[h]
   \includegraphics[scale=0.31]{swarm.png}
-  \caption{Swarm distribution of individual-task speedups across strategies and benchmarks---gray dots represent tasks. Plots with extremely low variance have no swarm overlay; in plots with high variance, outliers correspond to large speedups. \tr{Make mean higher-contrast.}}
+  \caption{Distribution of individual-task speedups across strategies and benchmarks. Gray dots represent tasks. Plots with extremely low variance have no swarm overlay; in plots with high variance, outliers correspond to large speedups.}
   \label{fig:swarm}
 \end{figure}
 
