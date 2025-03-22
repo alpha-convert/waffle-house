@@ -1509,7 +1509,7 @@ Similarly, we investigate the impact of \csplitmix by tracking the number of cal
 library, which samples the next random integer.
 This, too, is an imperfect proxy, as the SplitMix algorithm's runtime does plenty of stuff that isn't 
 sampling which can dominate its runtime---which is all faster in \csplitmix. However, it too validates our intuition that sampling-heavy generators achieve
-greater benefit from \csplitmix than they do staging: 
+greater benefit from \csplitmix than they do staging:
 
 These results show that staging and \rand choice play distinct and
 complementary roles in generator performance. Sampling-heavy generators see
