@@ -534,12 +534,13 @@ deterministic: for a fixed size and seed, it will always return the same value, 
 The monad functions \texttt{return} and \texttt{bind} are defined in the usual way:
 for an instance of the reader monad \cn{}: \texttt{return} ignores the size and seed and returns its argument, while \texttt{bind} runs \texttt{g} and passes the result to \texttt{k}.
 The \texttt{gen\_int} combinator simply calls out to the randomness library \texttt{Splittable\_random}, aliased as \texttt{SR} here.
+Different generator DSLs use variatoins on this basic design, but the basics are the same across the board.
 
-Different PBT libraries use variations on this basic design. The largest source of variation is how the random seed is threaded through the generator.
-\bcp{Sentence starts with lowerase} \bq{} uses a reader monad with a mutable seed, while Haskell's QuickCheck uses a reader monad with an immutable state
-that is ``split'' at \texttt{bind}s \cn. Meanwhile, ScalaCheck (a) uses an immutable state type and state monad \cn{} to thread
-the state through, and (b) has an \texttt{Option} as its return type, to allow generation to fail.
-\bcp{This discussion should go elsewhere...}
+% Different PBT libraries use variations on this basic design. The largest source of variation is how the random seed is threaded through the generator.
+% \bcp{Sentence starts with lowerase} \bq{} uses a reader monad with a mutable seed, while Haskell's QuickCheck uses a reader monad with an immutable state
+% that is ``split'' at \texttt{bind}s \cn. Meanwhile, ScalaCheck (a) uses an immutable state type and state monad \cn{} to thread
+% the state through, and (b) has an \texttt{Option} as its return type, to allow generation to fail.
+% \bcp{This discussion should go elsewhere...}
 
 \begin{figure}
 \begin{lstlisting}
@@ -691,8 +692,6 @@ weights in the list before it exceeds $r$. This second part can be accomplished 
 a binary search. However, since the lists are short in practice, a linear scan is almost always faster \cn{}.
 Moreover, both \bq{} and ScalaCheck allocate auxiliary data structures (an array in \bq{} and a BST in ScalaCheck) to
 perform this search, which incurs further run time overhead.
-\bcp{Are we advocating a linear scan? If not, then maybe we don't need to make this point}\jwc{We are, but we do need to make this point, since
-it's important to understanding why we get more speedup than you might expect}
 
 % \subsubsection{Function call overhead}
 \subsection{Inefficient Randomness Libraries}
@@ -745,8 +744,7 @@ simply swap out the randomness library of either \bq{} or ScalaCheck with a tota
 But, as discussed previously, \camlname{} and \scalaname{} are designed to be 100\% semantically equivalent replacements for
 their unstaged counterparts, ensuring that any bug-finding speedups are solely attributable to generator performance and not lucky seeds.
 Choosing a different \rand{} would break this property, making it much more challenging to assess the performance compared to the baseline.
-But, as discussed previously, generators with different generation orders can be
-difficult to compare \bcp{This was not discussed previously!}. To get around this, we exploit a coincidence:
+To get around this, we exploit a coincidence:
 \texttt{Splittable\_random}---the \rand{} that \bq{} uses---is slow in a way that
 can be improved \emph{without} changing its behavior.
 In particular,
