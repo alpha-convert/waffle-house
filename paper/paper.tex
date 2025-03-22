@@ -1500,10 +1500,12 @@ generator library functions benefit more.
   \label{fig:binds}
 \end{figure}
 
-To determine the number of random samples, we repeat the same test, but use Intel ProcessorTrace to capture processor activity.
-We then count the number of invocations of \texttt{next\_int64} and average this over the number of complete generations in the trace. As expected,
+To determine the number of random samples, we repeat the same test, but use Intel ProcessorTrace \cn{} to capture a 4ms trace processor activity.
+We then count the number of invocations of \texttt{next\_int64}---the actual SplitMix sampling routine---and average this over the number of complete generations in the trace. As expected,
 the BST strategies, which achieve large speedups from \csplitmix, invoke the sampling function more: 353 times for the insertion-based strategy, and 271 for the single-pass strategy. 
-STLC, which sees moderate improvements from \csplitmix, invokes \texttt{next\_int64} 211 times, and the boolean list strategy, which sees no improvement from \csplitmix, invokes it only 100 times.
+STLC, which sees moderate improvements from \csplitmix, invokes \texttt{next\_int64} 211 times, and the boolean list strategy, which sees no improvement from \csplitmix, invokes it only 100 times\footnote{
+We did not measure generator performance for \emph{un}staged generators with \csplitmix, so there is no equivalent of Figure~\ref{fig:binds} for speedup versus sampling.
+}.
 
 These results show that staging and \rand choice play distinct and
 complementary roles in generator performance. Sampling-heavy generators see
