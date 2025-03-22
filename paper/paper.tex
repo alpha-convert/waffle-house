@@ -296,14 +296,13 @@ First, the same high-level design approach that gives generator libraries their
 flexibility also introduces layered abstractions and indirections that are difficult for
 compilers to optimize, shifting work to run time.
 Second, the \rand that a generator uses to make choices can
-constitute an unexpectedly high proportion of its runtime. These factors combine to limit 
-the effectiveness of PBT. \jwc{Unsure if ``constitute a high proportion of its runtime'' limits effectiveness. it's more that the choice \rand limits effectiveness.}
+constitute an large proportion of its running time, magnifying the impact of an inefficient one.
 \iflater
 \hg{TODO later, I'm not 100\% sure it's clear how this particular question is
 raised by the above. We could strengthen that connection}
 \fi
 
-We study and address these issues separately.
+In this paper, we study and address these issues.
 First, we show how to use \textit{multi-stage programming}, a classic technique for 
 building fast DSLs “without regret”~\cn{}, to eliminate the overhead of 
 many common generator abstractions. We refer to this approach as \name.
@@ -347,9 +346,9 @@ We make the following contributions:
     \item We identify two key sources of inefficiency in PBT generator libraries, which can significantly impact performance:
     abstraction overhead and \rand choice.
     \item We present \name{}, a technique for eliminates the abstraction overhead of generators. We implement \name{} in both OCaml and Scala 3, showcasing its cross-language applicability.
-    \item We demonstrate that writing generators using \name{} and fast \rands{} yields performance improvements.
+    \item We demonstrate that writing generators using \name{} and fast \rands{} yields significant performance improvements.
     We precisely quantify the impact of each optimization separately, and explain how they play distinct yet complementary roles in improving generator performance.
-    Finally, we show that these performance improvements extend to significantly improved bug-finding speed, finding some bugs as much as \todo{\%\%} faster.
+    Finally, we show that these performance improvements extend to improved bug-finding speed, finding some bugs as much as \todo{\%\%} faster.
 \end{enumerate}
 
 In Section~\ref{section:motiv}, we introduce monadic generator DSLs, discuss how they work, and take an example-guided tour through some of the ways that
