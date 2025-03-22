@@ -614,13 +614,6 @@ def intPairInlined : (Gen.Parameters, Seed) => (Option[(Long,Long)],Seed) = {
   \caption{Simplifying Generators}\label{fig:simplify}
 \end{figure}
 
-% \begin{figure}
-% \begin{lstlisting}
-% \end{lstlisting}
-% \caption{Int Pair Generators in \bq{} and ScalaCheck}
-% \label{fig:overhead-explanation-code}
-% \end{figure}
-
 The performance impact of this simplification is large (Figure~\ref{fig:overhead-explanation-perf}). In both languages, the
 inlined version takes on average half as much time to generate a single pair of
 \texttt{int}s.
@@ -1347,35 +1340,38 @@ and large use sensible sources of randomness, they are not explicitly chosen
 with performance in mind. Indeed, much faster randomness libraries\cn and fast sources
 of entropy \cn exist. \bcp{... more here?}
 To demonstrate that faster random sampling can significanty impact bugfinding power, we
-use the controlled experiment provided by OCaml's inefficient implementation of
-SplitMix. By replacing this slow randomness library with a faster but semantically equivalent
-implemetnation, we are able to precisely quantify the bugfinding speedup that using a randomness library gives across a range of PBT scenarios.
+use the controlled experiment suggested by OCaml's inefficient implementation of
+SplitMix. By replacing this relatively slow randomness library with a faster but semantically equivalent
+implemetnation, we can precisely quantify the bugfinding speedup that a better randomness library gives across a range of PBT scenarios.
+\jwc{Ensure this gets pushed to a top level contrib}
 
-We emphasize that while we believe that the insight that faster sampilng translates to faster bug finding
-is a cross-langauge one, the specific technical contents of this section are OCaml-specific.
-In the case of most other PBT frameworks \cn, the randomness library used operates on by machine
+Note that while that the insight that faster sampilng translates to faster bug finding
+is a cross-language one, the performance intervention described here is OCaml-specific.
+In most other PBT frameworks \cn, the randomness library used operates on machine
 integers, so this \emph{particular} inefficiency does not exist.
 
-The precise details of how the SplitMix algorithm works \cn are unimportant for the
-present paper, but the critical component is that all of its operations are are
-defined in terms of arithmetic bitwise operations on 64-bit integers. In OCaml,
+The precise details of how the SplitMix algorithm works \cn are not important for
+present purposes; the key fact is that all of its operations are are
+defined in terms of arithmetic and bitwise operations on 64-bit integers. In OCaml,
 because of details related to the garbage collector, the 64-bit integer type \texttt{int64} is represented
 at run time as a \emph{pointer} to an unscanned block of memory containing (among other things)
-a 64-bit integer \cn. This means that all operations that return an \texttt{int64} must allocate this block of memory.
-This has a significant impact on the performance of generators. A single call to
-one of the \bq library functions---like generating an integer uniformly in a range---may call the \texttt{splittable\_random}
-algorithm multiple times. Each sample from \texttt{splittable\_random} allocates 9
-times \jwc{this is a call to \texttt{next\_int64}}, and each allocation brings us closer
-to the next garbage collection pause. While small allocations like these are \emph{very} fast to perform and subsequently collect in OCaml,
-\footnote{The OCaml GC is a generational collector \cn, and since these allocations are small and mostly very short lived, they will all be minor allocations, never to be promoted.}, we will see in Section~\ref{section:eval} that this can have
-a large performance impact on some generators that spend most of their time sampling data.
-To circumvent this allocation and provide an equivalent version of \texttt{splittable\_random}, we
-reimplement SplitMix in C, and call out to it with the OCaml FFI. The C version of the library uses
-proper \texttt{int64\_t} arithmetic, only boxing and unboxing integers at the call boundaries between OCaml and C code.
-Ideally in the future, one would not need to call out to C for this: the Jane Street bleeding-edge OCaml compiler has support
+a 64-bit integer \cn. This means that all operations that return an \texttt{int64} must allocate this block of memory,
+which has a significant impact on performance. A single call to
+one of the \bq library functions---like generating an arbitrary integer---may call into the \texttt{Splittable\_random}
+library times. Each call into \texttt{Splittable\_random}
+may sample many times from the core SplitMix sampling routine \texttt{next\_int64}, i.e. using rejection sampling to find a value within a range.
+Finally, each call to \texttt{next\_int64} allocates 9 times, and each allocation brings us closer
+to the next garbage collection pause. While small allocations like these are \emph{very} fast to perform and subsequently
+collect in OCaml\footnote{The OCaml GC is a generational collector \cn, and since these allocations are small and mostly very short lived, they will all be minor allocations, never to be promoted.}
+, we will see in Section~\ref{section:eval} that they can still have
+a large performance impact on generators that spend most of their time sampling data.
+To avoid this allocation, we
+reimplement SplitMix in C and call out to it with the OCaml FFI. The C version of the library uses
+proper \texttt{int64\_t} arithmetic, only boxing and unboxing integers at the call boundaries between OCaml and
+C code\footnote{Ideally in the future, one would not need to call out to C for this: the Jane Street bleeding-edge OCaml compiler has support
 for unboxed types \cn, which (among other things) would let us implement a version of SplitMix that does not allocate, directly
 in OCaml. Unfortunately, the Jane Street branch of the compiler is incompatible with MetaOCaml, which we use to implement the metaprogramming
-discussed in the previous sections.
+discussed in the previous sections.}.
 
 \section{Evaluation}
 \label{section:eval}
