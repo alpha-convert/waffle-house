@@ -170,6 +170,7 @@
 %% article.
 \begin{abstract}
   \hg{TODO: Abstract}
+  \jwc{Make sure we are clear about our results here. I.e. VERY QUICKLY in this abstract, we need to say ``finds bugs 5x faster''}
 \end{abstract}
 
 %%
@@ -270,7 +271,7 @@
 
 %\jwc{``Property based testing is a race against time...''}
 Property-based testing (PBT) is a software testing technique that uses
-random test inputs to validate logical specifications. Recent studies on PBT usage~\cite{inpractice} in industry have shown that
+random test inputs to validate logical specifications. Recent studies on PBT usage in industry~\cite{inpractice} have shown that
 practitioners often interleave PBT with their software development process, sometimes
 testing their properties every time they save their code. This means that PBT is often given a very short time
 window to find bugs---e.g., between 50 milliseconds and 30 seconds~\cite{inpractice}.
@@ -758,8 +759,9 @@ By building a version that uses much faster ``unboxed'' 64-bit integer arithmeti
 \section{\name{}}
 \label{section:faster-generators}
 
-With a sense of the inefficiences pervasive in generator libraries, we set out in this section to find solutions.
-\todo{JWC}
+With a sense of the inefficiences pervasive in generator libraries, we set out in this section to investigate solutions.
+We begin with a quick tour through multi-stage programming, and then incrementally build \camlname, layering on features and functionality.
+Last, we present the controlled experiment we use to demonstrate how faster \rand{} leads to failing faster.
 
 \jwc{This paragraph is a first draft, and needs to be edited!!!}
 
