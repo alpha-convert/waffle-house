@@ -294,9 +294,9 @@ is possible.
 This is due to two major sources of inefficiency.
 First, the same high-level design approach that gives generator libraries their
 flexibility also introduces layered abstractions and indirections that are difficult for
-compilers to optimize, shifting work to run time.
+compilers to optimize\proposecut{, shifting work to run time}.
 Second, the \rand that a generator uses to make choices can
-constitute an large proportion of its running time, magnifying the impact of an inefficient one.
+constitute an large proportion of its running time, magnifying the impact of an inefficient one. \jwc{Object of ``one'' unclear, intended to be ``\rand{}''.}
 \iflater
 \hg{TODO later, I'm not 100\% sure it's clear how this particular question is
 raised by the above. We could strengthen that connection}
@@ -326,7 +326,7 @@ To demonstrate the multi-language applicability of \name{}, we implement staged 
 In OCaml, we build \camlname{}, based on \bq{}---a
 high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street \cn{}.
 In Scala 3, we build \scalaname{}, based on ScalaCheck---the language's standard PBT library\cn{}.
-In both languages, our libraries preserve the semantics of the original: given the same random seed, generators written using \camlname or \scalaname produce exactly the same sequence of values as equivalent generators using ScalaCheck or \bq, respectively.
+In both languages, our libraries preserve the semantics of the original: given the same random seed, generators written using \camlname or \scalaname produce exactly the same sequence of values as equivalent generators using \bq or ScalaCheck, respectively.
 This semantic equivalence enables pointwise---as opposed to distributional---bug-finding comparisons, ensuring that if a \name{} generator finds bugs faster, this is attributable \textit{solely} to staging and \rand optimizations, not luck with seeds.
 % \jwc{BCP thinks this should be a little stronger: ``and not obscured by the probablistic nature of generation'', or something like that. ``Comparing distributions of speed is hard, comparing pointwise is easier.''. This needs to have its own sentence here.}
 
@@ -757,6 +757,7 @@ By building a version that uses much faster ``unboxed'' 64-bit integer arithmeti
 
 \section{\name{}}
 \label{section:faster-generators}
+
 With a sense of the inefficiences pervasive in generator libraries, we set out in this section to find solutions.
 \todo{JWC}
 
