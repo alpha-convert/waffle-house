@@ -358,26 +358,26 @@ Section~\ref{section:eval} evaluates all of the previous work, demonstrating the
 and how they lead to much faster bug finding.
 
 \section{What are Generator Libraries, and why are they Slow?}
-\tr{This needs to introduce PBT WAY better.}
 \label{section:motiv}
 % \jwc{In this section we answer: ``What are monadic generator libraries, and why are they slow?''}
 % \bcp{That's actually not a bad section title!}
 
 % \subsection{Background: Monadic Generator DSLs}
 
-Since property-based testing was first introduced in Haskell's QuickCheck
-library~\cite{claessenQuickCheckLightweightTool2000}, {\em generators} have been
-a key element of the PBT process. While properties\bcp{this concept
-  comes out of nowhere} are critical for correctly
-expressing a developer's intent for a function, the success of the testing
-ultimately rests on how well the random inputs to that property exercise the
-system under test.\bcp{Is this trying to say that generators are more
-  important than properties?  This seems like a strange assertion.}
-QuickCheck's solution to this problem, which has been copied in
-dozens of frameworks across a wide variety of languages, is to provide a domain-specific
-language (DSL) for writing random data generators that gives developers complete
-control\bcp{that might be overstating the case a bit!} over the
-distribution of their test inputs.
+Property-based testing~\cite{claessenQuickCheckLightweightTool2000} is an approach to software testing that centers around
+executable specifications of programs called {\em properties}. For example, if a
+programmer wants to test an invariant of a binary search tree (BST)
+implementation that they are working on, they may write a property like
+\begin{center}
+  \texttt{prop\_insert\_invariant t x = isBST t ==> isBST (insert x t)}
+\end{center}
+to check that for any tree \texttt{t} and value \texttt{x}, if \texttt{t} is
+already a valid BST then inserting \texttt{x} into it also yields a valid BST.
+Once a developer has a property, they test that property by executing
+it on hundreds or thousands of random test inputs. These test inputs are usually
+produced by a {\em generator} --- a program written in some domain-specific
+language (DSL) that allows the developer to express precisely how values should
+be sampled.
 
 \begin{wrapfigure}{r}{.5\textwidth}
 \begin{lstlisting}
@@ -400,8 +400,9 @@ end
 \label{fig:bq-api}
 \end{wrapfigure}
 
-The standard design for QuickCheck-style
-generators is via an embedded {\em monadic} language. We use the syntax and types from OCaml's \bq library, which is presented in
+The standard design for a generator DSL, introduced in Haskell's QuickCheck
+library and copied in dozens of other frameworks,
+is via an embedded {\em monadic} language. We use the syntax and types from OCaml's \bq library, which is presented in
 Figure~\ref{fig:bq-api}, but similar DSLs can also be found in languages
 like Haskell, Scala, Python, and many more.
 The library provides some basic generators, for
