@@ -312,7 +312,6 @@ many common generator abstractions. We refer to this approach as \name.
 Second, we demonstrate that a DSL's choice of \rand{} has a
 dramatic impact on its performance by performing a controlled experiment,
 isolating the performance benefits of faster randomness in a clearly quantifiable manner.
-\jwc{Another cut at this.}
 
 % These insights lay the groundwork for generator libraries that combine high-level 
 % design with low-level performance.
@@ -527,14 +526,14 @@ iterations.
 Just how large is the abstraction overhead of monadic generator DSLs, and where does it come from?
 Figure~\ref{fig:bq-internals} shows the internals of (a simplified version of) \bq{}.
 A generator \texttt{'a Bq.t} is just a function of type~\texttt{int -> SR.t -> 'a},
-\jwc{introduce what SR is}
 taking an \texttt{int} representing the current size parameter and a random seed \texttt{SR.t},
-and returning a generated value \texttt{'a}. It is an invariant of the generator library that every function of this type is
+and returning a generated value \texttt{'a}.
+The random seed \texttt{SR.t} from \bq's \rand{} called \texttt{Splittable\_random}, henceforth aliased in code as \texttt{SR}.
+It is an invariant of the generator library that every function of this type is
 deterministic: for a fixed size and seed, it will always return the same value, so all of the randomness in testing comes from varying the initial seed.
-The monad functions \texttt{return} and \texttt{bind} are defined in the usual way
-for an instance of the reader monad \cn{} \jwc{explain better}.
-% \bq{} uses a mutable seed, so the \texttt{random} passed to \texttt{(k a)} will be different from the one passed to \texttt{g}.
-The \texttt{gen\_int} combinator simply calls out to the randomness library \texttt{Splittable\_random}, aliased as \texttt{SR} here. \jwc{lift this explanation, explain what splittable random is before here.}
+The monad functions \texttt{return} and \texttt{bind} are defined in the usual way:
+for an instance of the reader monad \cn{}: \texttt{return} ignores the size and seed and returns its argument, while \texttt{bind} runs \texttt{g} and passes the result to \texttt{k}.
+The \texttt{gen\_int} combinator simply calls out to the randomness library \texttt{Splittable\_random}, aliased as \texttt{SR} here.
 
 Different PBT libraries use variations on this basic design. The largest source of variation is how the random seed is threaded through the generator.
 \bcp{Sentence starts with lowerase} \bq{} uses a reader monad with a mutable seed, while Haskell's QuickCheck uses a reader monad with an immutable state
@@ -583,8 +582,8 @@ let int_pair : (int * int) Bq.t =
 
 let int_pair_inlined : int -> SR.t -> int * int =
   fun _ sr ->
-    let x = Splittable_random.int sr ~lo:0 ~hi:100 in
-    let y = Splittable_random.int sr ~lo:0 ~hi:x in
+    let x = SR.int sr ~lo:0 ~hi:100 in
+    let y = SR.int sr ~lo:0 ~hi:x in
     (x,y)
 \end{lstlisting}
 \caption{Simplifying a Generator in OCaml}\label{fig:simplify-ocaml}
@@ -748,7 +747,7 @@ their unstaged counterparts, ensuring that any bug-finding speedups are solely a
 Choosing a different \rand{} would break this property, making it much more challenging to assess the performance compared to the baseline.
 But, as discussed previously, generators with different generation orders can be
 difficult to compare \bcp{This was not discussed previously!}. To get around this, we exploit a coincidence:
-the \rand{} that \bq{} uses --- OCaml's \texttt{Splittable\_random} library --- is slow in a way that
+\texttt{Splittable\_random}---the \rand{} that \bq{} uses---is slow in a way that
 can be improved \emph{without} changing its behavior.
 In particular,
 due to implementation details related to the OCaml garbage collector,
