@@ -1429,28 +1429,35 @@ a boolean list generator that mirrors the single-pass BST strategy; and a
 generator for STLC terms that is correct by construction (i.e., it produces 
 only well-typed terms).
 
-These strategies differ in their use of generator library combinators 
-and in how frequently they sample random values. The type-derived and 
-insertion-based BST generators sample frequently but use combinators 
-sparingly. The single-pass BST generator also samples frequently 
-but uses more combinators, striking a middle ground. 
-The type-derived 
-STLC generator samples infrequently and makes moderate 
-use of combinators, while the custom STLC generator uses 
-significantly more combinators than any other strategy and 
-also takes the fewest samples. The boolean list generator 
-makes moderate use of combinators 
-and samples booleans frequently---however, because booleans are 
-inexpensive to sample, its overall sampling overhead is lower 
-than that of the other strategies.
+% These strategies differ in their use of generator library combinators 
+% and in how frequently they sample random values. The type-derived and 
+% insertion-based BST generators sample frequently but use combinators 
+% sparingly. The single-pass BST generator also samples frequently 
+% but uses more combinators, striking a middle ground. 
+% The type-derived 
+% STLC generator samples infrequently and makes moderate 
+% use of combinators, while the custom STLC generator uses 
+% significantly more combinators than any other strategy. 
+% The boolean list generator 
+% makes moderate use of combinators 
+% and samples booleans frequently---however, because booleans are 
+% inexpensive to sample, its overall sampling overhead is lower 
+% than that of the other strategies.
 
 For each strategy, we compare three treatments: our \bq baseline; 
 a \camlname version using \bq's randomness 
 library, \texttt{splittable\_random}; and a
 \camlname version using \csplitmix. For each treatment, we measure the
 time to generate a value---i.e., a BST, a STLC term, or a boolean list---using a random seed, over a 
-variety of different sizes (10, 100, 1,000, 10,000).\footnote{The way size is used in a generator is a domain-specific implementation detail---in a list generator, size might correspond to the desired length of the list, whereas in a tree generator it refer to number of nodes, number of leaves, depth of tree, etc. Regardless of how size is encoded, our goal is to show that performance trends scale.}
+variety of different generation sizes (10, 100, 1,000, 10,000).\footnote{The way size is used in a generator is a domain-specific implementation detail---in a list generator, size might correspond to the desired length of the list, whereas in a tree generator it refer to number of nodes, number of leaves, depth of tree, etc. Regardless of how size is encoded, our goal is to show that performance trends scale.}
 We run each treatment for 5 seconds---enough time for several thousand generations---and compute the average generation time of all values produced in that interval.
+
+\begin{figure}[h]
+  % \includegraphics[scale=0.33]{allocs.png}
+  \includegraphics[scale=0.43]{time.png}
+  \caption{Time to generate values of varying sizes using each \camlname strategy. Lower lines translate to greater performance benefit. BQ is \bq; Staged SR is \camlname using \bq's \texttt{splittable\_random} RNG; Staged CSR is \camlname using \csplitmix.}
+  \label{fig:time}
+\end{figure}
 
 Our results are summarized in \figref{fig:time}.
 Our type-derived \camlname BST generator achieves speedups ranging from $1.30-1.38\times$, which increase
@@ -1480,6 +1487,34 @@ combined with \csplitmix ($2.77-7.57\times$). This is likely because sampling
 booleans is cheap enough that the overhead of crossing the FFI barrier is
 comparable to that of generating values directly in OCaml.
 
+To investigate the relationship between a generator's use of library 
+abstractions and the performance benefits it gains from staging, 
+we focused on the \texttt{bind} function---a core component of monadic 
+generator libraries, frequently invoked both directly and indirectly 
+through other combinators. We instrumented \texttt{bind} to count how many 
+times it was called during a generator's execution. Our 
+hypothesis was that generators which make heavier use of 
+library abstractions like \texttt{bind} would benefit more from staging.
+
+We evaluated this hypothesis using four benchmarks with widely varying 
+speedups: insertion-based BSTs, single-pass BSTs, boolean lists, and 
+well-typed STLC terms. For each generator, we ran 10,000 trials, 
+using a fixed generation size of 100, and recorded the average number 
+of \texttt{bind} calls. We then compared these usage statistics to the 
+observed speedups.
+
+As shown in \figref{fig:binds}, the results reveal a clear linear 
+correlation between the number of \texttt{bind} calls and the speedup 
+achieved through staging. This suggests that generators that 
+rely more heavily on the library's abstractions tend to 
+benefit more from staging optimizations. \tr{TALK ABOUT RANDOMNESS HERE.}
+
+\begin{figure}[h]
+  \includegraphics[scale=0.4]{bind.png}
+  \caption{}
+  \label{fig:binds}
+\end{figure}
+
 These results show that staging and \rand choice play distinct and
 complementary roles in generator performance. Sampling-heavy generators see
 greater improvements from faster randomness libraries, while combinator-heavy
@@ -1490,13 +1525,16 @@ workloads.
 \subsubsection{\scalaname}
 In \scalaname, we implement a subset of the \camlname
 strategies: the boolean list generator, single-pass BST generator, and
-well-typed STLC term generator. ScalaCheck does not support type derivation,
-so those strategies are excluded.
+well-typed STLC term generator\footnote{By default, ScalaCheck does not support type derivation,
+so those strategies are excluded.}. We did not implement an optimized version of ScalaCheck's
+\rand, but our experimental setup was otherwise the same as in \secref{subsubsection:ocaml}.
 
 As shown in \figref{fig:scala}, \scalaname achieves an even greater performance
-gain---purely from staging---over ScalaCheck than \camlname does over \bq. This difference arises from
+gain---purely from staging---over ScalaCheck than \camlname does over \bq. In particular,
+the single-pass BST strategy is $4.89-6.51\times$ faster, the boolean list generator is $6.86-13.41\times$ faster,
+and STLC is $5.43-9.70\times$ faster. This difference arises from
 ScalaCheck's representation of generators as functions of type \texttt{size ->
-seed -> Option[A]}. Each generator combinator must construct and then
+seed -> Option[A]}: each generator combinator must construct and then
 pattern-match on these \texttt{Option} values, introducing significant boxing
 and unboxing overhead at each step.  Staging eliminates this
 overhead.
@@ -1542,9 +1580,9 @@ designed to test different aspects of the system (e.g., BST includes tasks that
 test insertion, deletion, and union operations on binary search trees).
 In particular, BST has 37 tasks, and STLC has 20. Strategies for BST and STLC
 are implemented in
-\camlname; they are unchanged from their description in \secref{subsection:benchmarking}.\footnote{Etna does
-not support Scala, so we were unable to test \scalaname's bug-finding speed in Etna, but we
-we see no reason our results in this section would not extend to \scalaname.}
+\camlname; they are unchanged from their description in \secref{subsection:benchmarking}. 
+Etna does not support Scala, so we were unable to test \scalaname's bug-finding speed in Etna, but we
+we see no reason our results in this section would not extend to \scalaname.
 
 It is worth noting that the time-to-failure of a given strategy on a given seed
 is not necessarily representative of the strategy's average time-to-failure over
@@ -1576,15 +1614,15 @@ strategies tend to find bugs faster, leading to a higher number of filtered
 tasks. By applying these filters, we ensure that our reported speedups reflect
 optimizations that meaningfully impact performance.
 
-The average individual-task speedups for each strategy and benchmark are shown in
-\figref{fig:etna}, with trends in bug-finding speed closely mirroring those in performance
+Our results are summarized in \figref{fig:etna}, which shows the geometric average of 
+individual-task speedups for each strategy and benchmark. Trends in bug-finding speed reflect trends in performance
 from \secref{subsection:benchmarking}. The distribution of speedups in \figref{fig:swarm} reveals
 substantial variability, with most tasks clustering near the median and a long tail of outliers
 achieving much larger gains. STLC shows a more bimodal distribution of speedups
 than the other benchmarks, which we attribute to the heterogenous difficulty of its tasks:
 some tasks regularly hit the 60-second timeout, while others finish in a fraction of a second. We
 find that ``easier'' tasks---those that run on the order of milliseconds---regularly achieve speedups in the
-range of 4--9x, whereas tasks that run on the order of seconds achieve more moderate speedups of up to 3.5x.
+range of $4-9\times$, whereas tasks that run on the order of seconds achieve more moderate speedups of up to $3.5\times$.
 Overall,
 these results give strong evidence that \camlname consistently benefits bug-finding speed, sometimes drastically.
 \begin{figure}[h]
