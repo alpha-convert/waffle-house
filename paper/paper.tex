@@ -724,7 +724,9 @@ things like Lehmer are faster?}\fi
 \jwc{This needs to be smith'd}
 For example, significantly faster algorithms than SplitMix or JSF exist,
 such as the Lehmer algorithm\cn, which runs almost 2x as fast as SplitMix in microbenchmarks \cn.
+\jwc{also Wyhash, xoroshiro128plus}
 % https://github.com/lemire/testingRNG/tree/master
+% https://github.com/wangyi-fudan/wyhash?tab=readme-ov-file
 Moreover, PBT libraries could even consider eschewing the requirement that a source of
 entropy pass statistical tests like BigCrush\cn. \hg{This needs more discussion}
 This is common practice in other areas of testing already:
@@ -739,6 +741,7 @@ ahead of time and you can run out of randomness?}
 \jwc{The point here is that ``you should be thinking about using a more performant RNG, we'll show you that it does have real benefits (and quantify them). But there are tradeoffs here.'}
 \bcp{But this is not the point that the reader is set up to expect: we've toldthem that we're going to make generation faster, not that we're going to give them tips so that htey can make it faster by themselves}
 \jwc{This actually isn't the case. In the intro, we're very careful to say that we show that choosing a faster randomness library \emph{leads to faster bugfinding}. And we do demonstrate this.}
+\jwc{Ok --- we could get rid of this ``source of entropy'' business and just write that you can speed up any of these by pipelining your sampling --- sampling and saving multiple values at a time with SIMD instead of just one each.}
 
 Of course, simply arguing that the randomness library is on the hot
 path for PBT does not guarantee that a faster sampling leads to measurably faster
@@ -1657,6 +1660,7 @@ significant performance improvements for free---that is, without
  any additional effort from the user.
 \section{Beyond Strict Functional Languages}
 \label{section:other-langs}
+\jwc{Nother name for this section needed, it's mostly about strict functional languages}
 
 In the years since the original QuickCheck paper \cn{}, PBT has had remarkable success
 in languages outside of the Haskell world from which it came.
@@ -1778,14 +1782,22 @@ as ``parsers of randomness'' \cite{goldsteinParsingRandomness2022}.
 % }
 
 \section{Conclusion \& Future Work}
-\jwc{Why we stopped where we stopped: can you squeeze more out of this?}
-\jwc{
-  \begin{itemize}
-    \item On the staging front, we could do a little with more clever staging to codegen better... Avoided using floating let-insertion to ensure we had precise control over effect ordering, but we could try to relax that.
-          Recursive generators have some extra overhead for packing/unpacking accumulators, but could do a GADT cf \texttt{SOP} in 2ltt.
-    \item On the RNG front, there's not much more we can squeeze out of the RNG without breakning equiv with splitmix. As discussed, there are much faster things you can do as alterative sources of entropy.
-  \end{itemize}
-}
+In this paper, we identified, studied, and proposed potential solutions to two
+important sources of inefficiency in PBT generator libraries: abstraction
+overhead and choice of \rand{}.  In the future, we hope to continue to investigate and push the boundaries of
+PBT generator performance.
+
+On the abstraction overhead side, we hope to employ some of the many tricks for better code generation that have been written
+about in the staging literature. For example, MetaOCaml includes a primitive floating let-insertion \cn{} that yields optimal let placement,
+which we did not use in \camlname{}.
+Another trick we hope to use is GADT-based techniques for unpacking the states of recursive functions. Currently, the \camlname{}
+recursion combinator introduces some overhead from boxing and unboxing the accumulator values at each recursive call. As noticed in other work \cite{kovacs24}, this
+overhead can be eliminated using a type-level heterogenous list to represent the state at compile time.
+
+On the \rands{} side we plan to investigate fast \rands{} that are not equivalent to SplitMix, such as Lehmer~\cn, WyHash~\cn,
+and variants of xoroshiro~\cn. We also want to try techniques to speed up sampling such as pipelining, using SIMD instructions,
+or even generating random numbers ahead of time. Last, we hope to investigate the degree to which actual statistical randomness
+matters in PBT.
 
 %%
 %% The next two lines define the bibliography style to be used, and
