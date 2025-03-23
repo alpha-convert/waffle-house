@@ -710,7 +710,7 @@ ScalaCheck uses the JSF algorithm \cn.
 % https://burtleburtle.net/bob/rand/smallprng.html
 
 The randomness library is the hottest part of the hot path.
-Even basic generators --- like ones generating a single \texttt{int} or \texttt{float} uniformly within a range --- can sample \emph{unboundedly many}
+Indeed, even basic generators --- like ones generating a single \texttt{int} or \texttt{float} uniformly within a range --- can sample \emph{unboundedly many}
 random numbers, since they usually use versions of rejection sampling \cn{} to find a value within the range.
 Moreover, generator combinators like \texttt{list} usually make $O(n)$ calls to the \texttt{int} or \texttt{float} generators.
 Because of this, the speed of a single sample matters a great deal. Unfortunately,
@@ -721,8 +721,9 @@ they are not chosen with performance in mind, leading to worse bugfinding power 
 of the RNGs used by a bunch of popular PBT frameworks and then argued that
 things like Lehmer are faster?}\fi
 
+\jwc{This needs to be smith'd}
 For example, significantly faster algorithms than SplitMix or JSF exist,
-for example the Lehmer algorithm\cn. In microbenchmarks, the Lehmer algorithm runs almost 2x as fast as SplitMix \cn.
+such as the Lehmer algorithm\cn, which runs almost 2x as fast as SplitMix in microbenchmarks \cn.
 % https://github.com/lemire/testingRNG/tree/master
 Moreover, PBT libraries could even consider eschewing the requirement that a source of
 entropy pass statistical tests like BigCrush\cn. \hg{This needs more discussion}
@@ -1257,7 +1258,6 @@ recursive combinators, of type \texttt{'r code -> 'a code Gen.t}, for any type \
 The code for this combinator can be found in Appendix~\jwc{appendix}.
 The recursion API consists of an opaque type \texttt{'a handle}, and a function \texttt{recurse} to perform recursive calls.
 Programmers can then define recursive generators by \texttt{fixed\_point}, which ties the recursive knot.
-\bcp{Again, we could lean into the technical contribution here}\jwc{This is also totally standard.}
 
 % \begin{lstlisting}
 %   type ('a,'r) handle = 'r code -> 'a code t
@@ -1526,7 +1526,7 @@ ScalaCheck's representation of generators as functions of type \texttt{size ->
 seed -> Option[A]}: each generator combinator must construct and then
 pattern-match on these \texttt{Option} values, introducing significant boxing
 and unboxing overhead at each step.  Staging eliminates this
-overhead. These results show that staging generalizes well across languages.
+overhead. These results show that \name generalizes well across languages.
 
 % \subsubsection{Scala} To show that the benefit of staging extends to
 % other strict functional languages, we apply it to ScalaCheck, a widely-used PBT
@@ -1551,7 +1551,7 @@ overhead. These results show that staging generalizes well across languages.
 %}
 \subsection{Benchmarking bug-finding speed}
 To answer \textbf{RQ2}, we evaluate the bug-finding speed of our BST and STLC
-case studies using Etna, a platform for assessing and comparing PBT techniques.
+case studies using Etna\cn{}, a platform for assessing and comparing PBT techniques.
 Etna allows users to measure the effectiveness of different generator
 implementations by injecting bugs into the system under test and recording the
 time taken for a relevant property to fail in response. For example, in a tree
@@ -1634,20 +1634,16 @@ is completely language-agnostic. In languages like OCaml, where runtime value re
 make natively-implemented \rand inefficient, calling out to a C implementation or using standard libraries written in C is a surefire win.
 In other languages, serious thought should be put into using as fast of a \rand{} as possible,
 as opposed to picking up any suitable option off the shelf.
-
 Next, we discuss language-by-language the degree to which the staging-related insights of this paper are portable.
-\begin{itemize}
-  \item \textbf{Racket} is the next target that we intend to test on.
+
+  \textbf{Racket} is the next target that we intend to test on.
   The entire Racket philosophy is intertwined with
   using macros to build small eDSLs like the ones we use to write generators, and so it is a natural fit. Indeed,
   there are at least two \cn{} PBT libraries in Racket.
-  However, the racket macros literature, while extensive, does not concern itself with staging for performance purposes.
+  However, the racket macros literature, while extensive, does not usually concern itself with staging for performance purposes.
   For this reason, we --- the authorship team of this paper, devoid of much Racket expertise --- decided to not use Racket as a test case in this paper.
 
-  \item \textbf{F\#} 
-  % https://learn.microsoft.com/en-us/dotnet/fsharp/language-reference/code-quotations
-
-  \item \textbf{Haskell} is home to the original PBT implementation \cn{}, and
+  \textbf{Haskell} is home to the original PBT implementation \cn{}, and
   so it is natural to ask why we have not built a \name{} in it yet. The basic
   answer is that the Haskell compiler (GHC) is designed specially to eliminate
   the run-time overhead of monadic abstractions! Indeed, because Haskell is
@@ -1661,16 +1657,20 @@ Next, we discuss language-by-language the degree to which the staging-related in
   optimizer's heuristics.  In short: it is possible to build a \name{} version of Haskell
   QuickCheck, but the benefits would be much less pronounced.
 
-  \item \textbf{Rust} shares some similarities with functional languages, and
+  \textbf{F\#} has both multi-stage programming capabilities \cn{} and a well-used PBT library called FsCheck \cn{}.
+  The internals of FsCheck's generator eDSL are very similar to both \bq and ScalaCheck, so we expect that building a \name{}
+  in F\# is primarily an engineering effort.
+  % https://learn.microsoft.com/en-us/dotnet/fsharp/language-reference/code-quotations
+
+  \textbf{Rust} shares some similarities with functional languages, and
   indeed, it is host to a number of property-based testing libraries \cn{}. However Rust does not
   structurally encourage monadic eDSLs --- it does not have a special monadic syntax --- and so
   PBT libraries in Rust ask programmers to define generators directly as \texttt{seed -> value} functions.
   For this reason, staging does not seem directly applicable to any of the PBT libraries in Rust.
-\end{itemize}
 
 \section{Related Work}
 
-\subsection{Speeding up Property-Based Testing}
+\paragraph{Speeding up Property-Based Testing}
 
 Our work is unique in its approach to speeding up PBT, but it is certainly not
 the only work focused on making PBT faster.
@@ -1705,13 +1705,41 @@ designed with performance engineering in mind, taking seriously the idea that
 PBT is a performance critical task. Still, despite their similar motivations and
 considerations, the solutions are entirely different and complementary.
 
-\subsection{Staging eDSLs}
-\jwc{A generator is a parser of
-randomness~\cite{goldsteinParsingRandomness2022}, and people have implemented
-lots of staged parser libraries!}
-\jwc{cite Lionel Parreaux  work, he's on PC}
-\jwc{Macros in Racket}
+\paragraph{Multi-Stage Programming}
+% \jwc{A generator is a parser of
+% randomness~\cite{goldsteinParsingRandomness2022}, and people have implemented
+% lots of staged parser libraries!}
+Staging's roots come from quasiquotation in LISP \cite{bawden99}, where the
+unified representation of data and code allows for sophisticated
+metaprogramming. Quasiquation-style macros were introduced to the ML family of
+languages by Nielson and Nielson's Two-Level Functional Languages~\cn{} and
+Taha's MetaML~\cn{}, which in turn quickly inspired MetaOCaml (and more recently
+MacoCaml) in OCaml~\cn{}, Lightweight Modular Staging in Scala \cn{}, Template
+Haskell in Haskell~\cn{}, and more.  In addition to implementations, researchers
+have studied the type-theoretic foundations of multi-stage languages \cite{cmtt,
+davies-pfenning, davies17}, as well as ways of combining multi-stage types with
+other sophisticated features like dependent types \cite{kovacs24}. Meanwhile,
+the Racket community continues the LISP tradition with a long and fruitful
+line of work studying how macros and metaprogramming can be used to build extensible
+DSLs \cite{flatt12, samth11, skthesis}.
 
+Back in the ML-family world, the primary use of staging is building embedded DSLs
+with minimal performance overhead, an idea which has come to be known as ``abstraction without regret''
+\cite{lms,parreaux17,parreauxthesis, sheard99, trattdsl}.
+This technique has been applied across a range of domains, including
+Big data processing \cite{jet12}, stream processing \cite{moller20,strymonas},
+query processing \cite{rhyme}, and parser combinators \cite{sspc, staged-parsers, krishnaswami19, flap}.
+This work on staged parsers is the closest analogue to ours. Recent PBT research has drawn an explicit link between parsing and generation, framing generators
+as ``parsers of randomness'' \cite{goldsteinParsingRandomness2022}.
+\jwc{Words here about the difference!!}
+
+% \paragraph{Sources of Randomness in Random Testing}
+% \jwc{
+%   \begin{itemize}
+%     \item original QC work used SplitMix \cn{}, to split at binds.
+%     \item the point of 
+%   \end{itemize}
+% }
 
 \section{Conclusion \& Future Work}
 \jwc{Why we stopped where we stopped: can you squeeze more out of this?}
