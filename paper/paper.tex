@@ -1301,8 +1301,8 @@ As a result, generating values with complex preconditions is statistically unlik
 This state of affairs is not ideal, as inexperienced PBT users are liable to derive a generator, run their test harness, find no bugs, and assume the code is correct---when in reality, most values are never tested at all because they do not satisfy the preconditions.
 
 This makes type-derivation a particularly elegant target of \name. Since the process of type derivation is completely automatic,
-the end user does not need to understand the staging syntax---but more importantly, applying \name to type-derivation
-means it is more likely for even naive strategies to find a bug. \tr{TODO}
+the end user does not need to understand the staging syntax---but more importantly, \name
+makes it it more likely that even naïve strategies will find a bug. \tr{TODO}
 
 \label{subsection:type-derived}
 \jwc{
@@ -1483,7 +1483,7 @@ determines how much a generator benefits from staging, \rand optimizations, or b
 One likely explanation is that the two techniques address different performance bottlenecks:
 generators that sample more often benefit more from improved random sampling, while those that rely
 heavily on generator library combinators gain more from staging.
-To test this idea, we need measurable proxies that approximate a generator's reliance on its generator and randomness libraries.
+To test this idea, we use measurable proxies that approximate a generator's reliance on its randomness and generator libraries.
 For the former, we use the number of calls to \texttt{bind}---the central monadic generator function, extensively used both directly and within other combinators.
 For the latter, we count the number of times a generator invokes the SplitMix sampling routine \texttt{next\_int64}. 
 
@@ -1623,7 +1623,7 @@ these results give strong evidence that \camlname consistently benefits bug-find
   \label{fig:swarm}
 \end{figure}
 
-\subsubsection{Do staged type-derived generators reduce timeouts?}
+\subsubsection{Do improved type-derived generators reduce timeouts?}
 In addition to \camlname's overall bug-finding speed, we evaluate 
 the performance of its type-derived generators---specifically, 
 whether they can transform previously intractable tasks into 
