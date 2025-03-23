@@ -358,7 +358,7 @@ develop \name{} (using \camlname{} to illustrate), and discuss how we isolate th
 Section~\ref{section:eval} evaluates all of the previous work, demonstrating the generator performance improvements
 and how they lead to much faster bug finding.
 
-\section{What are Generator Libraries, and why are they Slow?}
+\section{What are Generator Libraries, and Why are They Slow?}
 \label{section:motiv}
 % \jwc{In this section we answer: ``What are monadic generator libraries, and why are they slow?''}
 % \bcp{That's actually not a bad section title!}
@@ -763,34 +763,31 @@ By building a version that uses much faster ``unboxed'' 64-bit integer
 arithmetic, we can (a) demonstrate just how much faster bugs can be found just by
 using a more performant \rand{}, and (b) explore which generators benefit the most from faster \rand{}.
 
-\section{How can I make my Generator Library Faster?}
+\section{How can I Make My Generator Library Faster?}
 \label{section:faster-generators}
 
 With a sense of the inefficiences pervasive in generator libraries, we set out in this section to investigate solutions.
-We begin with a quick tour through multi-stage programming, and then incrementally build \camlname, layering on features and functionality.
-Last, we present the controlled experiment we use to demonstrate how faster \rand{} leads to failing faster.
+We begin with a quick tour through multi-stage programming, then incrementally build \camlname, layering on features and functionality.
+Last, we present the controlled experiment we use to demonstrate how a faster \rand{} leads to failing faster.
 
 \jwc{This paragraph is a first draft, and needs to be edited!!!}
 
 \subsection{Background: Multi-Stage Programming}
 \label{subsection:msp}
 
-In multi-stage programming (also known more simply as staging), programs execute
+In multi-stage programming (or simply staging), programs execute
 in multiple stages, with each stage producing the code to be run
-in the next. For the purposes of this paper, we will
-consider two stages: namely compile time and run time. In our context, staged programs
-execute once at compile time, which produces more code, which is then
-compiled and run at run time.
+in the next. For the purposes of this paper, we just need two stages: compile time and run time.
 
 \paragraph{Uses of Staging in eDSL Construction}
 One of the primary uses of staging is in embedded DSL construction \cite{sheard99, lms, trattdsl}.
 \jwc{Cite racket macros for DSLs here:}
-While embedded DSLs are powerful tools, they have well-known drawback:
-the functional abstractions used to build eDSLs prevent compilers from generating efficient machine code \cn.
-This is abstraction overhead \cite{carrette05, moller20}: the layers of abstraction that
-make eDSLs so usable are precisely what prevents them from being fast.
+While embedded DSLs are powerful tools, they have a well-known drawback:
+the functional abstractions used to build eDSLs tend to prevent compilers from generating efficient machine code \cn.
+This is \emph{abstraction overhead} \cite{carrette05, moller20}: the layers of abstraction that
+make eDSLs so pleasant to use are precisely what prevents them from being fast.
 Indeed, the root causes of many of the performance issues we discovered in Section~\ref{section:motiv} are
-not unique to generator DSLs.
+not unique to generator DSLs, but pervasive across eDSLs.
 In light of this issue, staging is often used as a lightweight compiler for DSLs. The compile-time evaluation stage
 transforms the DSL code, eliminating abstractions to produce code that the host language compiler can generate fast machine code for.
 This recipe has been used to great effect to stage eDSLs for stream processing \cite{moller20,strymonas}, parser combinators \cite{sspc, staged-parsers, krishnaswami19, flap},
@@ -798,59 +795,57 @@ and query processing \cite{rhyme}.
 
 Many languages have some degree of staging functionality, including
 Scala 3 \cite{scalamacros}, Haskell \cite{templatehaskell}, \jwc{Racket??}, OCaml \cite{metaocaml,macocaml}, and Java \cite{mint}.
-For this paper, we have implemented staged PBT libraries both in OCaml --- using MetaOCaml \cn --- and Scala 3 --- using
-\texttt{scala.quoted}. For presentation purposes, all staged code presented in the body of this paper is \camlname{} code written in OCaml:
+For this paper, we have implemented staged PBT libraries both in OCaml (using MetaOCaml \cn) and Scala 3 (using
+\texttt{scala.quoted}). All staged code presented in the body of this paper is \camlname{} code written in OCaml:
 \scalaname{} is very similar.
-For further discussion of the potential for building staged generator DSLs in other languages, see Section~\ref{section:other-langs}.
+For further discussion of the potential for staged generator DSLs in other languages, see Section~\ref{section:other-langs}.
 
 \paragraph{Staging in MetaOCaml}
 MetaOCaml's staging functionality is exposed through the type \texttt{'a code}. A
 value of type \texttt{t code} is an OCaml term
 of type \texttt{t}.
-Values of \texttt{code} type are introduced by \emph{quotes}, written
-\texttt{.<$\ldots$>.}. Quotes delay execution of a program until run time. For
+Values of \texttt{code} type are introduced by \emph{quotes} (written
+\texttt{.<$\ldots$>.}). Quotes delay execution of a program until run time. For
 example, the program \texttt{.< 5 + 1 >.} has type \texttt{int code}.  Note that
-this is not the same as \texttt{.< 6 >.}. Because brackets delay computation,
+this is not the same as \texttt{.< 6 >.} Because brackets delay computation,
 the code is not \emph{executed} until the next stage (run time).
-Values of type \texttt{code} can be combined together using an \emph{escape},
+Values of type \texttt{code} can be combined using an \emph{escape},
 written \texttt{.\~{}(e)} (or just \texttt{.\~{}x}, when \texttt{x} is a variable).  Escaping lets you take a value of type
-\texttt{code}, and ``splice'' it directly into a quote.  For example, the
+\texttt{code} and ``splice'' it directly into a quote.  For example, the
 program \texttt{let x = .<1 * 5>. in .< .\~{}(x) + .\~{}(x) >.} evaluates to
-\texttt{.<(1 * 5) + (1 * 5)>.}.  MetaOCaml ensures correct scoping and macro
+\texttt{.<(1 * 5) + (1 * 5)>.}  MetaOCaml enforces correct scoping and macro
 hygiene, ensuring that variables are not shadowed when open terms are spliced.
 
 The power of staging for optimizing away abstraction overheads comes from
 defining functions that accept and return \texttt{code} values.  A function
-\texttt{f : 'a code -> 'b code} is a function that takes a program computing a
+\texttt{f : 'a code -> 'b code} takes a program computing a
 run-time \texttt{'a} and transforms it into a program computing a run-time
 \texttt{'b}. In particular, because \texttt{f} itself runs at compile time, the
-fact that the programmer called \texttt{f} does not matter at run time --- the abstraction
+fact that the programmer called \texttt{f} does not matter at run time---the abstraction
 that \texttt{f} defines has been eliminated.
 A code-transforming function \texttt{'a code -> 'b code} can also be converted \emph{code for a function} --- a value of type
-\texttt{('a -> 'b) code} --- with the following program:
+\texttt{('a -> 'b) code}---with the following program:
 \begin{lstlisting}
 let eta (f : 'a code -> 'b code) : ('a -> 'b) code = .<fun x -> .\~(f .<x>.)>.
 \end{lstlisting}
 
-This program is known as ``the trick'' in the partial evaluation and multi-stage programming literature.
-\cn{}
+This program is known as ``the trick'' in the partial evaluation and multi-stage programming literature \cn{}.
 % USE THIS: https://arxiv.org/pdf/2309.08207
 It returns a code for a function that takes an argument \texttt{x} and splices in the result of calling \texttt{f} on just
 the quoted \texttt{x}.
 
-The trick is best illustrated by an example. The following program reduces to \texttt{.< fun x -> (1 + x) mod 2 == 0 >}.
+The trick is best illustrated by an example. The following program reduces at compile time to \texttt{.< fun x -> (1 + x) mod 2 == 0 >.}:
 \begin{lstlisting}
 let is_even x = .< .~x mod 2 == 0 >. in
 let succ x = .< 1 + .~x >. in
 eta (fun x -> succ (is_even x))
 \end{lstlisting}
 By composing the two code-transforming functions together at compile time, and only then turning them into a run-time function,
-the functions are fused together.
-This is the basis of how staging is used to eliminate the abstraction of DSLs
-(like a generator DSL). By writing DSL combinators as compile-time functions ---
-and only calling \texttt{eta} at the end on the completed DSL program ---  we
+the two functions are fused together.
+This is the basis of how staging is used to eliminate the abstraction overhead of DSLs.
+By writing DSL combinators as compile-time functions ---
+and calling \texttt{eta} at the end on the completed DSL program ---  we
 can ensure that any overhead of using the combinators is eliminated by run time.
-\jwc{BCP: You wrote a ``?'' next to this section. What's the issue?}
 
 % \jwc{
 %   \begin{itemize}
@@ -874,7 +869,7 @@ can ensure that any overhead of using the combinators is eliminated by run time.
 \label{subsection:basic-design}
 To build a staged version of a generator DSL, we must rewrite the the generator
 combinators to do as much as possible at compile time.
-The compile time stage will then produce simplified code, free of any DSL combinators, which can be compiled and run
+The compile-time stage will then produce simplified code, free of any DSL combinators, which can be compiled and run
 with different sizes and seeds.
 Our job is thus to carefully bisect the DSL, determining which inputs to generator
 combinators are known statically (and can be part of the compile time stage) and
