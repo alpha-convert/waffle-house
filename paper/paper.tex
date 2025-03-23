@@ -1514,8 +1514,8 @@ workloads.
 \subsubsection{\scalaname}
 In \scalaname, we implement a subset of the \camlname
 strategies: the boolean list generator, single-pass BST generator, and
-well-typed STLC term generator\footnote{By default, ScalaCheck does not support deriving gnenerators from types,
-so those strategies are excluded.}. We did not implement an optimized version of ScalaCheck's
+well-typed STLC term generator.\footnote{By default, ScalaCheck does not support deriving gnenerators from types,
+so those strategies are excluded.} We did not implement an optimized version of ScalaCheck's
 \rand, but our experimental setup was otherwise the same as in \secref{subsubsection:ocaml}.
 
 As shown in \figref{fig:scala}, \scalaname achieves an even greater performance
@@ -1584,7 +1584,7 @@ We run each
 strategy on all tasks using a 60-second timeout.  If a bug is not found within
 this limit, the task is considered unsolved.  Tasks where all strategies fail to
 find the bug are excluded from our dataset, as they provide no basis for
-comparison.  Similarly, we exclude tasks where the BQ strategy completes in
+comparison.  Similarly, we exclude tasks where the \bq strategy completes in
 under 5ms, as such negligible runtimes do not yield meaningful insights into
 relative performance. Across all 30 seeds, these filters remove
 28/600 (4.67\%) of type-derived STLC's tasks,
@@ -1595,6 +1595,13 @@ relative performance. Across all 30 seeds, these filters remove
 strategies tend to find bugs faster, leading to a higher number of filtered
 tasks. By applying these filters, we ensure that our reported speedups reflect
 optimizations that meaningfully impact performance.
+
+\begin{figure}[h]
+  \includegraphics[scale=0.3]{speedup.png}
+  \caption{Geometric average of all speedups---relative to \bq---for each strategy and benchmark, showing that staging leads to better bug-finding speed across the board.
+  }
+  \label{fig:etna}
+\end{figure}
 
 Our results are summarized in \figref{fig:etna}, which shows the geometric average of 
 individual-task speedups for each strategy and benchmark. Trends in bug-finding speed reflect trends in performance
@@ -1607,18 +1614,22 @@ find that ``easier'' tasks---those that run on the order of milliseconds---regul
 range of $4-9\times$, whereas tasks that run on the order of seconds achieve more moderate speedups of up to $3.5\times$.
 Overall,
 these results give strong evidence that \camlname consistently benefits bug-finding speed, sometimes drastically.
-\begin{figure}[h]
-  \includegraphics[scale=0.3]{speedup.png}
-  \caption{Geometric average of all speedups---relative to BQ---for each strategy and benchmark, showing that staging leads to better bug-finding speed across the board.
-  }
-  \label{fig:etna}
-\end{figure}
+
 \begin{figure}[h]
   \includegraphics[scale=0.31]{swarm.png}
-  \caption{Distribution of individual-task speedups across strategies and benchmarks. Gray dots represent tasks. Plots with extremely low variance have no swarm overlay; in plots with high variance, outliers correspond to large speedups.}
+  \caption{Distribution of individual-task speedups across strategies and benchmarks. Gray dots represent tasks. Plots with extremely low variance have no swarm overlay.}
   \label{fig:swarm}
 \end{figure}
 
+\subsubsection{Do staged type-derived generators reduce timeouts?}
+In addition to \camlname's overall bug-finding ability, we evaluate 
+the performance of its type-derived generators---specifically, 
+whether they can transform previously intractable tasks into 
+tractable ones. Out of 78 tasks that initially timed out, 
+50 (64\%) completed successfully after our interventions. 
+This suggests that staged type-derived generators can provide 
+significant performance improvements for free---that is, without 
+requiring any additional effort from the developer.
 \section{Beyond Strict Functional Languages}
 \label{section:other-langs}
 
