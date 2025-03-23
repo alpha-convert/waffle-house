@@ -1295,12 +1295,38 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
 Generators are traditionally handwritten, but some libraries allow users to synthesize
 them automatically from type definitions. Type-derived generators are
 convenient---the derivation process requires no manual effort---but also limited:
-they are unable to account for constraints not encoded in the type.
+they are unable to account for constraints not encoded in the type (e.g., they can derive a
+tree, but not a binary search tree).
 As a result, generating values with complex preconditions is statistically unlikely.
-This state of affairs is not ideal, as inexperienced PBT users, who might derive a generator, run their test harness, find no bugs, and assume the code is correct---when in reality, most values are never tested at all because they do not satisfy the preconditions.
+This state of affairs is not ideal, as inexperienced PBT users are liable to derive a generator, run their test harness, find no bugs, and assume the code is correct---when in reality, most values are never tested at all because they do not satisfy the preconditions.
 
 This makes type-derivation a particularly elegant target of \name. Since the process of type derivation is completely automatic,
-the end user does not need to understand the staging syntax---but more importantly, \tr{TODO}
+the end user does not need to understand the staging syntax---but more importantly, \name
+makes it it more likely that even naïve strategies will find a bug.
+
+The type-deriving algorithm follows a compositional pattern. Generators for complex types 
+are synthesized by structurally composing generators of their subtypes: 
+base types are mapped to primitive generators included in the generator library;
+product types---such as tuples and records---are handled by sampling each component 
+using \texttt{bind} and aggregating the results; sum types, or variants, are generated using 
+a \texttt{weighted\_union} of the generators for each case; and recursive types are handled by 
+tying the knot at the generator level---recursive references are treated as parameters during 
+derivation, allowing the generator's structure to be defined first and then closed using a 
+fixed-point combinator.
+
+This compositional approach maps naturally to staged generation: 
+to derive a staged generator, we replace each standard combinator 
+with its staged counterpart. The derivation algorithm remains unchanged.
+
+Our implementation in OCaml uses the preprocessor extension---``PPX''---system, but the 
+approach is portable to other languages with metaprogramming capabilities. 
+In Scala, for instance, the same strategy can be realized using typeclass 
+resolution. In both settings, the result is a three-stage process: a 
+metaprogram---via PPX or typeclasses---constructs a generator expression 
+composed of staged combinators; this expression is evaluated at compile 
+time to produce a specialized generator; and finally, the generator is 
+executed at runtime to produce values. The entire 
+pipeline remains invisible to the user.
 
 \label{subsection:type-derived}
 \jwc{
@@ -1481,7 +1507,7 @@ determines how much a generator benefits from staging, \rand optimizations, or b
 One likely explanation is that the two techniques address different performance bottlenecks:
 generators that sample more often benefit more from improved random sampling, while those that rely
 heavily on generator library combinators gain more from staging.
-To test this idea, we need measurable proxies that approximate a generator's reliance on its generator and randomness libraries.
+To test this idea, we use measurable proxies that approximate a generator's reliance on its randomness and generator libraries.
 For the former, we use the number of calls to \texttt{bind}---the central monadic generator function, extensively used both directly and within other combinators.
 For the latter, we count the number of times a generator invokes the SplitMix sampling routine \texttt{next\_int64}. 
 
@@ -1499,7 +1525,7 @@ We then count the number of invocations of \texttt{next\_int64} and average this
 
 \figref{fig:binds} summarizes our results. The left plot shows a clear linear 
 relationship between performance benefit from staging and number of calls 
-to \texttt{bind}. The right plot shows a clear separation between 
+to \texttt{bind}. The right plot shows a separation between 
 generators that sample heavily (BST strategies) and those that 
 do not (STLC and Bool List), with the former seeing significantly 
 greater speedups from \csplitmix.
@@ -1514,8 +1540,8 @@ workloads.
 \subsubsection{\scalaname}
 In \scalaname, we implement a subset of the \camlname
 strategies: the boolean list generator, single-pass BST generator, and
-well-typed STLC term generator\footnote{By default, ScalaCheck does not support deriving gnenerators from types,
-so those strategies are excluded.}. We did not implement an optimized version of ScalaCheck's
+well-typed STLC term generator.\footnote{By default, ScalaCheck does not support deriving gnenerators from types,
+so those strategies are excluded.} We did not implement an optimized version of ScalaCheck's
 \rand, but our experimental setup was otherwise the same as in \secref{subsubsection:ocaml}.
 
 As shown in \figref{fig:scala}, \scalaname achieves an even greater performance
@@ -1584,9 +1610,9 @@ We run each
 strategy on all tasks using a 60-second timeout.  If a bug is not found within
 this limit, the task is considered unsolved.  Tasks where all strategies fail to
 find the bug are excluded from our dataset, as they provide no basis for
-comparison.  Similarly, we exclude tasks where the BQ strategy completes in
+comparison.  Similarly, we exclude tasks where the \bq strategy completes in
 under 5ms, as such negligible runtimes do not yield meaningful insights into
-relative performance. These filters remove
+relative performance. Across all 30 seeds, these filters remove
 28/600 (4.67\%) of type-derived STLC's tasks,
 168/600 (28\%) of STLC's tasks,
 149/1110 (14.42\%) of type-derived BST's tasks,
@@ -1595,6 +1621,13 @@ relative performance. These filters remove
 strategies tend to find bugs faster, leading to a higher number of filtered
 tasks. By applying these filters, we ensure that our reported speedups reflect
 optimizations that meaningfully impact performance.
+
+\begin{figure}[h]
+  \includegraphics[scale=0.3]{speedup.png}
+  \caption{Geometric average of all speedups---relative to \bq---for each strategy and benchmark, showing that staging leads to better bug-finding speed across the board.
+  }
+  \label{fig:etna}
+\end{figure}
 
 Our results are summarized in \figref{fig:etna}, which shows the geometric average of 
 individual-task speedups for each strategy and benchmark. Trends in bug-finding speed reflect trends in performance
@@ -1607,18 +1640,23 @@ find that ``easier'' tasks---those that run on the order of milliseconds---regul
 range of $4-9\times$, whereas tasks that run on the order of seconds achieve more moderate speedups of up to $3.5\times$.
 Overall,
 these results give strong evidence that \camlname consistently benefits bug-finding speed, sometimes drastically.
-\begin{figure}[h]
-  \includegraphics[scale=0.3]{speedup.png}
-  \caption{Geometric average of all speedups---relative to BQ---for each strategy and benchmark, showing that staging leads to better bug-finding speed across the board.
-  }
-  \label{fig:etna}
-\end{figure}
+
 \begin{figure}[h]
   \includegraphics[scale=0.31]{swarm.png}
-  \caption{Distribution of individual-task speedups across strategies and benchmarks. Gray dots represent tasks. Plots with extremely low variance have no swarm overlay; in plots with high variance, outliers correspond to large speedups.}
+  \caption{Distribution of individual-task speedups across strategies and benchmarks. Gray dots represent tasks. Plots with extremely low variance have no swarm overlay.}
   \label{fig:swarm}
 \end{figure}
 
+\subsubsection{Do improved type-derived generators reduce timeouts?}
+In addition to \camlname's overall bug-finding speed, we evaluate 
+the performance of its type-derived generators---specifically, 
+whether they can transform previously intractable tasks into 
+tractable ones. Out of 78 tasks that initially timed out, 
+30 (38.4\%) completed successfully using \camlname alone, and 
+50 (64.1\%) completed successfully after adding \csplitmix. 
+This suggests that staged type-derived generators can provide 
+significant performance improvements for free---that is, without
+ any additional effort from the user.
 \section{Beyond Strict Functional Languages}
 \label{section:other-langs}
 

@@ -623,3 +623,172 @@ keywords = {meta programming, templates},
 location = {Pittsburgh, Pennsylvania},
 series = {Haskell '02}
 }
+
+@inproceedings{parreaux17,
+author = {Parreaux, Lionel and Shaikhha, Amir and Koch, Christoph E.},
+title = {Quoted staged rewriting: a practical approach to library-defined optimizations},
+year = {2017},
+isbn = {9781450355247},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3136040.3136043},
+doi = {10.1145/3136040.3136043},
+abstract = {Staging has proved a successful technique for programmatically removing code abstractions, thereby allowing for faster program execution while retaining a high-level interface for the programmer. Unfortunately, techniques based on staging suffer from a number of problems — ranging from practicalities to fundamental limitations — which have prevented their widespread adoption. We introduce Quoted Staged Rewriting (QSR), an approach that uses type-safe, pattern matching-enabled quasiquotes to define optimizations. The approach is “staged” in two ways: first, rewrite rules can execute arbitrary code during pattern matching and code reconstruction, leveraging the power and flexibility of staging; second, library designers can orchestrate the application of successive rewriting phases (stages). The advantages of using quasiquote-based rewriting are that library designers never have to deal directly with the intermediate representation (IR), and that it allows for non-intrusive optimizations — in contrast with staging, it is not necessary to adapt the entire library and user programs to accommodate optimizations. We show how Squid, a Scala macro-based framework, enables QSR and renders library-defined optimizations more practical than ever before: library designers write domain-specific optimizers that users invoke transparently on delimited portions of their code base. As a motivating example we describe an implementation of stream fusion (a well-known deforestation technique) that is both simpler and more powerful than the state of the art, and can readily be used by Scala programmers with no knowledge of metaprogramming.},
+booktitle = {Proceedings of the 16th ACM SIGPLAN International Conference on Generative Programming: Concepts and Experiences},
+pages = {131–145},
+numpages = {15},
+keywords = {Staging, Rewrite Rules, Optimization},
+location = {Vancouver, BC, Canada},
+series = {GPCE 2017}
+}
+
+@phdthesis{parreauxthesis,
+	abstractnote = {Software engineering practices have been steadily moving towards higher-level programming languages and away from lower-level ones. High-level languages tend to greatly improve safety, productivity, and code maintainability because they handle various implementation details automatically, allowing programmers to focus on their problem domains. However, the gains offered by high-level languages are usually made at the cost of reduced performance: higher-level languages usually consume more memory, run more slowly and require expensive garbage-collecting runtime systems. This trend has been worsening with the increasing adoption of the functional programming paradigm by the industry. Modern programmers are thus faced with a dilemma: should they favor productivity and lower maintenance costs at the expense of performance, or should they focus on performance, to the detriments of almost everything else? The main idea behind this thesis is that we can help solve this dilemma by making advances in type systems, metaprogramming, and compilers technology. In particular, we study how metaprogramming via statically-typed quasiquotation can let programmers define their own domain-specific optimizations in a safe way, while leveraging the latest advances in intermediate program representations. We present the design and implementation of the Squid metaprogramming framework, which extends the Scala programming language with multi-staged programming capabilities and more. We also present different application examples for Squid, including a polymorphic yet efficient library for linear algebra, a stream fusion engine improving on the state of the art, a demonstration of query compilation by rewriting, a staged SQL database system prototype, and a new embedded domain-specific language for expressing queries over collections of data.},
+	address = {Lausanne},
+	author = {Parreaux, Lionel Emile Vincent},
+	doi = {10.5075/epfl-thesis-10285},
+	keywords = {type systems | metaprogramming | optimization | domain-specific languages},
+	language = {en},
+	school = {EPFL},
+	title = {Type-Safe Metaprogramming and Compilation Techniques For Designing Efficient Systems in High-Level Languages},
+	url = {https://infoscience.epfl.ch/handle/20.500.14299/173432},
+	year = {2020},
+	bdsk-url-1 = {https://infoscience.epfl.ch/handle/20.500.14299/173432},
+	bdsk-url-2 = {https://doi.org/10.5075/epfl-thesis-10285}}
+
+
+@misc{jet12,
+	abstractnote = {Cluster computing systems today impose a trade-off between generality, performance and productivity. Hadoop and Dryad force programmers to write low level programs that are tedious to compose but easy to optimize. Systems like Dryad/LINQ and Spark allow concise modeling of user programs but do not apply relational optimizations. Pig and Hive restrict the language to achieve relational optimizations, making complex programs hard to express without user extensions. However, these extensions are cumbersome to write and disallow program optimizations. We present a distributed batch data processing framework called Jet. Jet uses deep language embedding in Scala, multi-stage programming and explicit side effect tracking to analyze the structure of user programs. The analysis is used to apply projection insertion, which eliminates unused data, as well as code motion and operation fusion to highly optimize the performance critical path of the program. The language embedding and a high-level interface allow Jet programs to be both expressive, resembling regular Scala code, and optimized. Its modular design allows users to extend Jet with modules that produce good performing code. Through a modular code generation scheme, Jet can generate programs for both Spark and Hadoop. Compared with na{\"\i}ve implementations we achieve 143% speedups on Spark and 126% on Hadoop.},
+	author = {Ackermann, Stefan and Jovanovic, Vojin and Rompf, Tiark and Odersky, Martin},
+	keywords = {Domain-specific Languages | Multi-stage Programming | MapReduce | Operation Fusion | Projection Insertion},
+	title = {Jet: An Embedded DSL for High Performance Big Data Processing},
+	url = {https://infoscience.epfl.ch/handle/20.500.14299/85985},
+	year = {2012},
+	bdsk-url-1 = {https://infoscience.epfl.ch/handle/20.500.14299/85985}}
+
+@inproceedings{bawden99,
+  abstract = {Quasiquotation is the technology commonly used in Lisp to write program-generating programs. This paper explains how quasiquotation works, why it works well, and what its limitations are. A brief history of quasiquotation is included.},
+  added-at = {2007-02-14T20:23:55.000+0100},
+  author = {Bawden, Alan},
+  biburl = {https://www.bibsonomy.org/bibtex/2199c718239813697082c78606938e0ae/tmalsburg},
+  booktitle = {Partial Evaluation and Semantic-Based Program Manipulation},
+  description = {Quasiquotation in Lisp - Bawden (ResearchIndex)},
+  interhash = {014f52b9318aa036f1ab5af5851c0e12},
+  intrahash = {199c718239813697082c78606938e0ae},
+  keywords = {lisp macros},
+  pages = {4-12},
+  timestamp = {2007-02-14T20:23:55.000+0100},
+  title = {Quasiquotation in Lisp},
+  url = {citeseer.ist.psu.edu/bawden99quasiquotation.html},
+  year = 1999
+}
+
+@article{cmtt,
+author = {Nanevski, Aleksandar and Pfenning, Frank and Pientka, Brigitte},
+title = {Contextual modal type theory},
+year = {2008},
+issue_date = {June 2008},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {9},
+number = {3},
+issn = {1529-3785},
+url = {https://doi.org/10.1145/1352582.1352591},
+doi = {10.1145/1352582.1352591},
+abstract = {The intuitionistic modal logic of necessity is based on the judgmental notion of categorical truth. In this article we investigate the consequences of relativizing these concepts to explicitly specified contexts. We obtain contextual modal logic and its type-theoretic analogue. Contextual modal type theory provides an elegant, uniform foundation for understanding metavariables and explicit substitutions. We sketch some applications in functional programming and logical frameworks.},
+journal = {ACM Trans. Comput. Logic},
+month = jun,
+articleno = {23},
+numpages = {49},
+keywords = {logical frameworks, intuitionistic modal logic, Type theory}
+}
+
+@article{davies-pfenning,
+author = {Davies, Rowan and Pfenning, Frank},
+title = {A modal analysis of staged computation},
+year = {2001},
+issue_date = {May 2001},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {48},
+number = {3},
+issn = {0004-5411},
+url = {https://doi.org/10.1145/382780.382785},
+doi = {10.1145/382780.382785},
+abstract = {We show that a type system based on the intuitionistic modal logic S4 provides an expressive framework for specifying and analyzing computation stages in the context of typed λ-calculi and functional languages. We directly demonstrate the sense in which our λe→□-calculus captures staging, and also give a conservative embeddng of Nielson and Nielson's two-level functional language in our functional language Mini-ML□, thus proving that binding-time correctness is equivalent to modal correctness on this fragment. In addition, Mini-ML□ can also express immediate evaluation and sharing of code across multiple stages, thus supporting run-time code generation as well as partial evaluation.},
+journal = {J. ACM},
+month = may,
+pages = {555–604},
+numpages = {50},
+keywords = {staged computation, run-time code generation, binding times}
+}
+
+
+@article{flatt12,
+author = {Flatt, Matthew},
+title = {Creating languages in Racket},
+year = {2012},
+issue_date = {January 2012},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {55},
+number = {1},
+issn = {0001-0782},
+url = {https://doi.org/10.1145/2063176.2063195},
+doi = {10.1145/2063176.2063195},
+abstract = {Sometimes you just have to make a better mousetrap.},
+journal = {Commun. ACM},
+month = jan,
+pages = {48–56},
+numpages = {9}
+}
+
+
+@inproceedings{samth11,
+author = {Tobin-Hochstadt, Sam and St-Amour, Vincent and Culpepper, Ryan and Flatt, Matthew and Felleisen, Matthias},
+title = {Languages as libraries},
+year = {2011},
+isbn = {9781450306638},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1993498.1993514},
+doi = {10.1145/1993498.1993514},
+abstract = {Programming language design benefits from constructs for extending the syntax and semantics of a host language. While C's string-based macros empower programmers to introduce notational shorthands, the parser-level macros of Lisp encourage experimentation with domain-specific languages. The Scheme programming language improves on Lisp with macros that respect lexical scope. The design of Racket---a descendant of Scheme---goes even further with the introduction of a full-fledged interface to the static semantics of the language. A Racket extension programmer can thus add constructs that are indistinguishable from "native" notation, large and complex embedded domain-specific languages, and even optimizing transformations for the compiler backend. This power to experiment with language design has been used to create a series of sub-languages for programming with first-class classes and modules, numerous languages for implementing the Racket system, and the creation of a complete and fully integrated typed sister language to Racket's untyped base language.This paper explains Racket's language extension API via an implementation of a small typed sister language. The new language provides a rich type system that accommodates the idioms of untyped Racket. Furthermore, modules in this typed language can safely exchange values with untyped modules. Last but not least, the implementation includes a type-based optimizer that achieves promising speedups. Although these extensions are complex, their Racket implementation is just a library, like any other library, requiring no changes to the Racket implementation.},
+booktitle = {Proceedings of the 32nd ACM SIGPLAN Conference on Programming Language Design and Implementation},
+pages = {132–141},
+numpages = {10},
+keywords = {extensible languages, macros, modules, typed racket},
+location = {San Jose, California, USA},
+series = {PLDI '11}
+}
+
+
+@phdthesis{skthesis,
+author = {Krishnamurthi, Shriram and Felleisen, Matthias},
+title = {Linguistic reuse},
+year = {2001},
+isbn = {0493326707},
+abstract = {Programmers employ a multitude of languages to build systems. Some are general-purpose languages. Others are specific to individual domains. These assist programmers with at least three different tasks: domain modeling, system validation and representing the structure of their general purpose program. As a result, programming languages have become key factors in the software engineering process. They are, however, rarely codified into the process and treated systematically. My dissertation develops a framework to treat programming languages as software engineering artifacts. In this framework, languages are identifiable, reusable entities that programmers can compose and link to produce larger languages; furthermore, languages themselves meet the properties of software components. Programmers can augment this lateral growth of languages with vertical growth, by producing languages that synthesize languages. Thus, software construction becomes a multi-phase process. In later phases, programmers use languages to build programs; in earlier phases, they employ languages to construct languages. This treatment of languages as artifacts addresses several open questions.},
+note = {AAI3021152}
+}
+
+
+@article{davies17,
+author = {Davies, Rowan},
+title = {A Temporal Logic Approach to Binding-Time Analysis},
+year = {2017},
+issue_date = {February 2017},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {64},
+number = {1},
+issn = {0004-5411},
+url = {https://doi.org/10.1145/3011069},
+doi = {10.1145/3011069},
+abstract = {This article demonstrates that there is a fundamental relationship between temporal logic and languages that involve multiple stages, such as those used to analyze binding times in the context of partial evaluation. This relationship is based on an extension of the Curry-Howard isomorphism, which identifies proofs with programs, and propositions with types. Our extension involves the “next time” (○) operator from linear-time temporal logic and yields a λ-calculus λ° with types of the form ○ A for expressions in the subsequent stage, with appropriate introduction and elimination forms. We demonstrate that λ° is equivalent to the core of a previously studied multilevel binding-time analysis. This is similar to work by Davies and Pfenning on staged computation based on the necessity (□) operator of modal logic, but □ only allows closed code, and naturally supports a code evaluation construct, whereas ○ captures open code, thus is more flexible, but is incompatible with such a construct. Instead, code evaluation is an external global operation that is validated by the proof theory regarding closed proofs of ○ formulas. We demonstrate the relevance of λ° to staged computation directly by showing that that normalization can be done in an order strictly following the times of the logic. We also extend λ° to small functional language and show that it would serve as a suitable basis for directly programming with multiple stages by presenting some example programs.},
+journal = {J. ACM},
+month = mar,
+articleno = {1},
+numpages = {45},
+keywords = {Propositions as types, partial evaluation, staged computation}
+}
