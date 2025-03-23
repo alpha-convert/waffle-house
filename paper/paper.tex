@@ -1311,7 +1311,7 @@ product types---such as tuples and records---are handled by sampling each compon
 using \texttt{bind} and aggregating the results; sum types, or variants, are generated using 
 a \texttt{weighted\_union} of the generators for each case; and for recursive types, 
 the entire generator is wrapped in a fixed-point combinator, and a recursive handle 
-is used as the generator for all recursive occurrences of the type.
+is used as the generator for all recursive occurrences in the type.
 This compositional approach maps naturally to staged generation: 
 to derive a staged generator, we replace each standard combinator 
 with its staged counterpart. The derivation algorithm remains unchanged.
