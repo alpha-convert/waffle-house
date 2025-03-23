@@ -1476,19 +1476,17 @@ combined with \csplitmix ($2.77-7.57\times$). This is likely because sampling
 booleans is cheap enough that the overhead of crossing the FFI barrier is
 comparable to that of generating values directly in OCaml.
 
-\subsubsection{Teasing apart speedups} \tr{Working title...}
-
-The variation in speedups in \secref{subsubsection:ocaml} raises a natural question: what 
+The variation in speedups raises a natural question: what 
 determines how much a generator benefits from staging, \rand optimizations, or both?
 One likely explanation is that the two techniques address different performance bottlenecks:
 generators that sample more often benefit more from improved random sampling, while those that rely
 heavily on generator library combinators gain more from staging.
-To test this idea, we look for measurable proxies that approximate a generator's reliance on its generator and randomness libraries.
+To test this idea, we need measurable proxies that approximate a generator's reliance on its generator and randomness libraries.
 For the former, we use the number of calls to \texttt{bind}---the central monadic generator function, extensively used both directly and within other combinators.
-For the latter, we count the number of times a generator invokes the SplitMix sampling routine \texttt{next\_int64}. We select four strategies from \secref{subsubsection:ocaml} with disparate speedups: insertion-based BSTs, single-pass BSTs, 
-boolean lists, and well-typed STLC terms.
+For the latter, we count the number of times a generator invokes the SplitMix sampling routine \texttt{next\_int64}. 
 
-To determine how often \texttt{bind} is invoked, we generate 10,000 values using a fixed generation size of 100, and 
+We select four strategies with disparate speedups: insertion-based BSTs, single-pass BSTs, 
+boolean lists, and well-typed STLC terms. To determine how often \texttt{bind} is invoked, we generate 10,000 values using a fixed generation size of 100, and 
 record the average number of \texttt{bind} calls. To determine the number of random samples, we repeat the same test, but use Intel ProcessorTrace \cn{} to capture a 4ms snapshot of processor activity.
 We then count the number of invocations of \texttt{next\_int64} and average this over the number of complete generations in the trace.
 
@@ -1501,16 +1499,17 @@ We then count the number of invocations of \texttt{next\_int64} and average this
 
 \figref{fig:binds} summarizes our results. The left plot shows a clear linear 
 relationship between performance benefit from staging and number of calls 
-to \texttt{bind}. The right plot shows a more bimodal distribution, but still validates our intuition that
-generators that sample more also stand to gain more from optimized \rand libraries.
-These results suggest that staging and \rand optimizations address distinct and complimentary roles in generator performance: the former aids combinator-heavy generators, while the latter benefits sampling-heavy ones. To support diverse workloads, generator libraries should combine both techniques.
+to \texttt{bind}. The right plot shows a clear separation between 
+generators that sample heavily (BST strategies) and those that 
+do not (STLC and Bool List), with the former seeing significantly 
+greater speedups from \csplitmix.
 
-% We conclude that staging and \rand choice play distinct and
-% complementary roles in generator performance. Sampling-heavy generators see
-% greater improvements from faster randomness libraries, while combinator-heavy
-% ones benefit more from staging. Since both factors influence performance 
-% significantly, generator libraries should use both in order to handle diverse
-% workloads.
+From these results, we conclude that staging and \rand choice play distinct and
+complementary roles in generator performance. Sampling-heavy generators see
+greater improvements from faster randomness libraries, while combinator-heavy
+ones benefit more from staging. Since both factors influence performance 
+significantly, generator libraries should use both in order to handle diverse
+workloads.
 
 \subsubsection{\scalaname}
 In \scalaname, we implement a subset of the \camlname
