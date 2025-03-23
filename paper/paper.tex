@@ -696,6 +696,7 @@ perform this search, which incurs further run time overhead.
 
 % \subsubsection{Function call overhead}
 \subsection{Inefficient Randomness Libraries}
+\label{subsection:ineff-rand}
 The core of any PBT generator library is a source of randomness.
 Different PBT libraries use different randomness libraries implementing different algorithms
 \footnote{The common term for such an algorithm or library is a ``Random Number
@@ -713,8 +714,8 @@ Even basic generators --- like ones generating a single \texttt{int} or \texttt{
 random numbers, since they usually use versions of rejection sampling \cn{} to find a value within the range.
 Moreover, generator combinators like \texttt{list} usually make $O(n)$ calls to the \texttt{int} or \texttt{float} generators.
 Because of this, the speed of a single sample matters a great deal. Unfortunately,
-existing PBT libraries make relatively inefficient choices on this front,
-leading to worse bugfinding power than what is possible.
+while existing PBT libraries by and large make sensible choices for their randomness libraries,
+they are not chosen with performance in mind, leading to worse bugfinding power than what is possible.
 
 \iflater\hg{This paragraph feels a bit clumsy right now. What if we started with a table
 of the RNGs used by a bunch of popular PBT frameworks and then argued that
@@ -1331,16 +1332,12 @@ the end user does not need to understand the staging syntax---but more important
 
 \jwc{Unclear what we should call this section}
 \bcp{``Performance opportunities in the RNG?''}
-As we discussed in Section~\ref{section:motiv}, choosing an inefficient randomness library is
-another impediment to finding bugs fast. While generator libraries by
-and large use sensible sources of randomness, they are not explicitly chosen
-with performance in mind. Indeed, much faster randomness libraries\cn and fast sources
-of entropy \cn exist. \bcp{... more here?}
+As we discussed in Section~\ref{subsection:ineff-rand}, choosing an inefficient randomness library is
+another impediment to finding bugs fast. 
 To demonstrate that faster random sampling can significanty impact bugfinding power, we
 use the controlled experiment suggested by OCaml's inefficient implementation of
 SplitMix. By replacing this relatively slow randomness library with a faster but semantically equivalent
 implemetnation, we can precisely quantify the bugfinding speedup that a better randomness library gives across a range of PBT scenarios.
-\jwc{Ensure this gets pushed to a top level contrib}
 
 Note that while that the insight that faster sampilng translates to faster bug finding
 is a cross-language one, the performance intervention described here is OCaml-specific.
