@@ -1499,7 +1499,7 @@ We then count the number of invocations of \texttt{next\_int64} and average this
 
 \figref{fig:binds} summarizes our results. The left plot shows a clear linear 
 relationship between performance benefit from staging and number of calls 
-to \texttt{bind}. The right plot shows a clear separation between 
+to \texttt{bind}. The right plot shows a separation between 
 generators that sample heavily (BST strategies) and those that 
 do not (STLC and Bool List), with the former seeing significantly 
 greater speedups from \csplitmix.
