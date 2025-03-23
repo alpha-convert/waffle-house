@@ -1526,7 +1526,7 @@ ScalaCheck's representation of generators as functions of type \texttt{size ->
 seed -> Option[A]}: each generator combinator must construct and then
 pattern-match on these \texttt{Option} values, introducing significant boxing
 and unboxing overhead at each step.  Staging eliminates this
-overhead. These results show that staging generalizes well across languages.
+overhead. This result demonstrates the generality of \name generators.
 
 % \subsubsection{Scala} To show that the benefit of staging extends to
 % other strict functional languages, we apply it to ScalaCheck, a widely-used PBT
@@ -1586,7 +1586,7 @@ this limit, the task is considered unsolved.  Tasks where all strategies fail to
 find the bug are excluded from our dataset, as they provide no basis for
 comparison.  Similarly, we exclude tasks where the BQ strategy completes in
 under 5ms, as such negligible runtimes do not yield meaningful insights into
-relative performance. These filters remove
+relative performance. Across all 30 seeds, these filters remove
 28/600 (4.67\%) of type-derived STLC's tasks,
 168/600 (28\%) of STLC's tasks,
 149/1110 (14.42\%) of type-derived BST's tasks,
