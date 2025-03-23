@@ -1240,7 +1240,7 @@ end
 % \jwc{Describe split --- this section is approximately experts-only, but you can just point at the Andras paper and the things it cites.}
 
 \subsection{Recursive Generators}
-Generating recursive datatypes requires recursive generators. Different generator DSLs handle defining recursive generators differently. Some allow recursive generators
+Generating values of recursive datatypes requires recursive generators. Different generator DSLs support recursive generators differently. Some allow recursive generators
 to be defined as recursive functions, while others
 (including both \bq and ScalaCheck) expose a fixpoint combinator to construct recursive generators.
 Given a step function that takes a ``handle'' to sample from a recursive generator call, it
@@ -1251,10 +1251,9 @@ With staged programming, recursion must be handled with care: it is far to easy 
 define an infinite \texttt{code} value and have the program diverge at compile time, when trying to write
 a \texttt{code} representing a recursive program.
 To this end, we develop a staged recursive generator combinator\footnote{
-In reality, we actually have a more general API that allows programmers to define \emph{parameterized}
-recursive combinators, of type \texttt{'r code -> 'a code Gen.t}, for any type \texttt{'r}. See Appendix~\jwc{appendix} for details.
+We actually provide a more general API that allows programmers to define \emph{parameterized}
+recursive combinators, of type \texttt{'r code -> 'a code Gen.t}, for any type \texttt{'r}.
 }, whose API is shown in Figure~\ref{fig:staged-recursive-generator}.
-The code for this combinator can be found in Appendix~\jwc{appendix}.
 The recursion API consists of an opaque type \texttt{'a handle}, and a function \texttt{recurse} to perform recursive calls.
 Programmers can then define recursive generators by \texttt{fixed\_point}, which ties the recursive knot.
 
