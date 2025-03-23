@@ -721,9 +721,9 @@ of the RNGs used by a bunch of popular PBT frameworks and then argued that
 things like Lehmer are faster?}\fi
 
 For example, significantly faster algorithms than SplitMix or JSF exist,
-such as the Lehmer algorithm\cn, WyHash \cn, and the xoroshiro family.
-These all run between 1.2-1.6x faster per byte than SplitMix in microbenchmarks \cn.
-Moreover, plenty of other optimizations on top of algorithm choice exist,
+such as the Lehmer algorithm~\cite{lehmerrng}, WyRand~\cite{wyrand}, and the xorshiro family of algorithms~\cite{xorshiro}.
+These all run between 1.2-1.6x faster per byte than SplitMix in microbenchmarks~\cite{lemiremicrobenchmarks}.
+Plenty of other known optimizations on top of algorithm choice could also be implemented,
 including pipelined or even ahead-of-time sampling.
 % https://github.com/lemire/testingRNG/tree/master
 % https://github.com/wangyi-fudan/wyhash?tab=readme-ov-file
