@@ -1302,7 +1302,31 @@ This state of affairs is not ideal, as inexperienced PBT users are liable to der
 
 This makes type-derivation a particularly elegant target of \name. Since the process of type derivation is completely automatic,
 the end user does not need to understand the staging syntax---but more importantly, \name
-makes it it more likely that even naïve strategies will find a bug. \tr{TODO}
+makes it it more likely that even naïve strategies will find a bug.
+
+The type-deriving algorithm follows a compositional pattern. Generators for complex types 
+are synthesized by structurally composing generators of their subtypes: 
+base types are mapped to primitive generators included in the generator library;
+product types---such as tuples and records---are handled by sampling each component 
+using \texttt{bind} and aggregating the results; sum types, or variants, are generated using 
+a \texttt{weighted\_union} of the generators for each case; and recursive types are handled by 
+tying the knot at the generator level---recursive references are treated as parameters during 
+derivation, allowing the generator's structure to be defined first and then closed using a 
+fixed-point combinator.
+
+This compositional approach maps naturally to staged generation: 
+to derive a staged generator, we replace each standard combinator 
+with its staged counterpart. The derivation algorithm remains unchanged.
+
+Our implementation in OCaml uses the preprocessor extension---``PPX''---system, but the 
+approach is portable to other languages with metaprogramming capabilities. 
+In Scala, for instance, the same strategy can be realized using typeclass 
+resolution. In both settings, the result is a three-stage process: a 
+metaprogram---via PPX or typeclasses---constructs a generator expression 
+composed of staged combinators; this expression is evaluated at compile 
+time to produce a specialized generator; and finally, the generator is 
+executed at runtime to produce values. The entire 
+pipeline remains invisible to the user.
 
 \label{subsection:type-derived}
 \jwc{
