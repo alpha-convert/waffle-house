@@ -1295,12 +1295,14 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
 Generators are traditionally handwritten, but some libraries allow users to synthesize
 them automatically from type definitions. Type-derived generators are
 convenient---the derivation process requires no manual effort---but also limited:
-they are unable to account for constraints not encoded in the type.
+they are unable to account for constraints not encoded in the type (e.g., they can derive a
+tree, but not a binary search tree).
 As a result, generating values with complex preconditions is statistically unlikely.
-This state of affairs is not ideal, as inexperienced PBT users, who might derive a generator, run their test harness, find no bugs, and assume the code is correct---when in reality, most values are never tested at all because they do not satisfy the preconditions.
+This state of affairs is not ideal, as inexperienced PBT users are liable to derive a generator, run their test harness, find no bugs, and assume the code is correct---when in reality, most values are never tested at all because they do not satisfy the preconditions.
 
 This makes type-derivation a particularly elegant target of \name. Since the process of type derivation is completely automatic,
-the end user does not need to understand the staging syntax---but more importantly, \tr{TODO}
+the end user does not need to understand the staging syntax---but more importantly, applying \name to type-derivation
+means it is more likely for even naive strategies to find a bug. \tr{TODO}
 
 \label{subsection:type-derived}
 \jwc{
