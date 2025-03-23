@@ -1485,14 +1485,12 @@ generators that sample more often benefit more from improved random sampling, wh
 heavily on generator library combinators gain more from staging.
 To test this idea, we look for measurable proxies that approximate a generator's reliance on its generator and randomness libraries.
 For the former, we use the number of calls to \texttt{bind}---the central monadic generator function, extensively used both directly and within other combinators.
-For the latter, we count the number of times a generator invokes the sampling function \texttt{next\_int64}. We select four strategies from \secref{subsubsection:ocaml} with disparate speedups: insertion-based BSTs, single-pass BSTs, 
+For the latter, we count the number of times a generator invokes the SplitMix sampling routine \texttt{next\_int64}. We select four strategies from \secref{subsubsection:ocaml} with disparate speedups: insertion-based BSTs, single-pass BSTs, 
 boolean lists, and well-typed STLC terms.
 
 To determine how often \texttt{bind} is invoked, we generate 10,000 values using a fixed generation size of 100, and 
-record the average number of \texttt{bind} calls. Results in \figref{fig:binds} show a clear linear 
-correlation between the number of \texttt{bind} calls and the speedup 
-achieved by staging, supporting the idea that generators that make heavier use of 
-generator library functions benefit more.
+record the average number of \texttt{bind} calls. To determine the number of random samples, we repeat the same test, but use Intel ProcessorTrace \cn{} to capture a 4ms snapshot of processor activity.
+We then count the number of invocations of \texttt{next\_int64} and average this over the number of complete generations in the trace. 
 
 \begin{figure}[h]
   \includegraphics[scale=0.28]{bind.png}
@@ -1500,19 +1498,18 @@ generator library functions benefit more.
   \label{fig:binds}
 \end{figure}
 
-To determine the number of random samples, we repeat the same test, but use Intel ProcessorTrace \cn{} to capture a 4ms trace processor activity.
-We then count the number of invocations of \texttt{next\_int64}---the actual SplitMix sampling routine---and average this over the number of complete generations in the trace. As expected,
-the BST strategies, which achieve large speedups from \csplitmix, invoke the sampling function more: 353 times for the insertion-based strategy, and 271 for the single-pass strategy. 
-STLC, which sees moderate improvements from \csplitmix, invokes \texttt{next\_int64} 211 times, and the boolean list strategy, which sees no improvement from \csplitmix, invokes it only 100 times\footnote{
-We did not measure generator performance for \emph{un}staged generators with \csplitmix, so there is no equivalent of Figure~\ref{fig:binds} for speedup versus sampling.
-}.
+Results are summarized in \figref{fig:binds}. The left plot shows a clear linear 
+relationship between performance benefit from staging and number of calls 
+to \texttt{bind}. The right plot shows a more bimodal distribution, but still validates our intuition that
+generators that sample more also stand to gain more from optimized \rand libraries.
+These results suggest that staging and \rand optimizations address distinct and complimentary roles in generator performance: the former aids combinator-heavy generators, while the latter benefits sampling-heavy ones. To support diverse workloads, generator libraries should combine both techniques.
 
-These results show that staging and \rand choice play distinct and
-complementary roles in generator performance. Sampling-heavy generators see
-greater improvements from faster randomness libraries, while combinator-heavy
-ones benefit more from staging. Since both factors influence performance 
-significantly, generator libraries should use both in order to handle diverse
-workloads.
+% We conclude that staging and \rand choice play distinct and
+% complementary roles in generator performance. Sampling-heavy generators see
+% greater improvements from faster randomness libraries, while combinator-heavy
+% ones benefit more from staging. Since both factors influence performance 
+% significantly, generator libraries should use both in order to handle diverse
+% workloads.
 
 \subsubsection{\scalaname}
 In \scalaname, we implement a subset of the \camlname
