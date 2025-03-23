@@ -1297,6 +1297,7 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
 
 
 \subsection{Staged Type-Derived Generators}
+\label{subsection:type-derived}
 
 Generators are traditionally handwritten, but some libraries allow users to synthesize
 them automatically from type definitions. Type-derived generators are
@@ -1305,10 +1306,12 @@ they are unable to account for constraints not encoded in the type (e.g., they c
 tree, but not a binary search tree).
 As a result, generating values with complex preconditions is statistically unlikely.
 This state of affairs is not ideal, as inexperienced PBT users are liable to derive a generator, run their test harness, find no bugs, and assume the code is correct---when in reality, most values are never tested at all because they do not satisfy the preconditions.
+\jwc{This paragraph reads as mostly a critique of type-deriving, and it was made already in PBT in practice...}
 
 This makes type-derivation a particularly elegant target of \name. Since the process of type derivation is completely automatic,
 the end user does not need to understand the staging syntax---but more importantly, \name
 makes it it more likely that even naïve strategies will find a bug.
+\jwc{This is good --- I think we can just say that  type deriving is easier to use but less powerful, and we make it slightly more powerful, since we make it more likely that the naive strategy finds a bug.}
 
 The type-deriving algorithm follows a compositional pattern. Generators for complex types 
 are synthesized by structurally composing generators of their subtypes: 
@@ -1318,50 +1321,52 @@ using \texttt{bind} and aggregating the results; sum types, or variants, are gen
 a \texttt{weighted\_union} of the generators for each case; and for recursive types, 
 the entire generator is wrapped in a fixed-point combinator, and a recursive handle 
 is used as the generator for all recursive occurrences in the type.
+\jwc{A bit of a long sentence....}
 This compositional approach maps naturally to staged generation: 
 to derive a staged generator, we replace each standard combinator 
 with its staged counterpart. The derivation algorithm remains unchanged.
+\jwc{Great.}
 
-Our implementation in OCaml uses the preprocessor extension---``PPX''---system, but the 
-approach is portable to other languages with metaprogramming capabilities. 
-In Scala, for instance, the same strategy can be realized using typeclass 
+Our implementation in OCaml uses the preprocessor extension (``PPX'') system \cn, but the 
+approach is portable to other languages with \proposechange{metaprogramming capabilities}{type-derived generators}\jwc{I.e. if you can do type-derived generators any way, you can do them with \name{} in the same way}. 
+In Scala, for instance, the same strategy \proposechange{can}{could} be realized using typeclass 
 resolution. In both settings, the result is a three-stage process: a 
 metaprogram---via PPX or typeclasses---constructs a generator expression 
 composed of staged combinators; this expression is evaluated at compile 
 time to produce a specialized generator; and finally, the generator is 
 executed at runtime to produce values. The entire 
 pipeline remains invisible to the user. \tr{TODO: Boolean list example in a figure...}
+\jwc{Unclear exactly what we want the boolean list example for here... are we going to show the type and the derived staged generator? I think that's a little too deep in the weeds for this section.}
 
-\label{subsection:type-derived}
-\jwc{
-  \begin{itemize}
-    \item In PBT in practice, we learned that in many cases, programmers don't
-    even write custom generators, instead relying on type-derived generators.
-    \item These generators just produce arbitrary values of a given type, not necessarily enforcing validity conditions.
-    \item If
-    \item Let's talk about how type-deriving works. In languages with typeclasses, it works
-    by typeclass resolution. In OCaml it works by PPX system, but the principle
-    is the same. You define rules to go from generators of a subtypes to a generator of the larger type, and then apply those rules to build up a full generator.
-    \item \begin{itemize}
-      \item For base types, you just call the associated generator
-      \item For product types, you sample from all the component gnerators, bind the values, and then tuple up the values, and return the tuple
-      \item For variant types, you use a weighted union to choose one of the component generators with a weighted union.
-      \item For recursive types, wrap the whole thing in a fixedpoint and then use the recusive handle as the ``component generator'' for all recursive instance of the type.
-    \end{itemize}
-    \item This kind of generic deriving of generators works just as well for
-    staged generators. Just replace the standard combinators in question with
-    staged ones!
-    \item We built this in OCaml, but you can easily use typeclasses to do it in scala too.
-    \item Note that this is (essentially) 3-stage metaprograming. You're using either the PPX mechanism or typeclass resolution to generate a bunch of staged combinator calls, which then run at compile time, which then run at run time.
-  \end{itemize}
-}
-\jwc{Todo: Thia}
+\jwc{... We implemented this in \camlname, but not yet in \scalaname, and we benchmark the results in Section~\ref{section:eval}}
 
-\subsection{Faster SplitMix with Unboxed \texttt{int64}s}
+% \jwc{
+%   \begin{itemize}
+%     \item In PBT in practice, we learned that in many cases, programmers don't
+%     even write custom generators, instead relying on type-derived generators.
+%     \item These generators just produce arbitrary values of a given type, not necessarily enforcing validity conditions.
+%     \item If
+%     \item Let's talk about how type-deriving works. In languages with typeclasses, it works
+%     by typeclass resolution. In OCaml it works by PPX system, but the principle
+%     is the same. You define rules to go from generators of a subtypes to a generator of the larger type, and then apply those rules to build up a full generator.
+%     \item \begin{itemize}
+%       \item For base types, you just call the associated generator
+%       \item For product types, you sample from all the component gnerators, bind the values, and then tuple up the values, and return the tuple
+%       \item For variant types, you use a weighted union to choose one of the component generators with a weighted union.
+%       \item For recursive types, wrap the whole thing in a fixedpoint and then use the recusive handle as the ``component generator'' for all recursive instance of the type.
+%     \end{itemize}
+%     \item This kind of generic deriving of generators works just as well for
+%     staged generators. Just replace the standard combinators in question with
+%     staged ones!
+%     \item We built this in OCaml, but you can easily use typeclasses to do it in scala too.
+%     \item Note that this is (essentially) 3-stage metaprograming. You're using either the PPX mechanism or typeclass resolution to generate a bunch of staged combinator calls, which then run at compile time, which then run at run time.
+%   \end{itemize}
+% }
+
+\subsection{Performance Opportunities in Randomness Libraries}
 \label{subsection:faster-rng}
-
-\jwc{Unclear what we should call this section}
-\bcp{``Performance opportunities in the RNG?''}
+% \jwc{Unclear what we should call this section}
+% \bcp{``Performance opportunities in the RNG?''}
 As we discussed in Section~\ref{subsection:ineff-rand}, choosing an inefficient randomness library is
 another impediment to finding bugs fast. 
 To demonstrate that faster random sampling can significanty impact bugfinding power, we
