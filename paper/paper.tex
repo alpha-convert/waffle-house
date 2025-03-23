@@ -1490,15 +1490,16 @@ boolean lists, and well-typed STLC terms.
 
 To determine how often \texttt{bind} is invoked, we generate 10,000 values using a fixed generation size of 100, and 
 record the average number of \texttt{bind} calls. To determine the number of random samples, we repeat the same test, but use Intel ProcessorTrace \cn{} to capture a 4ms snapshot of processor activity.
-We then count the number of invocations of \texttt{next\_int64} and average this over the number of complete generations in the trace. 
+We then count the number of invocations of \texttt{next\_int64} and average this over the number of complete generations in the trace.
 
 \begin{figure}[h]
   \includegraphics[scale=0.28]{bind.png}
-  \caption{Relationship between the number of binds---a proxy for reliance on generator library abstractions---and speedup from staging, showing that the two relate linearly.}
+  \caption{Left: Speedup from staging (compared to baseline \bq) versus the number of \texttt{bind} calls.
+  Right: Speedup from \csplitmix (compared to staging alone) versus the number of random samples.}
   \label{fig:binds}
 \end{figure}
 
-Results are summarized in \figref{fig:binds}. The left plot shows a clear linear 
+\figref{fig:binds} summarizes our results. The left plot shows a clear linear 
 relationship between performance benefit from staging and number of calls 
 to \texttt{bind}. The right plot shows a more bimodal distribution, but still validates our intuition that
 generators that sample more also stand to gain more from optimized \rand libraries.
@@ -1526,7 +1527,7 @@ ScalaCheck's representation of generators as functions of type \texttt{size ->
 seed -> Option[A]}: each generator combinator must construct and then
 pattern-match on these \texttt{Option} values, introducing significant boxing
 and unboxing overhead at each step.  Staging eliminates this
-overhead.
+overhead. These results show that staging generalizes well across languages.
 
 % \subsubsection{Scala} To show that the benefit of staging extends to
 % other strict functional languages, we apply it to ScalaCheck, a widely-used PBT
