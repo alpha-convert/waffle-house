@@ -1309,11 +1309,9 @@ are synthesized by structurally composing generators of their subtypes:
 base types are mapped to primitive generators included in the generator library;
 product types---such as tuples and records---are handled by sampling each component 
 using \texttt{bind} and aggregating the results; sum types, or variants, are generated using 
-a \texttt{weighted\_union} of the generators for each case; and recursive types are handled by 
-tying the knot at the generator level---recursive references are treated as parameters during 
-derivation, allowing the generator's structure to be defined first and then closed using a 
-fixed-point combinator.
-
+a \texttt{weighted\_union} of the generators for each case; and for recursive types, 
+the entire generator is wrapped in a fixed-point combinator, and a recursive handle 
+is used as the generator for all recursive occurrences in the type.
 This compositional approach maps naturally to staged generation: 
 to derive a staged generator, we replace each standard combinator 
 with its staged counterpart. The derivation algorithm remains unchanged.
