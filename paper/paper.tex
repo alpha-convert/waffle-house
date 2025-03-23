@@ -716,50 +716,53 @@ Moreover, generator combinators like \texttt{list} usually make $O(n)$ calls to 
 Because of this, the speed of a single sample matters a great deal. Unfortunately,
 while existing PBT libraries by and large make sensible choices for their randomness libraries,
 they are not chosen with performance in mind, leading to worse bugfinding power than what is possible.
-
 \iflater\hg{This paragraph feels a bit clumsy right now. What if we started with a table
 of the RNGs used by a bunch of popular PBT frameworks and then argued that
 things like Lehmer are faster?}\fi
 
-\jwc{This needs to be smith'd}
 For example, significantly faster algorithms than SplitMix or JSF exist,
-such as the Lehmer algorithm\cn, which runs almost 2x as fast as SplitMix in microbenchmarks \cn.
-\jwc{also Wyhash, xoroshiro128plus}
+such as the Lehmer algorithm\cn, WyHash \cn, and the xoroshiro family.
+These all run between 1.2-1.6x faster per byte than SplitMix in microbenchmarks \cn.
+Moreover, plenty of other optimizations on top of algorithm choice exist,
+including pipelined or even ahead-of-time sampling.
 % https://github.com/lemire/testingRNG/tree/master
 % https://github.com/wangyi-fudan/wyhash?tab=readme-ov-file
-Moreover, PBT libraries could even consider eschewing the requirement that a source of
-entropy pass statistical tests like BigCrush\cn. \hg{This needs more discussion}
-This is common practice in other areas of testing already:
-fuzzers often simply use a buffer full of arbitrary bytes as a source of entropy
-\cn. Such approaches are also faster than algorithms like SplitMix: bumping a
-pointer and reading from memory (which can be pipelined trivially) will always
-be faster on modern CPUs.
-\hg{Should we just always be doing this? I think we want to argue
-that this is a bridge too far because you still need to generate the buffer
-ahead of time and you can run out of randomness?}
-\jwc{HG: talk about the tradeoffs here.}
-\jwc{The point here is that ``you should be thinking about using a more performant RNG, we'll show you that it does have real benefits (and quantify them). But there are tradeoffs here.'}
-\bcp{But this is not the point that the reader is set up to expect: we've toldthem that we're going to make generation faster, not that we're going to give them tips so that htey can make it faster by themselves}
-\jwc{This actually isn't the case. In the intro, we're very careful to say that we show that choosing a faster randomness library \emph{leads to faster bugfinding}. And we do demonstrate this.}
-\jwc{Ok --- we could get rid of this ``source of entropy'' business and just write that you can speed up any of these by pipelining your sampling --- sampling and saving multiple values at a time with SIMD instead of just one each.}
+
+% Moreover, PBT libraries could even consider eschewing the requirement that a source of
+% entropy pass statistical tests like BigCrush\cn. \hg{This needs more discussion}
+% This is common practice in other areas of testing already:
+% fuzzers often simply use a buffer full of arbitrary bytes as a source of entropy
+% \cn. Such approaches are also faster than algorithms like SplitMix: bumping a
+% pointer and reading from memory (which can be pipelined trivially) will always
+% be faster on modern CPUs.
+% \hg{Should we just always be doing this? I think we want to argue
+% that this is a bridge too far because you still need to generate the buffer
+% ahead of time and you can run out of randomness?}
+% \jwc{HG: talk about the tradeoffs here.}
+% \jwc{The point here is that ``you should be thinking about using a more performant RNG, we'll show you that it does have real benefits (and quantify them). But there are tradeoffs here.'}
+% \bcp{But this is not the point that the reader is set up to expect: we've toldthem that we're going to make generation faster, not that we're going to give them tips so that htey can make it faster by themselves}
+% \jwc{This actually isn't the case. In the intro, we're very careful to say that we show that choosing a faster randomness library \emph{leads to faster bugfinding}. And we do demonstrate this.}
+% \jwc{Ok --- we could get rid of this ``source of entropy'' business and just write that you can speed up any of these by pipelining your sampling --- sampling and saving multiple values at a time with SIMD instead of just one each.}
 
 Of course, simply arguing that the randomness library is on the hot
 path for PBT does not guarantee that a faster sampling leads to measurably faster
 generation; for that, we need an experiment. The most obvious experiment is to
-simply swap out the randomness library of either \bq{} or ScalaCheck with a totally different, faster one.
+simply swap out the randomness library of either \bq{} or ScalaCheck one of the afformentioned faster algorithms.
 But, as discussed previously, \camlname{} and \scalaname{} are designed to be 100\% semantically equivalent replacements for
 their unstaged counterparts, ensuring that any bug-finding speedups are solely attributable to generator performance and not lucky seeds.
 Choosing a different \rand{} would break this property, making it much more challenging to assess the performance compared to the baseline.
 To get around this, we exploit a coincidence:
-\texttt{Splittable\_random}---the \rand{} that \bq{} uses---is slow in a way that
-can be improved \emph{without} changing its behavior.
+\texttt{Splittable\_random}---the OCaml implementation of SplitMix that \bq{} uses---is slow in a way that
+can be improved \emph{without} changing the algorithm.
 In particular,
 due to implementation details related to the OCaml garbage collector,
 values of the OCaml type \texttt{int64} are not machine words, but rather
 \emph{pointers} to machine words. This means
 that \emph{all} \texttt{int64} operations (both arithmetic and bitwise) must
 allocate memory cells to contain their output, which has a significant performance benefit.
-By building a version that uses much faster ``unboxed'' 64-bit integer arithmetic, we can demonstrate just how much faster bugs can be found just by using a more performant randomness library.
+By building a version that uses much faster ``unboxed'' 64-bit integer
+arithmetic, we can (a) demonstrate just how much faster bugs can be found just by
+using a more performant \rand{}, and (b) explore which generators benefit the most from faster \rand{}.
 
 \section{How can I make my Generator Library Faster?}
 \label{section:faster-generators}
