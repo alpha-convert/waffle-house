@@ -1726,9 +1726,11 @@ with minimal performance overhead, an idea which has come to be known as ``abstr
 This technique has been applied across a range of domains, including
 Big data processing \cite{jet12}, stream processing \cite{moller20,strymonas},
 query processing \cite{rhyme}, and parser combinators \cite{sspc, staged-parsers, krishnaswami19, flap}.
-This work on staged parsers is the closest analogue to ours. Recent PBT research has drawn an explicit link between parsing and generation, framing generators
+This work on staged parsers is the closest analogue to ours---indeed, PBT research has drawn an explicit link between parsing and generation, framing generators
 as ``parsers of randomness'' \cite{goldsteinParsingRandomness2022}.
-\jwc{Words here about the difference!!}
+However, this equivalence is primarily theoretical. PBT generators are (a) not actually implemented as parsers
+of random sequences, and (b) support choice-based combinators like \texttt{weighted\_union} that parsers do not.
+For this reason, we must build staged generator libraries from scratch and cannot simply use existing staged parser libraries
 
 % \paragraph{Sources of Randomness in Random Testing}
 % \jwc{
