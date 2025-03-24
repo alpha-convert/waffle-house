@@ -335,39 +335,54 @@ We isolate and quantify the performance benefits of faster randomness,
 showing that a DSL's choice of \rand{} has a dramatic impact on its
 performance.  \bcp{describe the experiment}
 
-In both languages, our libraries preserve the semantics of the original: given the same random seed, generators written using \camlname or \scalaname produce exactly the same sequence of values as equivalent generators using \bq or ScalaCheck, respectively.
-This semantic equivalence enables pointwise---as opposed to distributional---bug-finding comparisons, ensuring that if a \name{} generator finds bugs faster, this is attributable \textit{solely} to staging and \rand optimizations, not luck with seeds.
+Both interventions preserve semantics on the nose: given the same
+random seed, generators written using \camlname or \scalaname produce
+exactly the same sequence of values as equivalent generators using \bq
+or ScalaCheck.  This semantic equivalence enables pointwise---as
+opposed to distributional---comparisons of bug-finding effectiveness,
+ensuring that, if a \name{} generator finds bugs faster, this is
+attributable \textit{solely} to the staging and \rand interventions,
+not lucky choice of seeds.
 
 
 
 
 We evaluate the optimizations with a series of case studies in each
-generator library, and show that the \name{} generators run faster than their unstaged equivalents.
-Further, we show generators that run faster also find bugs faster
-by running these case studies in the Etna
-platform~\cite{etna}, which simulates real-world PBT usage \iflater\hg{Don't love this phrase, I'll
-think more about how we should talk about Etna}\fi by injecting bugs into a system and
-measuring how quickly various generators detect them.
-\jwc{Beef up this paragraph, explain the results of our eval.}
+generator library, and show that the \name{} generators run faster
+than their unstaged equivalents.  Further, we show generators that run
+faster also find bugs faster by running these case studies in the Etna
+platform~\cite{etna}, which injects bugs into a system and measures
+how quickly various generators detect them.  \jwc{Beef up this
+  paragraph, explain the results of our eval.}  \todo{We precisely
+  quantify the impact of each intervention and explain how they play
+  distinct yet complementary roles in improving generator performance.
+}
 
 
-In summary, we show that PBT generator DSLs incur significant performance costs across languages, and present a general technique for improving their efficiency while preserving their idiomatic abstractions. \jwc{needs a bit about RNG --- BCP thoughts?}
-We make the following contributions:
+In summary, we show that PBT generator DSLs incur significant
+performance costs across languages and present two interventions that
+significantly improve their efficiency while preserving their
+idiomatic style.  Concretely, we offer the following contributions:
 \begin{enumerate}
-    \item We identify two key sources of inefficiency in PBT generator libraries, which can significantly impact performance:
-    abstraction overhead and \rand choice.
-    \item We present \name{}, a technique for eliminates the abstraction overhead of generators. We implement \name{} in both OCaml and Scala 3, showcasing its cross-language applicability.
-    \item We demonstrate that writing generators using \name{} and fast \rands{} yields significant performance improvements.
-    We precisely quantify the impact of each optimization separately, and explain how they play distinct yet complementary roles in improving generator performance.
-    Finally, we show that these performance improvements extend to improved bug-finding speed, finding some bugs as much as $13\times$ faster.
+\item We identify two key sources of inefficiency in PBT generator
+libraries---abstraction overhead and choice of \rand---both of which
+significantly impact performance (Section~\ref{section:motiv}).
+\item We present \name{}, a staging technique that eliminates the
+abstraction overhead of generators. We apply \name{} to standard
+generator libraries in both OCaml and Scala 3, showcasing its
+generality (Section~\ref{section:faster-generators}).
+\item We demonstrate that writing generators using \name{} and fast
+\rands{} yields substantial performance improvements, both separately
+and in combination, and we show that these performance improvements
+extend to significantly improved bug-finding speed (Section~\ref{section:eval}).
 \end{enumerate}
 
-In Section~\ref{section:motiv}, we introduce monadic generator DSLs, discuss how they work, and take an example-guided tour through some of the ways that
-they are slower than is possible.
-Then, in Section~\ref{section:faster-generators}, we explain multi-stage programming,
-develop \name{} (using \camlname{} to illustrate), and discuss how we isolate the performance of \rand{} to benchmark their impact on bug-finding speed.
-Section~\ref{section:eval} evaluates all of the previous work, demonstrating the generator performance improvements
-and how they lead to much faster bug finding.
+Section~\ref{section:other-langs} discusses how the \name{}
+technique could be applied to PBT libraries in other
+languages---Racket, F\#, Haskell, and Rust.
+%
+Sections~\ref{section:related} and~\ref{section:concl} present related
+and future work.
 
 \section{What are Generator Libraries, and Why are They Slow?}
 \label{section:motiv}
@@ -774,9 +789,12 @@ using a more performant \rand{}, and (b) explore which generators benefit the mo
 \section{How Can I Make My Generator Library Faster?}
 \label{section:faster-generators}
 
-With a sense of the inefficiences pervasive in generator libraries, we set out in this section to investigate solutions.
-We begin with a quick tour through multi-stage programming, then incrementally build \camlname, layering on features and functionality.
-Last, we present the controlled experiment we use to demonstrate how a faster \rand{} leads to failing faster.
+With a sense of two main inefficiences in generator libraries, we set out in this section to investigate solutions.
+We begin with a quick tour through multi-stage programming (\ref{xx}),
+then incrementally build \camlname, layering on features and
+functionality  (\ref{xx}).
+Last, we present the controlled experiment we use to demonstrate how a
+faster \rand{} leads to failing faster  (\ref{xx}).
 
 \subsection{Background: Multi-Stage Programming}
 \label{subsection:msp}
@@ -785,7 +803,7 @@ In multi-stage programming (or simply staging), programs execute
 in multiple stages, with each stage producing the code to be run
 in the next. For the purposes of this paper, we just need two stages: compile time and run time.
 
-\paragraph{Uses of Staging in eDSL Construction}
+\paragraph{Staging eDSLs}
 One of the primary uses of staging is in embedded DSL construction \cite{sheard99, lms, trattdsl}.
 \jwc{Cite racket macros for DSLs here:}
 While embedded DSLs are powerful tools, they have a well-known drawback:
@@ -1712,6 +1730,7 @@ Next, we discuss language-by-language the degree to which the staging-related in
   For this reason, staging does not seem directly applicable to any of the PBT libraries in Rust.
 
 \section{Related Work}
+\label{section:related}
 
 \paragraph{Speeding up Property-Based Testing}
 
@@ -1785,6 +1804,7 @@ as ``parsers of randomness'' \cite{goldsteinParsingRandomness2022}.
 % }
 
 \section{Conclusion \& Future Work}
+\label{section:concl}
 In this paper, we identified, studied, and proposed potential solutions to two
 important sources of inefficiency in PBT generator libraries: abstraction
 overhead and choice of \rand{}.  In the future, we hope to continue to investigate and push the boundaries of
