@@ -745,11 +745,11 @@ using a more performant \rand{}, and (b) explore which generators benefit the mo
 \label{section:faster-generators}
 
 With a sense of two main inefficiences in generator libraries, we set out in this section to investigate solutions.
-We begin with a quick tour through multi-stage programming (\ref{xx}),
+We begin with a quick tour through multi-stage programming (Section~\ref{subsection:msp}),
 then incrementally build \camlname, layering on features and
-functionality  (\ref{xx}).
+functionality  (Sections~\ref{subsection:basic-design} through \ref{subsection:type-derived}).
 Last, we present a controlled experiment demonstrating how a
-faster \rand{} leads to failing faster  (\ref{xx}).
+faster \rand{} leads to failing faster  (\ref{subsection:faster-rng}).
 
 \subsection{Background: Multi-Stage Programming}
 \label{subsection:msp}
@@ -855,8 +855,7 @@ Our job is thus to carefully bisect the DSL, determining which inputs to generat
 combinators are known statically (and can be part of the compile time stage) and
 which parts are only known at run time (and must be treated as \texttt{code}).
 In the staging literature, this task is known as ``binding-time
-analysis,'' \cite{jones1993partial}, and it is more art than
-science.\bcp{Why do we need to say that last part?}
+analysis,'' \cite{jones1993partial}.
 
 % carefully break up so that you push what you can into the compile time stage.
 % Figuring out which parts of the generator are known statically ()
