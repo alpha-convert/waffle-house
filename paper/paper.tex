@@ -699,7 +699,7 @@ perform this search, which incurs further run time overhead.
 The core of any PBT generator library is a source of randomness.
 Different PBT libraries use different randomness libraries implementing different algorithms
 \footnote{The common term for such an algorithm or library is a ``Random Number
-Generator'' (RNG) we will avoid this term and instead say ``randomness library''
+Generator'' (RNG). We will avoid this term and instead say ``randomness library''
 to avoid confusing RNG implementations with the PBT gnenerator libraries that
 use them.}.
 Following the original Haskell QuickCheck implementation, \bq\ uses the SplitMix
@@ -715,9 +715,6 @@ Moreover, generator combinators like \texttt{list} usually make $O(n)$ calls to 
 Because of this, the speed of a single sample matters a great deal. Unfortunately,
 while existing PBT libraries by and large make sensible choices for their randomness libraries,
 they are not chosen with performance in mind, leading to worse bugfinding power than what is possible.
-\iflater\hg{This paragraph feels a bit clumsy right now. What if we started with a table
-of the RNGs used by a bunch of popular PBT frameworks and then argued that
-things like Lehmer are faster?}\fi
 
 For example, significantly faster algorithms than SplitMix or JSF exist,
 such as the Lehmer algorithm~\cite{lehmerrng}, WyRand~\cite{wyrand}, and the xorshiro family of algorithms~\cite{xorshiro}.
@@ -769,8 +766,6 @@ using a more performant \rand{}, and (b) explore which generators benefit the mo
 With a sense of the inefficiences pervasive in generator libraries, we set out in this section to investigate solutions.
 We begin with a quick tour through multi-stage programming, then incrementally build \camlname, layering on features and functionality.
 Last, we present the controlled experiment we use to demonstrate how a faster \rand{} leads to failing faster.
-
-\jwc{This paragraph is a first draft, and needs to be edited!!!}
 
 \subsection{Background: Multi-Stage Programming}
 \label{subsection:msp}
@@ -826,10 +821,10 @@ that \texttt{f} defines has been eliminated.
 A code-transforming function \texttt{'a code -> 'b code} can also be converted \emph{code for a function} --- a value of type
 \texttt{('a -> 'b) code}---with the following program:
 \begin{lstlisting}
-let eta (f : 'a code -> 'b code) : ('a -> 'b) code = .<fun x -> .\~(f .<x>.)>.
+let eta (f : 'a code -> 'b code) : ('a -> 'b) code = .<fun x -> .~(f .<x>.)>.
 \end{lstlisting}
 
-This program is known as ``the trick'' in the partial evaluation and multi-stage programming literature \cn{}.
+This program is known as ``The Trick'' in the partial evaluation and multi-stage programming literature \cn{}.
 % USE THIS: https://arxiv.org/pdf/2309.08207
 It returns a code for a function that takes an argument \texttt{x} and splices in the result of calling \texttt{f} on just
 the quoted \texttt{x}.
@@ -1203,9 +1198,7 @@ module Gen = struct
 
   let bind (g : 'a t) (f : 'a -> 'b t) =
     fun size random ->
-      CodeCps.bind (g size random) (fun x ->
-        (f x) size random
-      )
+      CodeCps.bind (g size random) (fun x -> (f x) size random)
 
   let int (lo : int code) (hi : int code) : int code t =
     fun size random -> let_insert .< SR.int .~random .~lo .~hi >.
@@ -1366,13 +1359,16 @@ use the controlled experiment suggested by OCaml's inefficient implementation of
 SplitMix. By replacing this relatively slow randomness library with a faster but semantically equivalent
 implemetnation, we can precisely quantify the bugfinding speedup that a better randomness library gives across a range of PBT scenarios.
 
-Note that while that the insight that faster sampilng translates to faster bug finding
-is a cross-language one, the performance intervention described here is OCaml-specific.
+Note that the performance intervention described here is OCaml-specific.
 In most other PBT frameworks \cn, the randomness library used operates on machine
-integers, so this \emph{particular} inefficiency does not exist.
+integers, so this \emph{particular} inefficiency does not exist. \bcp{This paragraph should go on to explain why it is still interesting to talk about or measure it.}
+However, the insights that we will derive from this experiment (in Section~\ref{section:eval})---
+about which kinds of generators benefit the most from faster randomness and how it leads to faster bug-finding---
+are applicable to all languages.
+\jwc{How's that}
 
-The precise details of how the SplitMix algorithm works \cn are not important for
-present purposes; the key fact is that all of its operations are are
+The precise details of the SplitMix algorithm~\cn are not important for
+present purposes; the key fact is that all of its operations are
 defined in terms of arithmetic and bitwise operations on 64-bit integers. In OCaml,
 because of details related to the garbage collector, the 64-bit integer type \texttt{int64} is represented
 at run time as a \emph{pointer} to an unscanned block of memory containing (among other things)
@@ -1380,13 +1376,13 @@ a 64-bit integer \cn. This means that all operations that return an \texttt{int6
 which has a significant impact on performance. A single call to
 one of the \bq library functions---like generating an arbitrary integer---may call into the \texttt{Splittable\_random}
 library times. Each call into \texttt{Splittable\_random}
-may sample many times from the core SplitMix sampling routine \texttt{next\_int64}, i.e. using rejection sampling to find a value within a range.
+may sample many times from the core SplitMix sampling routine \texttt{next\_int64}, i.e., using rejection sampling to find a value within a range.
 Finally, each call to \texttt{next\_int64} allocates 9 times, and each allocation brings us closer
 to the next garbage collection pause. While small allocations like these are \emph{very} fast to perform and subsequently
 collect in OCaml\footnote{The OCaml GC is a generational collector \cn, and since these allocations are small and mostly very short lived, they will all be minor allocations, never to be promoted.}
 , we will see in Section~\ref{section:eval} that they can still have
 a large performance impact on generators that spend most of their time sampling data.
-To avoid this allocation, we
+To avoid these allocations, we
 reimplement SplitMix in C and call out to it with the OCaml FFI. The C version of the library uses
 proper \texttt{int64\_t} arithmetic, only boxing and unboxing integers at the call boundaries between OCaml and
 C code\footnote{Ideally in the future, one would not need to call out to C for this: the Jane Street bleeding-edge OCaml compiler has support
@@ -1658,9 +1654,9 @@ tractable ones. Out of 78 tasks that initially timed out,
 This suggests that staged type-derived generators can provide 
 significant performance improvements for free---that is, without
  any additional effort from the user.
-\section{Beyond Strict Functional Languages}
+
+\section{Beyond OCaml and Scala}
 \label{section:other-langs}
-\jwc{Nother name for this section needed, it's mostly about strict functional languages}
 
 In the years since the original QuickCheck paper \cn{}, PBT has had remarkable success
 in languages outside of the Haskell world from which it came.
