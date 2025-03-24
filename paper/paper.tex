@@ -6,6 +6,8 @@
 
 \newif\ifdraft\drafttrue{}
 \newif\iflater\latertrue{}
+\newif\ifaftersubmission\aftersubmissionfalse{}
+\newif\ifsilly\sillyfalse{}
 
 \PassOptionsToPackage{names,dvipsnames}{xcolor}
 
@@ -359,7 +361,7 @@ Further,
 we show that generators that run
 faster also find bugs faster by running our case studies in the Etna platform, which uses generated values as
 inputs to a pre-defined buggy system and measures how quickly different generators can detect the bugs.
-Combined with fast randomness, \camlname generators find bugs 
+Combined with fast randomness, \camlname generators find bugs
 to $2.3-3.8\times$ faster on average, and up to $13\times$ in some cases.
 
 In summary, we show that PBT generator DSLs incur significant
@@ -743,14 +745,14 @@ With a sense of two main inefficiences in generator libraries, we set out in thi
 We begin with a quick tour through multi-stage programming (\ref{xx}),
 then incrementally build \camlname, layering on features and
 functionality  (\ref{xx}).
-Last, we present the controlled experiment we use to demonstrate how a
+Last, we present a controlled experiment demonstrating how a
 faster \rand{} leads to failing faster  (\ref{xx}).
 
 \subsection{Background: Multi-Stage Programming}
 \label{subsection:msp}
 
-In multi-stage programming (or simply staging), programs execute
-in multiple stages, with each stage producing the code to be run
+In multi-stage programming (or simply ``staging''), programs execute
+in multiple stages, with each stage producing code to be run
 in the next. For the purposes of this paper, we just need two stages: compile time and run time.
 
 \paragraph{Staging eDSLs}
@@ -758,7 +760,7 @@ One of the primary uses of staging is in embedded DSL construction \cite{sheard9
 While embedded DSLs are powerful tools, they have a well-known drawback:
 the functional abstractions used to build eDSLs tend to prevent compilers from generating efficient machine code.
 This is \emph{abstraction overhead} \cite{carrette05, moller20}: the layers of abstraction that
-make eDSLs so pleasant to use are precisely what prevents them from being fast.
+make eDSLs pleasant to use are precisely what prevents them from being fast.
 Indeed, the root causes of many of the performance issues we discovered in Section~\ref{section:motiv} are
 not unique to generator DSLs, but pervasive across eDSLs.
 In light of this issue, staging is often used as a lightweight compiler for DSLs. The compile-time evaluation stage
@@ -768,10 +770,10 @@ and query processing \cite{rhyme}.
 
 Many languages have some degree of staging functionality, including
 Scala 3~\cite{scalamacros}, Haskell~\cite{templatehaskell}, Racket~\cite{flatt12}, OCaml~\cite{metaocaml,macocaml}, and Java~\cite{mint}.
-For this paper, we have implemented staged PBT libraries both in OCaml (using MetaOCaml~\cite{metaocaml}) and Scala 3 (using
-\texttt{scala.quoted}). All staged code presented in the body of this paper is \camlname{} code written in OCaml:
+For this paper, we have implemented staged PBT libraries in both OCaml (using MetaOCaml~\cite{metaocaml}) and Scala 3 (using
+\texttt{scala.quoted}). All staged code presented in the body of this paper is \camlname{} code written in OCaml;
 \scalaname{} is very similar.
-For further discussion of the potential for staged generator DSLs in other languages, see Section~\ref{section:other-langs}.
+We discuss the potential for staged generator DSLs in other languages in Section~\ref{section:other-langs}.
 
 \paragraph{Staging in MetaOCaml}
 MetaOCaml's staging functionality is exposed through the type \texttt{'a code}. A
@@ -780,14 +782,15 @@ of type \texttt{t}.
 Values of \texttt{code} type are introduced by \emph{quotes} (written
 \texttt{.<$\ldots$>.}). Quotes delay execution of a program until run time. For
 example, the program \texttt{.< 5 + 1 >.} has type \texttt{int code}.  Note that
-this is not the same as \texttt{.< 6 >.} Because brackets delay computation,
+this is not the same as \texttt{.< 6 >.}: because brackets delay computation,
 the code is not \emph{executed} until the next stage (run time).
 Values of type \texttt{code} can be combined using an \emph{escape},
 written \texttt{.\~{}(e)} (or just \texttt{.\~{}x}, when \texttt{x} is a variable).  Escaping lets you take a value of type
 \texttt{code} and ``splice'' it directly into a quote.  For example, the
 program \texttt{let x = .<1 * 5>. in .< .\~{}(x) + .\~{}(x) >.} evaluates to
 \texttt{.<(1 * 5) + (1 * 5)>.}  MetaOCaml enforces correct scoping and macro
-hygiene, ensuring that variables are not shadowed when open terms are spliced.
+hygiene, ensuring that variables are not shadowed when open terms are
+spliced in under binders.
 
 The power of staging for optimizing away abstraction overheads comes from
 defining functions that accept and return \texttt{code} values.  A function
@@ -806,19 +809,20 @@ This program is known as ``The Trick'' in the partial evaluation and multi-stage
 % USE THIS: https://arxiv.org/pdf/2309.08207
 It returns a code for a function that takes an argument \texttt{x} and splices in the result of calling \texttt{f} on just
 the quoted \texttt{x}.
-
-The trick is best illustrated by an example. The following program reduces at compile time to \texttt{.< fun x -> (1 + x) mod 2 == 0 >.}:
+%
+For example, the following program
 \begin{lstlisting}
 let is_even x = .< .~x mod 2 == 0 >. in
 let succ x = .< 1 + .~x >. in
 eta (fun x -> succ (is_even x))
 \end{lstlisting}
-By composing the two code-transforming functions together at compile time, and only then turning them into a run-time function,
+reduces at compile time to the more efficient \texttt{.< fun x -> (1 + x) mod 2 == 0 >.}
+%
+By composing the two code-transforming functions together at compile time and only then turning them into a run-time function,
 the two functions are fused together.
 This is the basis of how staging is used to eliminate the abstraction overhead of DSLs.
-By writing DSL combinators as compile-time functions ---
-and calling \texttt{eta} at the end on the completed DSL program ---  we
-can ensure that any overhead of using the combinators is eliminated by run time.
+By writing DSL combinators as compile-time functions---and calling \texttt{eta} at the end on the completed DSL program---we
+can ensure that any overhead of using the combinators is eliminated before run time.
 
 % \jwc{
 %   \begin{itemize}
@@ -840,14 +844,16 @@ can ensure that any overhead of using the combinators is eliminated by run time.
 
 \subsection{Design of a Staged Generator DSL}
 \label{subsection:basic-design}
-To build a staged version of a generator DSL, we must rewrite the the generator
+To build a staged version of a generator DSL, we want to rewrite the the generator
 combinators to do as much as possible at compile time.
 The compile-time stage will then produce simplified code, free of any DSL abstraction, that can be compiled and run
 with different sizes and seeds.
 Our job is thus to carefully bisect the DSL, determining which inputs to generator
 combinators are known statically (and can be part of the compile time stage) and
 which parts are only known at run time (and must be treated as \texttt{code}).
-In the staging literature, this task is known as ``binding-time analysis,'' \cite{jones1993partial} and it is more art than science.
+In the staging literature, this task is known as ``binding-time
+analysis,'' \cite{jones1993partial}, and it is more art than
+science.\bcp{Why do we need to say that last part?}
 
 % carefully break up so that you push what you can into the compile time stage.
 % Figuring out which parts of the generator are known statically ()
@@ -859,18 +865,28 @@ In the staging literature, this task is known as ``binding-time analysis,'' \cit
 % part of the compile-time stage), and which parts are only known dynamically (and
 % hence must be \texttt{code}) --- is an art known as ``binding-time analysis''
 
-The crux of our binding time analysis is that the \emph{only} parts of a generator that are not
+The crux of our binding time analysis\bcp{the wording here is
+  misleading: it feels like we're implying we've {\em implemented} a
+  binding-time analysis...} is that the \emph{only} parts of a
+generator that are not
 known at compile time are the random seed and
 size parameters. In practice, generators themselves are entirely known at compile time.
 This leads us to define our library's generator type \texttt{'a
-Gen.t} as \texttt{int code -> SR.t code -> 'a code}: a compile-time
+  Gen.t} as
+\[
+\texttt{'a Gen.t} \ \ = \ \  \texttt{int code -> SR.t code -> 'a code}.
+\]
+That is, a \texttt{Gen.t} is a compile-time
 function from dynamically known size and seed to dynamically determined result.
 
-The basic staged monadic generator DSL functionality can be found in Figure~\ref{fig:gen-staged-basic}.
+The basic functionality of the staged monadic generator DSL can be
+found in Figure~\ref{fig:gen-staged-basic}.
 The constant generator \texttt{return} runs at compile time. Given \texttt{cx : 'a code}, the code for an \texttt{'a}, it
-returns the generator that runs \texttt{cx}. Similarly,
+returns the generator that ignores its \texttt{size} and
+\texttt{random} arguments and simply runs\bcp{returns the code for?} \texttt{cx}. Similarly,
 \texttt{bind g k} sequences generators by passing the result of running the generator \texttt{g} to the continuation \texttt{k}. However, instead of getting access
-to the particular value generated by \texttt{g}, the continuation \texttt{k} gets access to \texttt{code} for the value sampled from \texttt{g}:
+to the particular value generated by \texttt{g}, the continuation
+\texttt{k} only gets access to \texttt{code} for the value sampled from \texttt{g}:
 we know that at run time the code \texttt{g} generates will produce \emph{some} \texttt{'a}, but at compile time we cannot inspect the value.
 Operationally, bind takes code for the size and seed and returns code that (1) let-binds a variable \texttt{a} to spliced-in code of \texttt{g} and then
 (2) runs the spliced-in continuation \texttt{k}.
@@ -881,9 +897,9 @@ Given any size and random seed, it returns a code block that calls \texttt{SR.in
 might not be known at compile time --- they may themselves be the results of calling \texttt{Gen.int} ---
 the arguments \texttt{lo} and \texttt{hi} are of type \texttt{int code} and get spliced into the code block as arguments to \texttt{SR.int}.
 Lastly, \texttt{to\_bq} turns a staged generator into code for a normal \bq\
-generator. This function is just a 2-argument version of ``The Trick''
+generator. This is just a 2-argument version of ``The Trick''
 from Section~\ref{subsection:msp}.
-\iflater
+\ifaftersubmission
 \hg{TODO: Be really careful with formatting of the above paragraph. It's very
 easy for some inline code to get split weirdly over a line break or just be
 difficult to parse in general, and that could throw the reader off when the
@@ -910,12 +926,14 @@ module Gen = struct
       .< SR.int .~random .~lo .~hi >.
 
   let to_bq (g : 'a code Gen.t) : ('a Bq.t) code =
-  .<
-    fun size random -> .~(g .<size>. .<random>.)
-  >.
+    .<
+      fun size random -> .~(g .<size>. .<random>.)
+    >.
 end
 \end{lstlisting}
-\caption{Basic Staged Generator Library}
+\caption{Basic Staged Generator Library\ifaftersubmission\bcp{We could
+    save some space if needed by eliminating a couple of linebreaks
+    here.}\fi}
 \label{fig:gen-staged-basic}
 \end{figure}
 
@@ -934,12 +952,11 @@ let int_pair_staged : (int * int) Gen.t =
   )
 
 let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
-(* .< fun size random ->
-        let x = SR.int random 0 100 in
-        let y = SR.int random 0 x in
-        (x,y)
-    >.
-*)
+(* int_pair = .< fun size random ->
+                 let x = SR.int random 0 100 in
+                 let y = SR.int random 0 x in
+                 (x,y)
+               >.   *)
 \end{lstlisting}
 \caption{Pairs of Ints, Staged}
 \label{fig:running-staged}
@@ -1431,7 +1448,7 @@ We run each treatment for 5 seconds and compute the average generation time of a
 
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
-  \includegraphics[scale=0.66]{time.pdf}
+\ifsilly  \includegraphics[scale=0.66]{time.pdf} \fi
   \caption{Time to generate values of varying sizes using each \camlname strategy. Lower is better. Both axes are logarithmic. BQ is \bq.}
   \label{fig:time}
 \end{figure}
@@ -1480,7 +1497,7 @@ record the average number of \texttt{bind} calls. To determine the number of ran
 We then count the number of invocations of \texttt{next\_int64} and average this over the number of generator calls in the trace.
 
 \begin{figure}[h]
-  \includegraphics[scale=0.44]{bind.pdf}
+\ifsilly  \includegraphics[scale=0.44]{bind.pdf} \fi
   \caption{Left: Speedup from staging (compared to \bq) versus the number of \texttt{bind} calls.
   Right: Speedup from \csplitmix (compared to \camlname alone) versus the number of random samples.}
   \label{fig:binds}
@@ -1522,7 +1539,7 @@ overhead. These results show that the \name approach generalizes well across lan
 
 \begin{figure}[h]
   \centering
-  \includegraphics[scale=0.68]{scala.pdf}
+\ifsilly  \includegraphics[scale=0.68]{scala.pdf}\fi
  \caption{Time to generate values of varying sizes using each \scalaname strategy. Lower is better. Both axes are logarithmic. SC is ScalaCheck; Staged is \scalaname.}
  \label{fig:scala}
  \end{figure}
@@ -1583,7 +1600,7 @@ tasks. By applying these filters, we ensure that our reported speedups reflect
 optimizations that meaningfully impact performance.
 
 \begin{figure}[h]
-  \includegraphics[scale=0.59]{speedup.pdf}
+\ifsilly  \includegraphics[scale=0.59]{speedup.pdf}\fi
   \caption{Geometric average of all speedups---relative to \bq---for each strategy and benchmark, showing that staging leads to better bug-finding speed across the board. CSM is \csplitmix.
   }
   \label{fig:etna}
@@ -1602,7 +1619,7 @@ Overall,
 these results give strong evidence that \camlname consistently benefits bug-finding speed, sometimes drastically.
 
 \begin{figure}[h]
-  \includegraphics[scale=0.36]{swarm.pdf}
+\ifsilly  \includegraphics[scale=0.36]{swarm.pdf} \fi
   \caption{Distribution of individual-task speedups across strategies and benchmarks. Gray dots represent tasks. Plots with extremely low variance have no swarm overlay. CSM is \csplitmix.}
   \label{fig:swarm}
 \end{figure}
