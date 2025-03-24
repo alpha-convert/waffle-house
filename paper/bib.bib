@@ -842,3 +842,106 @@ keywords = {uniform probability density, uniform frequency function, simulation,
       primaryClass={cs.DS},
       url={https://arxiv.org/abs/1805.01407}, 
 }
+
+@misc{bq,
+  author = {Jane Street},
+  title = {Base Quickcheck},
+  year = {2021},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/janestreet/base_quickcheck}},
+  commit = {e429ad8}
+}
+
+@misc{sc,
+  title = {ScalaCheck},
+  howpublished = {\url{https://scalacheck.org/}},
+  note = {Accessed: 2025-03-24}
+}
+
+@article{moggi91,
+  title={Notions of computation and monads},
+  author={Moggi, Eugenio},
+  journal={Information and computation},
+  volume={93},
+  number={1},
+  pages={55--92},
+  year={1991},
+  publisher={Elsevier}
+}
+
+@inproceedings{quickcheck00,
+author = {Claessen, Koen and Hughes, John},
+title = {QuickCheck: a lightweight tool for random testing of Haskell programs},
+year = {2000},
+isbn = {1581132026},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/351240.351266},
+doi = {10.1145/351240.351266},
+abstract = {Quick Check is a tool which aids the Haskell programmer in formulating and testing properties of programs. Properties are described as Haskell functions, and can be automatically tested on random input, but it is also possible to define custom test data generators. We present a number of case studies, in which the tool was successfully used, and also point out some pitfalls to avoid. Random testing is especially suitable for functional programs because properties can be stated at a fine grain. When a function is built from separately tested components, then random testing suffices to obtain good coverage of the definition under test.},
+booktitle = {Proceedings of the Fifth ACM SIGPLAN International Conference on Functional Programming},
+pages = {268–279},
+numpages = {12},
+series = {ICFP '00}
+}
+
+@inproceedings{gill93,
+author = {Gill, Andrew and Launchbury, John and Peyton Jones, Simon L.},
+title = {A short cut to deforestation},
+year = {1993},
+isbn = {089791595X},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/165180.165214},
+doi = {10.1145/165180.165214},
+booktitle = {Proceedings of the Conference on Functional Programming Languages and Computer Architecture},
+pages = {223–232},
+numpages = {10},
+location = {Copenhagen, Denmark},
+series = {FPCA '93}
+}
+
+@book{geneticalgorithm,
+author = {Holland, John H.},
+title = {Adaptation in Natural and Artificial Systems: An Introductory Analysis with Applications to Biology, Control and Artificial Intelligence},
+year = {1992},
+isbn = {0262082136},
+publisher = {MIT Press},
+address = {Cambridge, MA, USA},
+abstract = {From the Publisher:Genetic algorithms are playing an increasingly important role in studies of complex adaptive systems, ranging from adaptive agents in economic theory to the use of machine learning techniques in the design of complex devices such as aircraft turbines and integrated circuits. Adaptation in Natural and Artificial Systems is the book that initiated this field of study, presenting the theoretical foundations and exploring applications. In its most familiar form, adaptation is a biological process, whereby organisms evolve by rearranging genetic material to survive in environments confronting them. In this now classic work, Holland presents a mathematical model that allows for the nonlinearity of such complex interactions. He demonstrates the model's universality by applying it to economics, physiological psychology, game theory, and artificial intelligence and then outlines the way in which this approach modifies the traditional views of mathematical genetics. Initially applying his concepts to simply defined artificial systems with limited numbers of parameters, Holland goes on to explore their use in the study of a wide range of complex, naturally occuring processes, concentrating on systems having multiple factors that interact in nonlinear ways. Along the way he accounts for major effects of coadaptation and coevolution: the emergence of building blocks, or schemata, that are recombined and passed on to succeeding generations to provide, innovations and improvements. John H. Holland is Professor of Psychology and Professor of Electrical Engineering and Computer Science at the University of Michigan. He is also Maxwell Professor at the Santa Fe Institute and isDirector of the University of Michigan/Santa Fe Institute Advanced Research Program.}
+}
+
+@inproceedings{splitmix,
+author = {Steele, Guy L. and Lea, Doug and Flood, Christine H.},
+title = {Fast splittable pseudorandom number generators},
+year = {2014},
+isbn = {9781450325851},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/2660193.2660195},
+doi = {10.1145/2660193.2660195},
+abstract = {We describe a new algorithm SplitMix for an object-oriented and splittable pseudorandom number generator (PRNG) that is quite fast: 9 64-bit arithmetic/logical operations per 64 bits generated. A conventional linear PRNG object provides a generate method that returns one pseudorandom value and updates the state of the PRNG, but a splittable PRNG object also has a second operation, split, that replaces the original PRNG object with two (seemingly) independent PRNG objects, by creating and returning a new such object and updating the state of the original object. Splittable PRNG objects make it easy to organize the use of pseudorandom numbers in multithreaded programs structured using fork-join parallelism. No locking or synchronization is required (other than the usual memory fence immediately after object creation). Because the generate method has no loops or conditionals, it is suitable for SIMD or GPU implementation.We derive SplitMix from the DotMix algorithm of Leiserson, Schardl, and Sukha by making a series of program transformations and engineering improvements. The end result is an object-oriented version of the purely functional API used in the Haskell library for over a decade, but SplitMix is faster and produces pseudorandom sequences of higher quality; it is also far superior in quality and speed to java.util.Random, and has been included in Java JDK8 as the class java.util.SplittableRandom.We have tested the pseudorandom sequences produced by SplitMix using two standard statistical test suites (DieHarder and TestU01) and they appear to be adequate for "everyday" use, such as in Monte Carlo algorithms and randomized data structures where speed is important.},
+booktitle = {Proceedings of the 2014 ACM International Conference on Object Oriented Programming Systems Languages \& Applications},
+pages = {453–472},
+numpages = {20},
+keywords = {streams, splittable data structures, spliterator, scala, recursive splitting, random number generator, pseudorandom, pedigree, parallel computing, object-oriented, nondeterminism, multithreading, java, determinism, collections},
+location = {Portland, Oregon, USA},
+series = {OOPSLA '14}
+}
+
+@misc{jsf,
+  title = {A small noncryptographic pseudorandom number generator},
+  howpublished = {\url{https://burtleburtle.net/bob/rand/smallprng.html}},
+  note = {Accessed: 2025-03-24}
+}
+
+@article{vn51,
+  title={Various Techniques Used in Connection with Random Digits},
+  author={Von Neumann, John},
+  journal={Appl. Math Ser},
+  volume={12},
+  number={36-38},
+  pages={3},
+  year={1951}
+}
