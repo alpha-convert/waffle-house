@@ -351,14 +351,16 @@ not lucky choice of seeds.
 
 We evaluate the optimizations with a series of case studies in each
 generator library, and show that the \name{} generators run faster
-than their unstaged equivalents.  Further, we show generators that run
-faster also find bugs faster by running these case studies in the Etna
+than their unstaged equivalents. In \camlname, they run up to $7\times$
+faster, and in \scalaname, up to $13\times$ faster. Using our improved version
+of \bq's \rand in \camlname, we see even greater gains---more than $12\times$---showing that
+both staging and fast randomness play distinct and complementary roles in improving generator performance.
+Further,
+we show that generators that run
+faster also find bugs faster by running our case studies in the Etna
 platform~\cite{etna}, which injects bugs into a system and measures
-how quickly various generators detect them.  \jwc{Beef up this
-  paragraph, explain the results of our eval.}  \todo{We precisely
-  quantify the impact of each intervention and explain how they play
-  distinct yet complementary roles in improving generator performance.
-}
+how quickly various generators detect them. In Etna, we find bugs up 
+to $3.8\times$ faster on average, and up to $13\times$ in some cases.
 
 
 In summary, we show that PBT generator DSLs incur significant
