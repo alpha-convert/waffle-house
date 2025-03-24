@@ -756,7 +756,6 @@ in the next. For the purposes of this paper, we just need two stages: compile ti
 
 \paragraph{Staging eDSLs}
 One of the primary uses of staging is in embedded DSL construction \cite{sheard99, lms, trattdsl}.
-\jwc{Cite racket macros for DSLs here:}
 While embedded DSLs are powerful tools, they have a well-known drawback:
 the functional abstractions used to build eDSLs tend to prevent compilers from generating efficient machine code.
 This is \emph{abstraction overhead} \cite{carrette05, moller20}: the layers of abstraction that
@@ -769,8 +768,8 @@ This recipe has been used to great effect to stage eDSLs for stream processing \
 and query processing \cite{rhyme}.
 
 Many languages have some degree of staging functionality, including
-Scala 3 \cite{scalamacros}, Haskell \cite{templatehaskell}, \jwc{Racket??}, OCaml \cite{metaocaml,macocaml}, and Java \cite{mint}.
-For this paper, we have implemented staged PBT libraries both in OCaml (using MetaOCaml \cite{metaocaml}) and Scala 3 (using
+Scala 3~\cite{scalamacros}, Haskell~\cite{templatehaskell}, Racket~\cite{flatt12}, OCaml~\cite{metaocaml,macocaml}, and Java~\cite{mint}.
+For this paper, we have implemented staged PBT libraries both in OCaml (using MetaOCaml~\cite{metaocaml}) and Scala 3 (using
 \texttt{scala.quoted}). All staged code presented in the body of this paper is \camlname{} code written in OCaml:
 \scalaname{} is very similar.
 For further discussion of the potential for staged generator DSLs in other languages, see Section~\ref{section:other-langs}.
@@ -1366,7 +1365,7 @@ To avoid these allocations, we
 reimplement SplitMix in C and call out to it with the OCaml FFI. The C version of the library uses
 proper \texttt{int64\_t} arithmetic, only boxing and unboxing integers at the call boundaries between OCaml and
 C code\footnote{Ideally in the future, one would not need to call out to C for this: the Jane Street bleeding-edge OCaml compiler has support
-for unboxed types \cn, which (among other things) would let us implement a version of SplitMix that does not allocate, directly
+for unboxed types~\cite{unboxedtypes}, which (among other things) would let us implement a version of SplitMix that does not allocate, directly
 in OCaml. Unfortunately, the Jane Street branch of the compiler is incompatible with MetaOCaml, which we use to implement the metaprogramming
 discussed in the previous sections.}.
 
@@ -1397,7 +1396,7 @@ The baseline OCaml generators were written with \bq{} 0.16.
 \scalaname{} and all Scala benchmarks
 were run on Scala 3.6.3
 and OpenJDK 21.0.6, using ScalaCheck version 1.17 as the baseline.
-We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for performance microbenchmarking. For assessing and comparing PBT techniques, we used the Etna\cn platform.
+We used \texttt{core\_bench} 0.16~\cite{corebench} in OCaml and \texttt{jmh} 0.4.7~\cite{jmh} for performance microbenchmarking. For assessing and comparing PBT techniques, we used the Etna platform~\cite{etna}.
 
 \subsection{Benchmarking Generator Speed}
 \label{subsection:benchmarking}
@@ -1488,7 +1487,7 @@ For the latter, we use the number of calls to \texttt{bind}---the central monadi
 
 We select four strategies with disparate speedup profiles: insertion-based BSTs, single-pass BSTs,
 boolean lists, and well-typed STLC terms. To determine how often \texttt{bind} is invoked, we generate 10,000 values using a fixed generation size of 100 and
-record the average number of \texttt{bind} calls. To determine the number of random samples, we repeat the same test but use Intel ProcessorTrace \cn{} to capture a 4ms snapshot of processor activity.
+record the average number of \texttt{bind} calls. To determine the number of random samples, we repeat the same test but use Intel ProcessorTrace~\cite{intelpt} to capture a 4ms snapshot of processor activity.
 We then count the number of invocations of \texttt{next\_int64} and average this over the number of generator calls in the trace.
 
 \begin{figure}[h]
@@ -1551,7 +1550,7 @@ overhead. These results show that the \name approach generalizes well across lan
 %}
 \subsection{Benchmarking bug-finding speed}
 To answer \textbf{RQ2}, we evaluate the bug-finding speed of our BST and STLC
-case studies using Etna\cn{}.
+case studies using Etna~\cite{etna}.
 Etna allows users to measure the effectiveness of different generator
 implementations by injecting bugs into the system under test and recording the
 time taken for a relevant property to fail in response. Each case study includes a diverse
@@ -1632,8 +1631,8 @@ significant performance improvements for free, without
 \section{Beyond OCaml and Scala}
 \label{section:other-langs}
 
-In the years since the original QuickCheck paper \cn{}, PBT has had remarkable success
-in languages outside of the Haskell world from which it came.
+In the years since the original QuickCheck paper~\cite{quickcheck00}, PBT has had remarkable success
+in languages outside of the Haskell world from which it came~\cite{bq,sc,hypothesis}.
 For this reason, readers who are users and developers of PBT libraries in \emph{other} languages ---
 including non-strict or procedural ones --- might be curious about how the
 techniques brought to bear on OCaml's \bq{} and Scala's ScalaCheck in this paper
@@ -1648,12 +1647,11 @@ Next, we discuss language-by-language the degree to which the staging-related in
 
   \textbf{Racket} is the next target that we intend to test on.
   The entire Racket philosophy is intertwined with
-  using macros to build small eDSLs like the ones we use to write generators, and so it is a natural fit. Indeed,
-  there are at least two \cn{} PBT libraries in Racket.
+  using macros to build small eDSLs like the ones we use to write generators, and so it seems a natural fit.
   However, the racket macros literature, while extensive, does not usually concern itself with staging for performance purposes.
   For this reason, we --- the authorship team of this paper, devoid of much Racket expertise --- decided to not use Racket as a test case in this paper.
 
-  \textbf{Haskell} is home to the original PBT implementation \cn{}, and
+  \textbf{Haskell} is home to the original PBT implementation, and
   so it is natural to ask why we have not built a \name{} in it yet. The basic
   answer is that the Haskell compiler (GHC) is designed specially to eliminate
   the run-time overhead of monadic abstractions! Indeed, because Haskell is
@@ -1662,18 +1660,18 @@ Next, we discuss language-by-language the degree to which the staging-related in
   staged PBT library (and indeed, all staged monadic DSLs) negligible.  For
   complex enough programs however, the heuristics GHC uses can degrade, leading
   to performance overheads for monadic code.  For this reason, Haskell does have
-  a multi-stage programming system called Template Haskell \cn{}, which is
+  a multi-stage programming system called Template Haskell~\cite{templatehaskell}, which is
   sometimes to build eDSLs in contexts where one does not want to rely on the
   optimizer's heuristics.  In short: it is possible to build a \name{} version of Haskell
   QuickCheck, but the benefits would be much less pronounced.
 
-  \textbf{F\#} has both multi-stage programming capabilities \cn{} and a well-used PBT library called FsCheck \cn{}.
-  The internals of FsCheck's generator eDSL are very similar to both \bq and ScalaCheck, so we expect that building a \name{}
+  \textbf{F\#} has both multi-stage programming capabilities~\cite{fsmeta} and a well-used PBT library called FsCheck~\cite{fscheck}.
+  The internals of FsCheck's generator eDSL are very similar to both \bq and ScalaCheck, so we expect that building an \name{}
   in F\# is primarily an engineering effort.
   % https://learn.microsoft.com/en-us/dotnet/fsharp/language-reference/code-quotations
 
   \textbf{Rust} shares some similarities with functional languages, and
-  indeed, it is host to a number of property-based testing libraries \cn{}. However Rust does not
+  indeed, it is host to a number of property-based testing libraries~\cite{Bolero,ProptestBook}. However Rust does not
   structurally encourage monadic eDSLs --- it does not have a special monadic syntax --- and so
   PBT libraries in Rust ask programmers to define generators directly as \texttt{seed -> value} functions.
   For this reason, staging does not seem directly applicable to any of the PBT libraries in Rust.
@@ -1723,10 +1721,10 @@ considerations, the solutions are entirely different and complementary.
 Staging's roots come from quasiquotation in LISP \cite{bawden99}, where the
 unified representation of data and code allows for sophisticated
 metaprogramming. Quasiquation-style macros were introduced to the ML family of
-languages by Nielson and Nielson's Two-Level Functional Languages~\cn{} and
-Taha's MetaML~\cn{}, which in turn quickly inspired MetaOCaml (and more recently
-MacoCaml) in OCaml~\cn{}, Lightweight Modular Staging in Scala \cn{}, Template
-Haskell in Haskell~\cn{}, and more.  In addition to implementations, researchers
+languages by Nielson and Nielson's Two-Level Functional Languages~\cite{nielson92} and
+MetaML~\cite{taha00}, which in turn quickly inspired MetaOCaml~\cite{metaocaml} (and more recently
+MacoCaml~\cite{macocaml}) in OCaml, Lightweight Modular Staging in Scala~\cite{lms}, Template
+Haskell in Haskell~\cite{templatehaskell}, and more.  In addition to implementations, researchers
 have studied the type-theoretic foundations of multi-stage languages \cite{cmtt,
 davies-pfenning, davies17}, as well as ways of combining multi-stage types with
 other sophisticated features like dependent types \cite{kovacs24}. Meanwhile,
@@ -1760,14 +1758,14 @@ overhead and choice of \rand{}.  In the future, we hope to continue to investiga
 PBT generator performance.
 
 On the abstraction overhead side, we hope to employ some of the many tricks for better code generation that have been written
-about in the staging literature. For example, MetaOCaml includes a primitive floating let-insertion \cn{} that yields optimal let placement,
+about in the staging literature. For example, MetaOCaml includes a primitive floating let-insertion~\cite{kiselyov2022letrecinsertioneffects} that yields optimal let placement,
 which we did not use in \camlname{}.
 Another trick we hope to use is GADT-based techniques for unpacking the states of recursive functions. Currently, the \camlname{}
 recursion combinator introduces some overhead from boxing and unboxing the accumulator values at each recursive call. As noticed in other work \cite{kovacs24}, this
 overhead can be eliminated using a type-level heterogenous list to represent the state at compile time.
 
-On the \rands{} side we plan to investigate fast \rands{} that are not equivalent to SplitMix, such as Lehmer~\cn, WyHash~\cn,
-and variants of xoroshiro~\cn. We also want to try techniques to speed up sampling such as pipelining, using SIMD instructions,
+On the \rands{} side we plan to investigate fast \rands{} that are not equivalent to SplitMix, such as Lehmer~\cite{lehmerrng}, WyHash~\cite{wyrand},
+and variants of xoroshiro~\cite{xorshiro}. We also want to try techniques to speed up sampling such as pipelining, using SIMD instructions,
 or even generating random numbers ahead of time. Last, we hope to investigate the degree to which actual statistical randomness
 matters in PBT.
 

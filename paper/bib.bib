@@ -195,26 +195,6 @@
  @String{VanNostrand = "Van Nostrand" }
  @String{WHFreeman = "W. H. Freeman and Co." }
 
-@article{etna,
-author = {Shi, Jessica and Keles, Alperen and Goldstein, Harrison and Pierce, Benjamin C. and Lampropoulos, Leonidas},
-title = {Etna: An Evaluation Platform for Property-Based Testing (Experience Report)},
-year = {2023},
-issue_date = {August 2023},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-volume = {7},
-number = {ICFP},
-url = {https://doi.org/10.1145/3607860},
-doi = {10.1145/3607860},
-abstract = {Property-based testing is a mainstay of functional programming, boasting a rich literature, an enthusiastic user community, and an abundance of tools — so many, indeed, that new users may have difficulty choosing. Moreover, any given framework may support a variety of strategies for generating test inputs; even experienced users may wonder which are better in a given situation. Sadly, the PBT literature, though long on creativity, is short on rigorous comparisons to help answer such questions.  
-
-We present Etna, a platform for empirical evaluation and comparison of PBT techniques. Etna incorporates a number of popular PBT frameworks and testing workloads from the literature, and its extensible architecture makes adding new ones easy, while handling the technical drudgery of performance measurement. To illustrate its benefits, we use Etna to carry out several experiments with popular PBT approaches in both Coq and Haskell, allowing users to more clearly understand best practices and tradeoffs.},
-journal = {Proc. ACM Program. Lang.},
-month = aug,
-articleno = {218},
-numpages = {17},
-keywords = {empirical evaluation, mutation testing, property-based testing}
-}
 
 @inproceedings{inpractice,
 author = {Goldstein, Harrison and Cutler, Joseph W. and Dickstein, Daniel and Pierce, Benjamin C. and Head, Andrew},
@@ -971,4 +951,129 @@ series = {OOPSLA '14}
   title     = {Real World OCaml: Functional Programming for the Masses},
   year      = {2022},
   publisher={" O'Reilly Media, Inc."}
+}
+
+@misc{unboxedtypes,
+	title= {Unboxed types for OCaml},
+	author = {Eisenberg, Richard A. and Dolan, Stephen and White, Leo},
+	year = {2022},
+	howpublished= {\url{https://www.youtube.com/watch?v=Vevld4cXSYk}},
+}
+
+
+@misc{corebench,
+  author = {Jane Street},
+  title = {Core bench},
+  year = {2023},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/janestreet/core_bench}},
+  commit = {e699ce7}
+}
+
+@misc{jmh,
+  author = {openjdk},
+  title = {Java Microbenchmarking Harness},
+  year = {2023},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/openjdk/jmh}},
+  commit = {f84a148}
+}
+
+@article{etna,
+author = {Shi, Jessica and Keles, Alperen and Goldstein, Harrison and Pierce, Benjamin C. and Lampropoulos, Leonidas},
+title = {Etna: An Evaluation Platform for Property-Based Testing (Experience Report)},
+year = {2023},
+issue_date = {August 2023},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {7},
+number = {ICFP},
+url = {https://doi.org/10.1145/3607860},
+doi = {10.1145/3607860},
+abstract = {Property-based testing is a mainstay of functional programming, boasting a rich literature, an enthusiastic user community, and an abundance of tools — so many, indeed, that new users may have difficulty choosing. Moreover, any given framework may support a variety of strategies for generating test inputs; even experienced users may wonder which are better in a given situation. Sadly, the PBT literature, though long on creativity, is short on rigorous comparisons to help answer such questions.
+
+We present Etna, a platform for empirical evaluation and comparison of PBT techniques. Etna incorporates a number of popular PBT frameworks and testing workloads from the literature, and its extensible architecture makes adding new ones easy, while handling the technical drudgery of performance measurement. To illustrate its benefits, we use Etna to carry out several experiments with popular PBT approaches in both Coq and Haskell, allowing users to more clearly understand best practices and tradeoffs.},
+journal = {Proc. ACM Program. Lang.},
+month = aug,
+articleno = {218},
+numpages = {17},
+keywords = {empirical evaluation, mutation testing, property-based testing}
+}
+
+@book{nielson92,
+  title={Two-level functional languages},
+  author={Nielson, Flemming and Nielson, Hanne Riis},
+  year={1992},
+  publisher={Cambridge university press}
+}
+
+@article{taha00,
+  title={MetaML and multi-stage programming with explicit annotations},
+  author={Taha, Walid and Sheard, Tim},
+  journal={Theoretical computer science},
+  volume={248},
+  number={1-2},
+  pages={211--242},
+  year={2000},
+  publisher={Elsevier}
+}
+
+@misc{kiselyov2022letrecinsertioneffects,
+      title={let (rec) insertion without Effects, Lights or Magic}, 
+      author={Oleg Kiselyov and Jeremy Yallop},
+      year={2022},
+      eprint={2201.00495},
+      archivePrefix={arXiv},
+      primaryClass={cs.PL},
+      url={https://arxiv.org/abs/2201.00495}, 
+}
+
+@misc{intelpt,
+  title = {Intel\textsuperscript{\textregistered} Processor Trace},
+  author = {{Intel Corporation}},
+  howpublished = {\url{https://edc.intel.com/content/www/us/en/design/products/platforms/processor-and-core-i3-n-series-datasheet-volume-1-of-2/001/intel-processor-trace/}},
+  year = {2025},
+  note = {Accessed: 2025-03-24}
+}
+
+@misc{hypothesis,
+  title = {Hypothesis},
+  author = {{Hypothesis Team}},
+  howpublished = {\url{https://hypothesis.works/}},
+  year = {2025},
+  note = {Accessed: 2025-03-24}
+}
+
+@misc{fscheck,
+  title = {FsCheck: Random Testing for .NET},
+  author = {{FsCheck Team}},
+  howpublished = {\url{https://fscheck.github.io/FsCheck/}},
+  year = {2025},
+  note = {Accessed: 2025-03-24}
+}
+
+@misc{fsmeta,
+  title = {Code Quotations --- F\# | Microsoft Learn},
+  author = {{Microsoft}},
+  howpublished = {\url{https://learn.microsoft.com/en-us/dotnet/fsharp/language-reference/code-quotations}},
+  year = {2025},
+  note = {Accessed: 2025-03-24}
+}
+
+@misc{Bolero,
+  title = {Bolero},
+  author = {{Bytheway, Cameron}},
+  howpublished = {\url{https://camshaft.github.io/bolero/}},
+  year = {2025},
+  note = {Accessed: 2025-03-24}
+}
+
+@misc{ProptestBook,
+  title = {The {Proptest} Book},
+  author = {{Proptest Contributors}},
+  howpublished = {\url{https://altsysrq.github.io/proptest-book/}},
+  year = {2025},
+  note = {Accessed: 2025-03-24}
 }
