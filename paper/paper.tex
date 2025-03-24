@@ -819,7 +819,7 @@ let is_even x = .< .~x mod 2 == 0 >. in
 let succ x = .< 1 + .~x >. in
 eta (fun x -> succ (is_even x))
 \end{lstlisting}
-reduces at compile time to the more efficient \texttt{.< fun x -> (1 + x) mod 2 == 0 >.}
+reduces at compile time to \texttt{.< fun x -> (1 + x) mod 2 == 0 >.}
 %
 By composing the two code-transforming functions together at compile time and only then turning them into a run-time function,
 the two functions are fused together.
