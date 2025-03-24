@@ -360,8 +360,8 @@ both staging and fast randomness play distinct and complementary roles in improv
 Further,
 we show that \camlname generators find bugs faster by running our case studies
 in the Etna platform, which uses generated values as
-inputs to a pre-defined buggy system and measures how quickly different
-generators can detect the bugs.
+inputs to a buggy system and measures how quickly different
+generators can detect the bugs. In Etna,
 \camlname generators find bugs up to $2.5\times$ faster on average than
 their \bq counterparts. With fast randomness,
 the average speedup rises to $3.8\times$,
@@ -479,9 +479,9 @@ let int_pair : (int * int) Bq.t =
 \end{figure}
 
 Most languages in which monadic APIs are common expose some sort of syntactic
-sugar for them. In OCaml\footnote{OCaml actually has a few ways to implement
+sugar for them. In OCaml, \footnote{OCaml actually has a few ways to implement
 monadic syntax; this is the one provided by Jane Street's libraries.}, this
-looks like \texttt{let\%bind x = e in e'}, which desugars to
+looks like \texttt{let\%bind x = e in e'} which desugars to
 \texttt{bind e (fun x => e')}. Figure~\ref{fig:simple-macro} shows the same
 generator, written the monadic syntax.
 
@@ -627,9 +627,9 @@ It might be surprising to readers that this dramatic overhead exists --- shouldn
 this simple optimization? Compilers of effectful and strict functional languages (including JIT
 compilers in the case of Scala 3)
 do in fact have heuristics to determine if and when to perform this particular kind of
-simplification\footnote{As we discuss in Section~\ref{section:other-langs}, purity
+simplification.\footnote{As we discuss in Section~\ref{section:other-langs}, purity
 means that Haskell is a slightly different story. GHC can and often does
-transformations of this form.}. However even in cases as simple as
+transformations of this form.} However even in cases as simple as
 Figure~\ref{fig:simplify}, the indirection of \texttt{return}
 and \texttt{bind} causes these heuristics to not fire.  Moreover, the story is
 even worse for recursive generators, as the heuristics are necessarily even more
@@ -694,11 +694,11 @@ perform this search, which incurs further run time overhead.
 \subsection{Inefficient Randomness Libraries}
 \label{subsection:ineff-rand}
 The core of any PBT generator library is a source of randomness.
-Different PBT libraries use different randomness libraries implementing different algorithms
+Different PBT libraries use different randomness libraries implementing different algorithms.
 \footnote{The common term for such an algorithm or library is a ``Random Number
 Generator'' (RNG). We will avoid this term and instead say ``randomness library''
 to avoid confusing RNG implementations with the PBT generator libraries that
-use them.}.
+use them.}
 Following the original Haskell QuickCheck implementation, \bq\ uses the SplitMix
 algorithm~\cite{splitmix}, implemented by \texttt{Splittable\_random}. Meanwhile,
 ScalaCheck uses the JSF algorithm~\cite{jsf}.
@@ -1133,7 +1133,7 @@ our staged programs in continuation-passing style \cite{bondorf92}.
 
 In Figure~\ref{fig:codecps-and-final-gen}, following prior work \cite{kovacs24, carrette05}, we define
 the type \texttt{'a CodeCps.t = 'z. ('a -> 'z code) -> 'z code}: a polymorphic continuation transformer with the result type
-always in \texttt{code}\footnote{This is an instance of the \emph{codensity} monad \cite{janis08}---a fact that deserves further investigation.}.
+always in \texttt{code}.\footnote{This is an instance of the \emph{codensity} monad \cite{janis08}---a fact that deserves further investigation.}
 The monad instance for this type is the standard instance for a CPS monad with polymorphic return type.
 In prior work, this type is often referred to as the ``code generation'' monad.
 This is because a value of type \texttt{('a code) CodeCps.t} is like an ``action'' that generates \texttt{code}:
@@ -1229,10 +1229,10 @@ In our setting, letting programmers define recursive generators as recursive fun
 With staged programming, recursion must be handled with care: it is far to easy to accidentally recursively
 define an infinite \texttt{code} value and have the program diverge at compile time, when trying to write
 a \texttt{code} representing a recursive program.
-To this end, we develop a staged recursive generator combinator\footnote{
+To this end, we develop a staged recursive generator combinator.\footnote{
 We actually provide a more general API that allows programmers to define \emph{parameterized}
 recursive combinators, of type \texttt{'r code -> 'a code Gen.t}, for any type \texttt{'r}.
-}, whose API is shown in Figure~\ref{fig:staged-recursive-generator}.
+}, whose API is shown in Figure~\ref{fig:staged-recursive-generator}
 The recursion API consists of an opaque type \texttt{'a handle}, and a function \texttt{recurse} to perform recursive calls.
 Programmers can then define recursive generators by \texttt{fixed\_point}, which ties the recursive knot.
 
@@ -1372,10 +1372,10 @@ a large performance impact on generators that spend most of their time sampling 
 To avoid these allocations, we
 reimplement SplitMix in C and call out to it with the OCaml FFI. The C version of the library uses
 proper \texttt{int64\_t} arithmetic, only boxing and unboxing integers at the call boundaries between OCaml and
-C code\footnote{Ideally in the future, one would not need to call out to C for this: the Jane Street bleeding-edge OCaml compiler has support
+C code.\footnote{Ideally in the future, one would not need to call out to C for this: the Jane Street bleeding-edge OCaml compiler has support
 for unboxed types~\cite{unboxedtypes}, which (among other things) would let us implement a version of SplitMix that does not allocate, directly
 in OCaml. Unfortunately, the Jane Street branch of the compiler is incompatible with MetaOCaml, which we use to implement the metaprogramming
-discussed in the previous sections.}.
+discussed in the previous sections.}
 
 \section{Evaluation}
 \label{section:eval}
@@ -1574,7 +1574,7 @@ expect the results in this section to extend to \scalaname.
 It is worth noting that the time-to-failure of a given strategy on a given seed
 is not necessarily representative of the strategy's average time-to-failure over
 a large number of trials. We normalize by computing the relative performance, or
-the ``speedup''. This works in most cases, but it is not perfect.  For example,
+the ``speedup.'' This works in most cases, but it is not perfect.  For example,
 it is theoretically possible to choose a seed such that the \textit{first} value
 produced by a generator discovers the bug, which would eliminate any differential
 speedup, and likewise if both generators fail to find the bug.  To account for
