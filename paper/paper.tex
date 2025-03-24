@@ -1540,8 +1540,8 @@ workloads.
 
 In \scalaname, we implement a subset of the \camlname
 strategies: the boolean list generator, single-pass BST generator, and
-well-typed STLC term generator. The type derived strategies are excluded, since
-\scalaname does not currently support type derivation. We did not implement an optimized version of ScalaCheck's
+well-typed STLC term generator.\footnote{The type-derived strategies are excluded, since
+\scalaname does not currently support type derivation.} We did not implement an optimized version of ScalaCheck's
 \rand, but our experimental setup was otherwise the same as in OCaml.
 
 As shown in \figref{fig:scala}, \scalaname achieves an even greater performance
