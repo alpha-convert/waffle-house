@@ -316,7 +316,7 @@ First, the high-level design approach followed by generator combinator
 libraries introduces layered abstractions  that are difficult for
 compilers to optimize.
 Second, the calls a generator makes to its \rand{} can constitute a large
-proportion of its run-time, magnifying the cost of an inefficient
+proportion of its run time, magnifying the cost of an inefficient
 implementation.
 %
 In this paper, we characterize, quantify, and address these issues.
@@ -336,7 +336,7 @@ We isolate and quantify the performance benefits of faster randomness, showing
 that a DSL's choice of \rand{} has a dramatic effect on its performance. Based
 on the observation that the OCaml implementation of \bq{}'s \rand{} is slow in
 a way that is simple to fix, we perform a controlled experiment, comparing fast and slow
-versions of the same library to analyze the impact of faster \rands{} on
+versions of the library to analyze the impact of faster \rands{} on
 generator performance.
 
 Both interventions preserve semantics on the nose: given the same
@@ -688,7 +688,7 @@ between $0$ and the sum of the weights, and then (2) finds the first generator f
 weights in the list before it exceeds $r$. This second part can be accomplished in $O(\log_2 n)$ time by
 a binary search. However, since the lists are short in practice, a linear scan is almost always faster.
 Moreover, both \bq{} and ScalaCheck allocate auxiliary data structures (an array in \bq{} and a BST in ScalaCheck) to
-perform this search, which incurs further run time overhead.
+perform this search, which incurs further run-time overhead.
 
 % \subsubsection{Function call overhead}
 \subsection{Inefficient Randomness Libraries}
@@ -1063,7 +1063,7 @@ was more complicated than one might expect. Why not define bind in the standard 
 for a reader monad (Figure~\ref{fig:bind-without-let-binding})?
 Unfortunately, the latter definition is wrong in our context as it leads to incorrect code being generated.
 For example, consider \texttt{Gen.bind' (Gen.int .<0>. .<1>.) (fun x -> Gen.return .<(.~x,.~x)>.)}.
-This generates the run time code \texttt{fun size random -> (SR.int random 0 1, int SR.random 0 1)},
+This generates the run-time code \texttt{fun size random -> (SR.int random 0 1, int SR.random 0 1)},
 which is incorrect.  Instead of generating a single integer and returning it
 twice, it samples two different integers.
 This matters because, as described in Section~\ref{section:intro}, \camlname and
@@ -1302,7 +1302,7 @@ resolution. In both settings, the result is a three-stage process: a
 metaprogram---via PPX or typeclasses---constructs a generator expression
 composed of staged combinators; this expression is evaluated at compile
 time to produce a specialized generator; and finally, the generator is
-executed at runtime to produce values.
+executed at run time to produce values.
 
 We implemented this in \camlname; it is not yet implemented in \scalaname. We benchmark the results in \secref{section:eval}.
 
@@ -1588,7 +1588,7 @@ strategy on all tasks using a 60-second timeout.  If a bug is not found within
 this limit, the task is considered ``unsolved.''  We exclude tasks where all strategies fail to
 find the bug from our dataset, as they provide no basis for
 comparison.  Similarly, we exclude tasks where the \bq strategy completes in
-under 5ms, as such negligible runtimes do not yield meaningful insights into
+under 5ms, as such negligible run times do not yield meaningful insights into
 relative performance. Across all 30 seeds, these filters remove
 28/600 (4.67\%) of type-derived STLC's tasks,
 168/600 (28\%) of STLC's tasks,
