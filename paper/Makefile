@@ -10,6 +10,6 @@ $(TEXFILE).pdf: $(TEXFILE).tex $(BIBFILE).bib
 	pdflatex $(TEXFILE).tex
 
 clean:
-	rm -f *.aux *.bbl *.blg *.log *.out *.toc *.lof *.lot *.nav *.snm *.synctex.gz *.fdb_latexmk *.fls *.ins *.pdf
+	rm -f *.aux *.bbl *.blg *.log *.out *.toc *.lof *.lot *.nav *.snm *.synctex.gz *.fdb_latexmk *.fls *.ins paper.pdf
 
 .PHONY: all clean
