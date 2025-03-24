@@ -848,7 +848,7 @@ with different sizes and seeds.
 Our job is thus to carefully bisect the DSL, determining which inputs to generator
 combinators are known statically (and can be part of the compile time stage) and
 which parts are only known at run time (and must be treated as \texttt{code}).
-In the staging literature, this task is known as ``binding-time analysis,'' and it is more art than science.
+In the staging literature, this task is known as ``binding-time analysis,'' \cite{jones1993partial} and it is more art than science.
 
 % carefully break up so that you push what you can into the compile time stage.
 % Figuring out which parts of the generator are known statically ()
