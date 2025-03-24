@@ -717,22 +717,6 @@ including pipelined or even ahead-of-time sampling.
 % https://github.com/lemire/testingRNG/tree/master
 % https://github.com/wangyi-fudan/wyhash?tab=readme-ov-file
 
-% Moreover, PBT libraries could even consider eschewing the requirement that a source of
-% entropy pass statistical tests like BigCrush\cn. \hg{This needs more discussion}
-% This is common practice in other areas of testing already:
-% fuzzers often simply use a buffer full of arbitrary bytes as a source of entropy
-% \cn. Such approaches are also faster than algorithms like SplitMix: bumping a
-% pointer and reading from memory (which can be pipelined trivially) will always
-% be faster on modern CPUs.
-% \hg{Should we just always be doing this? I think we want to argue
-% that this is a bridge too far because you still need to generate the buffer
-% ahead of time and you can run out of randomness?}
-% \jwc{HG: talk about the tradeoffs here.}
-% \jwc{The point here is that ``you should be thinking about using a more performant RNG, we'll show you that it does have real benefits (and quantify them). But there are tradeoffs here.'}
-% \bcp{But this is not the point that the reader is set up to expect: we've toldthem that we're going to make generation faster, not that we're going to give them tips so that htey can make it faster by themselves}
-% \jwc{This actually isn't the case. In the intro, we're very careful to say that we show that choosing a faster randomness library \emph{leads to faster bugfinding}. And we do demonstrate this.}
-% \jwc{Ok --- we could get rid of this ``source of entropy'' business and just write that you can speed up any of these by pipelining your sampling --- sampling and saving multiple values at a time with SIMD instead of just one each.}
-
 Of course, simply arguing that the randomness library is on the hot
 path for PBT does not guarantee that a faster sampling leads to measurably faster
 generation; for that, we need an experiment. The most obvious experiment is to
@@ -774,7 +758,7 @@ in the next. For the purposes of this paper, we just need two stages: compile ti
 One of the primary uses of staging is in embedded DSL construction \cite{sheard99, lms, trattdsl}.
 \jwc{Cite racket macros for DSLs here:}
 While embedded DSLs are powerful tools, they have a well-known drawback:
-the functional abstractions used to build eDSLs tend to prevent compilers from generating efficient machine code \cn.
+the functional abstractions used to build eDSLs tend to prevent compilers from generating efficient machine code.
 This is \emph{abstraction overhead} \cite{carrette05, moller20}: the layers of abstraction that
 make eDSLs so pleasant to use are precisely what prevents them from being fast.
 Indeed, the root causes of many of the performance issues we discovered in Section~\ref{section:motiv} are
@@ -786,7 +770,7 @@ and query processing \cite{rhyme}.
 
 Many languages have some degree of staging functionality, including
 Scala 3 \cite{scalamacros}, Haskell \cite{templatehaskell}, \jwc{Racket??}, OCaml \cite{metaocaml,macocaml}, and Java \cite{mint}.
-For this paper, we have implemented staged PBT libraries both in OCaml (using MetaOCaml \cn) and Scala 3 (using
+For this paper, we have implemented staged PBT libraries both in OCaml (using MetaOCaml \cite{metaocaml}) and Scala 3 (using
 \texttt{scala.quoted}). All staged code presented in the body of this paper is \camlname{} code written in OCaml:
 \scalaname{} is very similar.
 For further discussion of the potential for staged generator DSLs in other languages, see Section~\ref{section:other-langs}.
@@ -820,7 +804,7 @@ A code-transforming function \texttt{'a code -> 'b code} can also be converted \
 let eta (f : 'a code -> 'b code) : ('a -> 'b) code = .<fun x -> .~(f .<x>.)>.
 \end{lstlisting}
 
-This program is known as ``The Trick'' in the partial evaluation and multi-stage programming literature \cn{}.
+This program is known as ``The Trick'' in the partial evaluation and multi-stage programming literature~\cite{metaocamlimpl}.
 % USE THIS: https://arxiv.org/pdf/2309.08207
 It returns a code for a function that takes an argument \texttt{x} and splices in the result of calling \texttt{f} on just
 the quoted \texttt{x}.
@@ -1094,7 +1078,6 @@ let bind' (g : 'a t) (k : 'a code -> 'b t) : 'b t =
   \label{fig:bind-two-ways}
 \end{figure}
 
-This problem is intimately related to nondeterministic effects in the presence of CBN/CBV evaluation ordering \cn.
 In essence, the behavior of splice \texttt{.\~{}cx} in a staged function \texttt{f(cx : 'a code) = ...} is to \emph{copy}
 the entire block of code, effects and all. To ensure that the randomness effects of the first generator are executed only once
 but that the value can be used in the continuation multiple times, the correct \texttt{bind} let-binds the result of generation to a variable
@@ -1169,7 +1152,7 @@ For example, \texttt{bind (int .<0>. .<1>.) (fun cx -> return .<(.~cx,.~cx)>.)} 
 This design is less obviously correct, and does require some care. Rather than \texttt{bind} ensuring correct evaluation order once and for all,
 individual combinators must be carefully written to ensure that \texttt{'a code} values that contain effects are \texttt{let\_insert}ed.
 To validate the library, we built a PBT harness to compare staged generators to their \bq equivalents over 1,000 random seeds.
-By differentially testing \cn{} a large suite of generators in this way, we gained confidence that \camlname is equivalent to \bq{}.
+By differentially testing~\cite{difftesting} a large suite of generators in this way, we gained confidence that \camlname is equivalent to \bq{}.
 
 \begin{figure}
 \begin{lstlisting}
@@ -1358,26 +1341,25 @@ SplitMix. By replacing this relatively slow randomness library with a faster but
 implemetnation, we can precisely quantify the bugfinding speedup that a better randomness library gives across a range of PBT scenarios.
 
 Note that the performance intervention described here is OCaml-specific.
-In most other PBT frameworks \cn, the randomness library used operates on machine
-integers, so this \emph{particular} inefficiency does not exist. \bcp{This paragraph should go on to explain why it is still interesting to talk about or measure it.}
-However, the insights that we will derive from this experiment (in Section~\ref{section:eval})---
+In most other PBT frameworks, the randomness library used operates on machine
+integers, so this \emph{particular} inefficiency does not exist.
+However, the insights that we will derive from this experiment in Section~\ref{section:eval}---
 about which kinds of generators benefit the most from faster randomness and how it leads to faster bug-finding---
 are applicable to all languages.
-\jwc{How's that}
 
-The precise details of the SplitMix algorithm~\cn are not important for
+The precise details of the SplitMix algorithm~\cite{splitmix} are not important for
 present purposes; the key fact is that all of its operations are
 defined in terms of arithmetic and bitwise operations on 64-bit integers. In OCaml,
 because of details related to the garbage collector, the 64-bit integer type \texttt{int64} is represented
 at run time as a \emph{pointer} to an unscanned block of memory containing (among other things)
-a 64-bit integer \cn. This means that all operations that return an \texttt{int64} must allocate this block of memory,
+a 64-bit integer~\cite{ocamlruntimerep}. This means that all operations that return an \texttt{int64} must allocate this block of memory,
 which has a significant impact on performance. A single call to
 one of the \bq library functions---like generating an arbitrary integer---may call into the \texttt{Splittable\_random}
 library times. Each call into \texttt{Splittable\_random}
 may sample many times from the core SplitMix sampling routine \texttt{next\_int64}, i.e., using rejection sampling to find a value within a range.
 Finally, each call to \texttt{next\_int64} allocates 9 times, and each allocation brings us closer
 to the next garbage collection pause. While small allocations like these are \emph{very} fast to perform and subsequently
-collect in OCaml\footnote{The OCaml GC is a generational collector \cn, and since these allocations are small and mostly very short lived, they will all be minor allocations, never to be promoted.}
+collect in OCaml\footnote{The OCaml GC is a generational collector~\cite{realworldocaml}, and since these allocations are small and mostly very short lived, they will all be minor allocations, never to be promoted.}
 , we will see in Section~\ref{section:eval} that they can still have
 a large performance impact on generators that spend most of their time sampling data.
 To avoid these allocations, we
