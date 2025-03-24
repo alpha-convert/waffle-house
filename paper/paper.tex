@@ -1292,17 +1292,11 @@ generate arbitrary trees, but not binary search trees. When such constraints are
 type-derived generators are usually less effective than hand-crafted ones, since most 
 generated values will be invalid. 
 
-
-The speed of generation becomes particularly important in
-this setting. Faster generators will be able to explore more of the search 
-space, produce more valid inputs to the system
-under test, and uncover more bugs. Additionally,
-since type derivation is a fully automatic process, the user is not required to understand 
-staging in any way.
-
-% As a result, producing values with complex preconditions is statistically unlikely.
-% This state of affairs is not ideal, as inexperienced PBT users are liable to derive a generator, run their tests, find no bugs, and assume the code is correct---when in reality, most generated values are never tested at all because they do not satisfy the preconditions.
-% \jwc{This paragraph reads as mostly a critique of type-deriving, and it was made already in PBT in practice...}
+The speed of generation becomes particularly important in this setting. In a generator 
+that produces only valid values, only a subset of them will trigger a bug; in 
+a type-derived generator, however, only a subset of generated values will be valid, 
+and only a subset of \textit{those} will find a bug. As a result, many more values must be produced, 
+making it important to produce them as quickly as possible. 
 
 The type-deriving algorithm follows a compositional pattern. Generators for complex types 
 are synthesized by structurally composing generators for their subtypes: 
@@ -1324,8 +1318,9 @@ resolution. In both settings, the result is a three-stage process: a
 metaprogram---via PPX or typeclasses---constructs a generator expression 
 composed of staged combinators; this expression is evaluated at compile 
 time to produce a specialized generator; and finally, the generator is 
-executed at runtime to produce values. The entire 
-pipeline remains invisible to the user. 
+executed at runtime to produce values.
+
+
 % \tr{TODO: Boolean list example in a figure...}
 % \jwc{Unclear exactly what we want the boolean list example for here... are we going to show the type and the derived staged generator? I think that's a little too deep in the weeds for this section.}
 
