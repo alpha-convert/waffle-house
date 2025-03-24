@@ -1460,7 +1460,7 @@ For each strategy, we compare three treatments: our \bq baseline;
 a \camlname version using \bq's randomness 
 library, \texttt{splittable\_random}; and a
 \camlname version using \csplitmix. For each treatment, we measure the
-time to generate a value (i.e., a BST, STLC term, or boolean list), using a random seed, varying generation sizes (10, 100, 1,000, 10,000).\footnote{The way size is used in a generator is a domain-specific implementation detail---in a list generator, size might correspond to the desired length of the list, whereas in a tree generator it refer to number of nodes, number of leaves, depth of tree, etc. Regardless of how size is used, our goal is to show that performance trends scale.}
+time to generate a value (i.e., a BST, STLC term, or boolean list), using a random seed, varying generation sizes (10, 100, 1,000, 10,000).\footnote{The specific meaning of generation size is a domain-specific implementation detail---in a list generator, size might correspond to the desired length of the list, whereas in a tree generator it refer to number of nodes, number of leaves, depth of tree, etc. Regardless, our goal is to show that performance trends scale.}
 We run each treatment for 5 seconds and compute the average generation time of a value produced in that interval.
 
 \begin{figure}[h]
@@ -1536,8 +1536,8 @@ workloads.
 
 In \scalaname, we implement a subset of the \camlname
 strategies: the boolean list generator, single-pass BST generator, and
-well-typed STLC term generator.\footnote{By default, ScalaCheck does not support deriving gnenerators from types,
-so those strategies are excluded.} We did not implement an optimized version of ScalaCheck's
+well-typed STLC term generator. The type derived strategies are excluded, since
+\scalaname does not currently support type derivation. We did not implement an optimized version of ScalaCheck's
 \rand, but our experimental setup was otherwise the same as in OCaml.
 
 As shown in \figref{fig:scala}, \scalaname achieves an even greater performance
