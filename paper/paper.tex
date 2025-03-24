@@ -1281,49 +1281,56 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
 \end{figure}
 
 
-\subsection{Staged Type-Derived Generators}
+\subsection{Staging Type-Derived Generators}
 \label{subsection:type-derived}
 
-Generators are traditionally handwritten, but some libraries allow users to synthesize
+Generators are traditionally handwritten, but some PBT libraries allow users to synthesize
 them automatically from type definitions. Type-derived generators are
 convenient---the derivation process requires no manual effort---but also limited:
-they are unable to account for constraints not encoded in the type (e.g., they can derive a
-tree, but not a binary search tree).
-As a result, generating values with complex preconditions is statistically unlikely.
-This state of affairs is not ideal, as inexperienced PBT users are liable to derive a generator, run their test harness, find no bugs, and assume the code is correct---when in reality, most values are never tested at all because they do not satisfy the preconditions.
-\jwc{This paragraph reads as mostly a critique of type-deriving, and it was made already in PBT in practice...}
+they are unable to account for constraints not encoded in the type. For example, they can 
+generate arbitrary trees, but not binary search trees. When such constraints are present, 
+type-derived generators are usually less effective than hand-crafted ones, since most 
+generated values will be invalid. 
 
-This makes type-derivation a particularly elegant target of \name. Since the process of type derivation is completely automatic,
-the end user does not need to understand the staging syntax---but more importantly, \name
-makes it it more likely that even naïve strategies will find a bug.
-\jwc{This is good --- I think we can just say that  type deriving is easier to use but less powerful, and we make it slightly more powerful, since we make it more likely that the naive strategy finds a bug.}
+
+The speed of generation becomes particularly important in
+this setting. Faster generators will be able to explore more of the search 
+space, produce more valid inputs to the system
+under test, and uncover more bugs. Additionally,
+since type derivation is a fully automatic process, the user is not required to understand 
+staging in any way.
+
+% As a result, producing values with complex preconditions is statistically unlikely.
+% This state of affairs is not ideal, as inexperienced PBT users are liable to derive a generator, run their tests, find no bugs, and assume the code is correct---when in reality, most generated values are never tested at all because they do not satisfy the preconditions.
+% \jwc{This paragraph reads as mostly a critique of type-deriving, and it was made already in PBT in practice...}
 
 The type-deriving algorithm follows a compositional pattern. Generators for complex types 
-are synthesized by structurally composing generators of their subtypes: 
+are synthesized by structurally composing generators for their subtypes: 
 base types are mapped to primitive generators included in the generator library;
-product types---such as tuples and records---are handled by sampling each component 
+product types such as tuples and records are handled by sampling each component 
 using \texttt{bind} and aggregating the results; sum types, or variants, are generated using 
-a \texttt{weighted\_union} of the generators for each case; and for recursive types, 
-the entire generator is wrapped in a fixed-point combinator, and a recursive handle 
+a \texttt{weighted\_union} of the generators for each case; for recursive types, 
+the entire generator is wrapped in a fixed-point combinator and a recursive handle 
 is used as the generator for all recursive occurrences in the type.
 \jwc{A bit of a long sentence....}
 This compositional approach maps naturally to staged generation: 
 to derive a staged generator, we replace each standard combinator 
 with its staged counterpart. The derivation algorithm remains unchanged.
-\jwc{Great.}
 
-Our implementation in OCaml uses the preprocessor extension (``PPX'') system \cn, but the 
-approach is portable to other languages with \proposechange{metaprogramming capabilities}{type-derived generators}\jwc{I.e. if you can do type-derived generators any way, you can do them with \name{} in the same way}. 
-In Scala, for instance, the same strategy \proposechange{can}{could} be realized using typeclass 
+Our implementation in OCaml uses the PPX (PreProcessor eXtension) system to synthesize 
+staged generators from type definitions. However, any language that supports type-derived 
+generators can implement a staged version using a similar implementation to the original. In Scala, 
+for instance, the same strategy could be realized using typeclass 
 resolution. In both settings, the result is a three-stage process: a 
 metaprogram---via PPX or typeclasses---constructs a generator expression 
 composed of staged combinators; this expression is evaluated at compile 
 time to produce a specialized generator; and finally, the generator is 
 executed at runtime to produce values. The entire 
-pipeline remains invisible to the user. \tr{TODO: Boolean list example in a figure...}
-\jwc{Unclear exactly what we want the boolean list example for here... are we going to show the type and the derived staged generator? I think that's a little too deep in the weeds for this section.}
+pipeline remains invisible to the user. 
+% \tr{TODO: Boolean list example in a figure...}
+% \jwc{Unclear exactly what we want the boolean list example for here... are we going to show the type and the derived staged generator? I think that's a little too deep in the weeds for this section.}
 
-\jwc{... We implemented this in \camlname, but not yet in \scalaname, and we benchmark the results in Section~\ref{section:eval}}
+% \jwc{... We implemented this in \camlname, but not yet in \scalaname, and we benchmark the results in Section~\ref{section:eval}}
 
 % \jwc{
 %   \begin{itemize}
