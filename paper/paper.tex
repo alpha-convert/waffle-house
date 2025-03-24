@@ -169,15 +169,31 @@
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-  Property-based testing relies on random input generators to uncover bugs, often under tight time constraints. These generators are built 
-  using generator libraries, which provide expressive combinators for constructing complex inputs. 
-  Although convenient,
-  today's generator libraries suffer from substantial performance costs, limited by abstraction overhead and inefficient randomness libraries.
-  In this paper, we identify and address these bottlenecks. We introduce \name, a multi-stage programming technique that eliminates generator overhead
-  without sacrificing the flexibility and expressiveness of existing generator library functions. We augment leading generator libraries in OCaml and 
-  Scala 3 to use the \name approach, preserving the original library's semantics and enabling precise, pointwise performance comparisons. We also show that \rand
-  has a measurable impact on generator performance, quantify its contribution, and show that speedups of $5.5\times$ are possible. Together, these 
-  improvements lead to bug-finding up to $13\times$ faster---showing that high-level generator abstractions need not come at the cost of speed. \tr{Needs a lot of work. No spice.}
+Property-based testing (PBT) relies on generators for random test
+cases, often constructed using embedded domain specific languages,
+which provide expressive combinators for building and composing
+generators.  The effectiveness of PBT depends critically on the speed
+of these generators.
+%
+However, careful measurements show that the generator performance of
+two widely used PBT libraries falls well short of what is possible,
+due principally to (1) the abstraction overhead of their
+combinator-heavy style and (2) suboptimal sources of randomness.
+We characterize, quantify, and address these bottlenecks.
+
+To eliminate abstraction overheads, we propose a technique based on
+multi-stage programming, dubbed \name.  We apply this technique to
+leading generator libraries in OCaml and Scala 3, significantly
+improving performance.
+%
+To quantify the performance impact of the randomness source, we carry
+out a controlled experiment, replacing the randomness in the OCaml PBT
+library with an optimized version.
+%
+Both interventions exactly preserve the semantics of generators,
+enabling precise, pointwise comparisons.
+%
+Together, these improvements make bug finding up to $13\times$ faster.
 \end{abstract}
 
 %%
@@ -284,7 +300,7 @@ testing their properties every time they save their code. This means that PBT is
 window to find bugs---e.g., between 50 milliseconds and 30 seconds~\cite{inpractice}.
 The faster a test fails, the better.
 % The goal of PBT is to fail tests as fast as possible. \jwc{First cut at ``fail fast''}
-% \iflater 
+% \iflater
 % \bcp{Feels like we're missing a trick in the transition here.  Can we
 %   say, ``Because performance is important, PBT libraries are already
 %   quite tuned.  [Can we substantiate that??]  But more is
@@ -295,21 +311,21 @@ One important locus for performance improvement
 is the \textit{generators} that produce random inputs to the properties under
 test. These generators are written with the help of \textit{generator
 libraries}, usually expressed as embedded domain-specific languages (eDSLs) %\cntxt{edsls}
-that provide combinators for building and composing generators. However, careful 
+that provide combinators for building and composing generators. However, careful
 measurements show that the performance of existing generator libraries falls far short of what
-is possible. 
+is possible.
 
 This is due to two major sources of inefficiency.
 First, the same high-level design approach that gives generator libraries their
 flexibility also introduces layered abstractions and indirections that are difficult for
 compilers to optimize.
-Second, the calls a generator makes to its \rand{} can constitute a large 
-proportion of its run-time, magnifying the cost of an inefficient 
+Second, the calls a generator makes to its \rand{} can constitute a large
+proportion of its run-time, magnifying the cost of an inefficient
 implementation.
 
 In this paper, we study and address these issues.
-First, we show how to use \textit{multi-stage programming}, a classic technique for 
-building fast DSLs “without regret”~\cn{}, to eliminate the overhead of 
+First, we show how to use \textit{multi-stage programming}, a classic technique for
+building fast DSLs “without regret”~\cn{}, to eliminate the overhead of
 many common generator abstractions. We refer to this approach as \name.
 % Secondly, we demonstrate the
 % impact of diferent choices of randomness library on generator performance by conducting a
@@ -318,7 +334,7 @@ Second, we demonstrate that a DSL's choice of \rand{} has a
 dramatic impact on its performance by performing a controlled experiment,
 isolating the performance benefits of faster randomness in a clearly quantifiable manner.
 
-% These insights lay the groundwork for generator libraries that combine high-level 
+% These insights lay the groundwork for generator libraries that combine high-level
 % design with low-level performance.
 
 % \bcp{It
@@ -676,7 +692,7 @@ In practice, \texttt{weighted\_union} is (almost \footnote{
 There are some generators where \texttt{weighted\_union} is passed a list which
 was itself the result of a generator: the well-typed STLC term generator used in Section~\ref{section:eval} is an example of this.
 }) always called with an explicitly constructed list, as in
-\texttt{weighted\_union [(w1,g1); (w2,g2); (w3,g3)]}. 
+\texttt{weighted\_union [(w1,g1); (w2,g2); (w3,g3)]}.
 This is because the most common use case for \texttt{weighted\_union} is
 to choose between one of the different constructors of an algebraic datatype,
 the options for which are always known.
@@ -684,8 +700,8 @@ This list is allocated at the call site and then never needed after the call to 
 Since the elements of the list and its length \texttt{n} are known,
 a compiler could in principle unroll the loops in \texttt{weighted\_union} to depth \texttt{n} and specialize the function at each call site to avoid allocating the list.
 Unfortunately, (almost\footnote{GHC is a notable exception here, performing sophisticated list fusion optimizations \cn{}}) no compilers perform this kind of optimization.
-This allocation (or rather, its tendency to cause GC pauses)---as well as the cost of running the code 
-to traverse arbitrary lists compared to unrolled loops---has a significant impact on 
+This allocation (or rather, its tendency to cause GC pauses)---as well as the cost of running the code
+to traverse arbitrary lists compared to unrolled loops---has a significant impact on
 performance.
 
 Last, many PBT libraries --- including both \bq and ScalaCheck --- implement their \texttt{weighted\_union} combinators
@@ -764,7 +780,7 @@ By building a version that uses much faster ``unboxed'' 64-bit integer
 arithmetic, we can (a) demonstrate just how much faster bugs can be found just by
 using a more performant \rand{}, and (b) explore which generators benefit the most from faster \rand{}.
 
-\section{How can I Make My Generator Library Faster?}
+\section{How Can I Make My Generator Library Faster?}
 \label{section:faster-generators}
 
 With a sense of the inefficiences pervasive in generator libraries, we set out in this section to investigate solutions.
@@ -907,7 +923,7 @@ Given any size and random seed, it returns a code block that calls \texttt{SR.in
 might not be known at compile time --- they may themselves be the results of calling \texttt{Gen.int} ---
 the arguments \texttt{lo} and \texttt{hi} are of type \texttt{int code} and get spliced into the code block as arguments to \texttt{SR.int}.
 Lastly, \texttt{to\_bq} turns a staged generator into code for a normal \bq\
-generator. This function is just a 2-argument version of ``The Trick'' 
+generator. This function is just a 2-argument version of ``The Trick''
 from Section~\ref{subsection:msp}.
 \iflater
 \hg{TODO: Be really careful with formatting of the above paragraph. It's very
@@ -1291,37 +1307,37 @@ val fixed_point : ('a handle -> 'a code Gen.t) -> 'a code Gen.t
 Generators are traditionally handwritten, but some PBT libraries allow users to synthesize
 them automatically from type definitions. Type-derived generators are
 convenient---the derivation process requires no manual effort---but also limited:
-they are unable to account for constraints not encoded in the type. For example, they can 
-generate arbitrary trees, but not binary search trees. When such constraints are present, 
-type-derived generators are usually less effective than hand-crafted ones, since most 
-generated values will be invalid. 
+they are unable to account for constraints not encoded in the type. For example, they can
+generate arbitrary trees, but not binary search trees. When such constraints are present,
+type-derived generators are usually less effective than hand-crafted ones, since most
+generated values will be invalid.
 
-The speed of generation becomes particularly important in this setting. In a generator 
-that produces only valid values, only a subset of them will trigger a bug; in 
-a type-derived generator, however, only a subset of generated values will be valid, 
-and only a subset of \textit{those} will find a bug. As a result, many more values must be produced, 
-making it important to do so as quickly as possible. 
+The speed of generation becomes particularly important in this setting. In a generator
+that produces only valid values, only a subset of them will trigger a bug; in
+a type-derived generator, however, only a subset of generated values will be valid,
+and only a subset of \textit{those} will find a bug. As a result, many more values must be produced,
+making it important to do so as quickly as possible.
 
-The type-deriving algorithm follows a compositional pattern. Generators for complex types 
-are synthesized by structurally composing generators for their subtypes: 
+The type-deriving algorithm follows a compositional pattern. Generators for complex types
+are synthesized by structurally composing generators for their subtypes:
 base types are mapped to primitive generators included in the generator library;
-product types such as tuples and records are handled by sampling each component 
-using \texttt{bind} and aggregating the results; sum types, or variants, are generated using 
-a \texttt{weighted\_union} of the generators for each case; for recursive types, 
-the entire generator is wrapped in a fixed-point combinator and a recursive handle 
+product types such as tuples and records are handled by sampling each component
+using \texttt{bind} and aggregating the results; sum types, or variants, are generated using
+a \texttt{weighted\_union} of the generators for each case; for recursive types,
+the entire generator is wrapped in a fixed-point combinator and a recursive handle
 is used as the generator for all recursive occurrences in the type.
-This compositional approach maps naturally to staged generation: 
-to derive a staged generator, we replace each standard combinator 
+This compositional approach maps naturally to staged generation:
+to derive a staged generator, we replace each standard combinator
 with its staged counterpart. The derivation algorithm remains unchanged.
 
-Our implementation in OCaml uses the PPX (PreProcessor eXtension) system to synthesize 
-staged generators from type definitions. However, any language that supports type-derived 
-generators can implement a staged version using a similar implementation to the original. In Scala, 
-for instance, the same strategy could be realized using typeclass 
-resolution. In both settings, the result is a three-stage process: a 
-metaprogram---via PPX or typeclasses---constructs a generator expression 
-composed of staged combinators; this expression is evaluated at compile 
-time to produce a specialized generator; and finally, the generator is 
+Our implementation in OCaml uses the PPX (PreProcessor eXtension) system to synthesize
+staged generators from type definitions. However, any language that supports type-derived
+generators can implement a staged version using a similar implementation to the original. In Scala,
+for instance, the same strategy could be realized using typeclass
+resolution. In both settings, the result is a three-stage process: a
+metaprogram---via PPX or typeclasses---constructs a generator expression
+composed of staged combinators; this expression is evaluated at compile
+time to produce a specialized generator; and finally, the generator is
 executed at runtime to produce values.
 
 We implemented this in \camlname; it is not yet implemented in \scalaname. We benchmark the results in \secref{section:eval}.
@@ -1359,7 +1375,7 @@ We implemented this in \camlname; it is not yet implemented in \scalaname. We be
 % \jwc{Unclear what we should call this section}
 % \bcp{``Performance opportunities in the RNG?''}
 As we discussed in Section~\ref{subsection:ineff-rand}, choosing an inefficient randomness library is
-another impediment to finding bugs fast. 
+another impediment to finding bugs fast.
 To demonstrate that faster random sampling can significanty impact bugfinding power, we
 use the controlled experiment suggested by OCaml's inefficient implementation of
 SplitMix. By replacing this relatively slow randomness library with a faster but semantically equivalent
@@ -1427,7 +1443,7 @@ We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for pe
 
 \subsection{Benchmarking Generator Speed}
 \label{subsection:benchmarking}
-To answer \textbf{RQ1}, we microbenchmark generators, comparing generators written in \camlname to semantically identical ones in \bq 
+To answer \textbf{RQ1}, we microbenchmark generators, comparing generators written in \camlname to semantically identical ones in \bq
 and generators in \scalaname to those in ScalaCheck.
  We vary the choice of \rand in our \camlname generators, using both \bq's default
 \texttt{splittable\_random} and \csplitmix, as discussed
@@ -1436,32 +1452,32 @@ typed lambda-calculus (STLC) terms. We implement generators for these benchmarks
 variety of \textit{strategies}, varying in structure and
 sophistication.
 
-In \camlname, our strategies include: type-derived generators for BSTs and STLC terms, 
-following the approach described in \secref{subsection:type-derived}; two custom 
-BST generators---one that builds a tree incrementally by repeatedly inserting 
-values into an initially empty structure, and another that constructs the 
-entire tree in a single pass by generating keys, values, and subtrees at each step; 
-a boolean list generator that mirrors the single-pass BST strategy; and a 
-generator for STLC terms that is correct by construction (i.e., it produces 
+In \camlname, our strategies include: type-derived generators for BSTs and STLC terms,
+following the approach described in \secref{subsection:type-derived}; two custom
+BST generators---one that builds a tree incrementally by repeatedly inserting
+values into an initially empty structure, and another that constructs the
+entire tree in a single pass by generating keys, values, and subtrees at each step;
+a boolean list generator that mirrors the single-pass BST strategy; and a
+generator for STLC terms that is correct by construction (i.e., it produces
 only well-typed terms).
 
-% These strategies differ in their use of generator library combinators 
-% and in how frequently they sample random values. The type-derived and 
-% insertion-based BST generators sample frequently but use combinators 
-% sparingly. The single-pass BST generator also samples frequently 
-% but uses more combinators, striking a middle ground. 
-% The type-derived 
-% STLC generator samples infrequently and makes moderate 
-% use of combinators, while the custom STLC generator uses 
-% significantly more combinators than any other strategy. 
-% The boolean list generator 
-% makes moderate use of combinators 
-% and samples booleans frequently---however, because booleans are 
-% inexpensive to sample, its overall sampling overhead is lower 
+% These strategies differ in their use of generator library combinators
+% and in how frequently they sample random values. The type-derived and
+% insertion-based BST generators sample frequently but use combinators
+% sparingly. The single-pass BST generator also samples frequently
+% but uses more combinators, striking a middle ground.
+% The type-derived
+% STLC generator samples infrequently and makes moderate
+% use of combinators, while the custom STLC generator uses
+% significantly more combinators than any other strategy.
+% The boolean list generator
+% makes moderate use of combinators
+% and samples booleans frequently---however, because booleans are
+% inexpensive to sample, its overall sampling overhead is lower
 % than that of the other strategies.
 
-For each strategy, we compare three treatments: our \bq baseline; 
-a \camlname version using \bq's randomness 
+For each strategy, we compare three treatments: our \bq baseline;
+a \camlname version using \bq's randomness
 library, \texttt{splittable\_random}; and a
 \camlname version using \csplitmix. For each treatment, we measure the
 time to generate a value (i.e., a BST, STLC term, or boolean list), using a random seed, varying generation sizes (10, 100, 1,000, 10,000).\footnote{The specific meaning of generation size is a domain-specific implementation detail---in a list generator, size might correspond to the desired length of the list, whereas in a tree generator it refer to number of nodes, number of leaves, depth of tree, etc. Regardless, our goal is to show that performance trends scale.}
@@ -1480,7 +1496,7 @@ dramatically, to $2.13-7.76\times$, when combined with \csplitmix. The insertion
 $1.18-1.22\times$ speedups with staging alone and $3.83-6.31\times$ when also
 using \csplitmix. The single-pass BST generator benefits more from
 staging, with speedups of $2.22-2.25\times$, rising to $9.05-9.82\times$ when combined with
-\csplitmix. 
+\csplitmix.
 % We attribute the difference in performance speedup to the fact that
 % BST strategies rely on relatively few calls to generator combinator functions,
 % but sample extensively from the \rand; notably, single-pass BST, which uses the largest
@@ -1490,7 +1506,7 @@ staging, with speedups of $2.22-2.25\times$, rising to $9.05-9.82\times$ when co
 For STLC, staging accounts for larger performance gains, yielding
 $1.73-4.05\times$ speedups for the type-derived STLC generator and $4.10-5.71\times$ for
 the well-typed generator. Adding \csplitmix, these numbers increase to
-$2.90-5.39\times$ and $5.33-8.33\times$. 
+$2.90-5.39\times$ and $5.33-8.33\times$.
 
 % This result makes sense because
 % STLC generators, particularly the well-typed generator, sample very little from
@@ -1502,18 +1518,18 @@ combined with \csplitmix ($2.77-7.57\times$). This is likely because sampling
 booleans is cheap enough that the overhead of crossing the FFI barrier is
 comparable to that of generating values directly in OCaml.
 
-The variation in speedups raises a natural question: what 
+The variation in speedups raises a natural question: what
 determines how much a generator benefits from staging, \rand optimizations, or both?
 One likely explanation is that the two techniques address different performance bottlenecks:
 generators that sample more often benefit more from improved random sampling, while those that rely
 heavily on generator library combinators gain more from staging.
 To test this idea, we use measurable proxies that approximate a generator's reliance on its randomness and generator libraries.
-For the former, we count the number of times a generator invokes the SplitMix sampling routine \texttt{next\_int64}. 
+For the former, we count the number of times a generator invokes the SplitMix sampling routine \texttt{next\_int64}.
 For the latter, we use the number of calls to \texttt{bind}---the central monadic generator function, extensively used both directly and within other combinators.
 
 
-We select four strategies with disparate speedup profiles: insertion-based BSTs, single-pass BSTs, 
-boolean lists, and well-typed STLC terms. To determine how often \texttt{bind} is invoked, we generate 10,000 values using a fixed generation size of 100 and 
+We select four strategies with disparate speedup profiles: insertion-based BSTs, single-pass BSTs,
+boolean lists, and well-typed STLC terms. To determine how often \texttt{bind} is invoked, we generate 10,000 values using a fixed generation size of 100 and
 record the average number of \texttt{bind} calls. To determine the number of random samples, we repeat the same test but use Intel ProcessorTrace \cn{} to capture a 4ms snapshot of processor activity.
 We then count the number of invocations of \texttt{next\_int64} and average this over the number of generator calls in the trace.
 
@@ -1524,17 +1540,17 @@ We then count the number of invocations of \texttt{next\_int64} and average this
   \label{fig:binds}
 \end{figure}
 
-\figref{fig:binds} summarizes the results. The left plot shows a clear linear 
-relationship between performance benefit from staging and number of calls 
-to \texttt{bind}. The right plot shows a separation between 
-generators that sample heavily (BST strategies) and those that 
-do not (STLC and Bool List), with the former seeing significantly 
+\figref{fig:binds} summarizes the results. The left plot shows a clear linear
+relationship between performance benefit from staging and number of calls
+to \texttt{bind}. The right plot shows a separation between
+generators that sample heavily (BST strategies) and those that
+do not (STLC and Bool List), with the former seeing significantly
 greater speedups from \csplitmix.
 
 From these results, we conclude that staging and \rand choice play distinct and
 complementary roles in generator performance. Sampling-heavy generators see
 greater improvements from faster randomness libraries, while combinator-heavy
-ones benefit more from staging. Since both factors influence performance 
+ones benefit more from staging. Since both factors influence performance
 significantly, generator libraries should use both in order to handle diverse
 workloads.
 
@@ -1586,7 +1602,7 @@ designed to test a specific aspect of the system (e.g., BST includes tasks that
 test insertion, deletion, and union operations).
 In particular, BST has 37 tasks, and STLC has 20. Strategies for BST and STLC
 are implemented in
-\camlname; they are unchanged from their description in \secref{subsection:benchmarking}. 
+\camlname; they are unchanged from their description in \secref{subsection:benchmarking}.
 Etna does not support Scala, so we were unable to test \scalaname's bug-finding speed in Etna, but we
 expect the results in this section should extend to \scalaname.
 
@@ -1627,7 +1643,7 @@ optimizations that meaningfully impact performance.
   \label{fig:etna}
 \end{figure}
 
-Our results are summarized in \figref{fig:etna}, which shows the geometric average of 
+Our results are summarized in \figref{fig:etna}, which shows the geometric average of
 individual-task speedups for each strategy and benchmark. Trends in bug-finding speed reflect trends in performance
 from \secref{subsection:benchmarking}. The distribution of speedups in \figref{fig:swarm} reveals
 substantial variability, with most tasks clustering near the median and a long tail of outliers
@@ -1645,13 +1661,13 @@ these results give strong evidence that \camlname consistently benefits bug-find
   \label{fig:swarm}
 \end{figure}
 
-In addition to \camlname's overall bug-finding speed, we evaluate 
-the performance of its type-derived generators---specifically, 
-whether they can transform previously intractable tasks into 
-tractable ones. Out of 78 tasks that initially timed out, 
-30 (38.4\%) completed successfully using \camlname alone, and 
-50 (64.1\%) completed successfully after adding \csplitmix. 
-This shows that staged type-derived generators can provide 
+In addition to \camlname's overall bug-finding speed, we evaluate
+the performance of its type-derived generators---specifically,
+whether they can transform previously intractable tasks into
+tractable ones. Out of 78 tasks that initially timed out,
+30 (38.4\%) completed successfully using \camlname alone, and
+50 (64.1\%) completed successfully after adding \csplitmix.
+This shows that staged type-derived generators can provide
 significant performance improvements for free, without
  any additional effort from the user.
 
@@ -1773,7 +1789,7 @@ as ``parsers of randomness'' \cite{goldsteinParsingRandomness2022}.
 % \jwc{
 %   \begin{itemize}
 %     \item original QC work used SplitMix \cn{}, to split at binds.
-%     \item the point of 
+%     \item the point of
 %   \end{itemize}
 % }
 
