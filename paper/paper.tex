@@ -358,11 +358,14 @@ faster, and in \scalaname, up to $13\times$ faster. Using our improved version
 of \bq's \rand in \camlname, we see even greater gains---more than $12\times$---showing that
 both staging and fast randomness play distinct and complementary roles in improving generator performance.
 Further,
-we show that generators that run
-faster also find bugs faster by running our case studies in the Etna platform, which uses generated values as
-inputs to a pre-defined buggy system and measures how quickly different generators can detect the bugs.
-Combined with fast randomness, \camlname generators find bugs
-to $2.3-3.8\times$ faster on average, and up to $13\times$ in some cases.
+we show that \camlname generators find bugs faster by running our case studies
+in the Etna platform, which uses generated values as
+inputs to a pre-defined buggy system and measures how quickly different
+generators can detect the bugs.
+\camlname generators find bugs up to $2.5\times$ faster on average than
+their \bq counterparts. With fast randomness,
+the average speedup rises to $3.8\times$,
+with some cases exceeding $13\times$.
 
 In summary, we show that PBT generator DSLs incur significant
 performance costs across languages and present two interventions that
