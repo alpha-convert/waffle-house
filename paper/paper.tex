@@ -175,9 +175,9 @@
   today's generator libraries suffer from substantial performance costs, limited by abstraction overhead and inefficient randomness libraries.
   In this paper, we identify and address these bottlenecks. We introduce \name, a multi-stage programming technique that eliminates generator overhead
   without sacrificing the flexibility and expressiveness of existing generator library functions. We augment leading generator libraries in OCaml and 
-  Scala 3 to use the \name approach, preserving the original library's semantics and enabling precise performance comparisons. We also show that \rand
-  has a measurable impact on generator performance, quantify its contribution, and show that speedups of $5.5\times$ are possible. Together, these contributions
-  lead to up to $13\times$ faster bug finding, showing that high-level generator abstractions need not come at the cost of speed.
+  Scala 3 to use the \name approach, preserving the original library's semantics and enabling precise, pointwise performance comparisons. We also show that \rand
+  has a measurable impact on generator performance, quantify its contribution, and show that speedups of $5.5\times$ are possible. Together, these 
+  improvements lead to bug-finding up to $13\times$ faster---showing that high-level generator abstractions need not come at the cost of speed.
 \end{abstract}
 
 %%
