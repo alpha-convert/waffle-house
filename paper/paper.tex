@@ -691,7 +691,7 @@ The core of any PBT generator library is a source of randomness.
 Different PBT libraries use different randomness libraries implementing different algorithms
 \footnote{The common term for such an algorithm or library is a ``Random Number
 Generator'' (RNG). We will avoid this term and instead say ``randomness library''
-to avoid confusing RNG implementations with the PBT gnenerator libraries that
+to avoid confusing RNG implementations with the PBT generator libraries that
 use them.}.
 Following the original Haskell QuickCheck implementation, \bq\ uses the SplitMix
 algorithm~\cite{splitmix}, implemented by \texttt{Splittable\_random}. Meanwhile,
@@ -1756,6 +1756,11 @@ On the \rands{} side we plan to investigate fast \rands{} that are not equivalen
 and variants of xoroshiro~\cite{xorshiro}. We also want to try techniques to speed up sampling such as pipelining, using SIMD instructions,
 or even generating random numbers ahead of time. Last, we hope to investigate the degree to which actual statistical randomness
 matters in PBT.
+
+\subsection*{Data Availabilty Statement}
+For artifact evaluation we will submit (1) the source code of \camlname{} and \scalaname{} as well as (2) the code for our version of Etna,
+which we have modified slightly to pass deterministic seeds to all versions of a single strategy.
+These programs are not available publicly or anonymized at the time of submission.
 
 %%
 %% The next two lines define the bibliography style to be used, and
