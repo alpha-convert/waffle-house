@@ -441,11 +441,6 @@ generator \texttt{return x} is the constant generator, always generating the
 value \texttt{x}. Running a generator \texttt{bind g k} runs the generator
 \texttt{g}, producing a value \texttt{a}, and then runs the generator \texttt{k
 a}.
-\iflater
-\jwc{\texttt{gen\_int} here is really \texttt{int\_uniform\_inclusive}. I also
-think we should completely omit named arguments in the paper so we don't confuse
-with splices.}
-\fi
 
 Together, these three functions are the bare minimum for constructing arbitrary
 random data generators: \texttt{gen\_int} provides a base source of randomness,
@@ -1103,10 +1098,6 @@ these types cannot mention \texttt{code}. This is not just a theoretical issue; 
 The syntactic sugar for monadic programming (\texttt{let\%bind} in OCaml, \texttt{foreach} in Scala, \texttt{do} in Haskell, etc)
 that makes it smooth can \emph{only} be used if
 return has type \texttt{'a -> 'a Gen.t} and bind has type \texttt{'a Gen.t -> ('a -> 'b Gen.t) -> 'b Gen.t}
-\iflater
-\hg{A pedantic reader may ask: Are we concerned with the monad {\em laws} as
-well, or just the type signature?}
-\fi
 
 To support convenient monadic programming, we need to adjust the type of \texttt{'a Gen.t} slightly.
 An initial attempt is to try \texttt{type 'a t = int code -> SR.t code -> 'a}. If we strip the \texttt{code} off the result type,
@@ -1119,12 +1110,6 @@ now just \texttt{'a} (not necessarily \texttt{'a code}), we cannot perform the
 let-insertion needed to preserve the CBV effects. To solve this problem, we
 turn to a classic technique from the multistage programming literature: writing
 our staged programs in continuation-passing style \cite{bondorf92}.
-\hg{Slow down! This is all very interesting and very technical! Try making each
-of these sentences two sentences, add some citations, and maybe spell this out
-wiht an example}
-\jwc{I could, but i'm just not sure this is important. It's too deep in the weeds for it to be worth explaining, too... nobody's going to read this section except staging fans}
-\bcp{... but they are gonig to be sad if they don't understand the details. If we're not too desperate for space, my suggestion would be to put in some more details plus sign posting that says tehy can be skipped. If we're up against space limits, then maybe most of the section should go to the appendix. Or second thought, maybe we should lean into the cmplexity here (and everywhere else) to give the impressions that what we've done is not simply applying known ideas in sraightforward ways}
-\jwc{Unfortunately, I think this technique is sufficiently well-understood to staging experts that we can't claim novelty. We'll jsut cut it for space if we need it.}
 
 In Figure~\ref{fig:codecps-and-final-gen}, following prior work \cite{kovacs24, carrette05}, we define
 the type \texttt{'a CodeCps.t = 'z. ('a -> 'z code) -> 'z code}: a polymorphic continuation transformer with the result type
