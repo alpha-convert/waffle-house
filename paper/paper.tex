@@ -193,7 +193,7 @@ library with an optimized version.
 Both interventions exactly preserve the semantics of generators,
 enabling precise, pointwise comparisons.
 %
-Together, these improvements make bug finding up to $13\times$ faster.
+Together, these improvements find bugs up to $13\times$ faster.
 \end{abstract}
 
 %%
@@ -293,63 +293,53 @@ Together, these improvements make bug finding up to $13\times$ faster.
 %}
 
 %\jwc{``Property based testing is a race against time...''}
-Property-based testing (PBT) is a software testing technique that uses
-random test inputs to validate logical specifications. Recent studies on PBT usage in industry~\cite{inpractice} have shown that
-practitioners often interleave PBT with their software development process, sometimes
-testing their properties every time they save their code. This means that PBT is often given a very short time
-window to find bugs---e.g., between 50 milliseconds and 30 seconds~\cite{inpractice}.
-The faster a test fails, the better.
-% The goal of PBT is to fail tests as fast as possible. \jwc{First cut at ``fail fast''}
-% \iflater
-% \bcp{Feels like we're missing a trick in the transition here.  Can we
-%   say, ``Because performance is important, PBT libraries are already
-%   quite tuned.  [Can we substantiate that??]  But more is
-%   possible...'' }
-% \fi
+Property-based testing is a software testing technique that uses
+random test inputs to validate logical specifications. A recent study
+on PBT usage in industry~\cite{inpractice} shows that many
+practitioners run their property-based tests very frequently, and with
+a very short time budget.  The faster the tests fail, the better.
 
-One important locus for performance improvement
+One important opportunity for performance improvement
 is the \textit{generators} that produce random inputs to the properties under
 test. These generators are written with the help of \textit{generator
 libraries}, usually expressed as embedded domain-specific languages (eDSLs) %\cntxt{edsls}
-that provide combinators for building and composing generators. However, careful
-measurements show that the performance of existing generator libraries falls far short of what
-is possible.
+that provide combinators for building and composing generators.
 
-This is due to two major sources of inefficiency.
-First, the same high-level design approach that gives generator libraries their
-flexibility also introduces layered abstractions and indirections that are difficult for
+However, careful
+measurements show that the performance of existing generator libraries falls far short of what
+is possible,
+for two reasons.
+%
+First, the high-level design approach followed by generator combinator
+libraries introduces layered abstractions  that are difficult for
 compilers to optimize.
 Second, the calls a generator makes to its \rand{} can constitute a large
 proportion of its run-time, magnifying the cost of an inefficient
 implementation.
+%
+In this paper, we characterize, quantify, and address these issues.
 
-In this paper, we study and address these issues.
-First, we show how to use \textit{multi-stage programming}, a classic technique for
-building fast DSLs “without regret”~\cn{}, to eliminate the overhead of
-many common generator abstractions. We refer to this approach as \name.
-% Secondly, we demonstrate the
-% impact of diferent choices of randomness library on generator performance by conducting a
-% controlled comparison.
-Second, we demonstrate that a DSL's choice of \rand{} has a
-dramatic impact on its performance by performing a controlled experiment,
-isolating the performance benefits of faster randomness in a clearly quantifiable manner.
+We address the overhead of
+many common generator abstractions using \textit{multi-stage
+  programming} (or {\em staging}), a well-studied technique for
+building fast DSLs “without regret”~\cn{}.  We refer to this approach as \name.
+%
+To demonstrate its generality, we implement staged generator DSLs in
+two strict functional languages: OCaml and Scala 3.  In OCaml, we
+build \camlname{}, based on \bq{}---a high-quality PBT library in
+OCaml, authored by software engineers at the trading firm Jane Street
+\cn{}.  In Scala 3, we build \scalaname{}, based on ScalaCheck---the
+language's standard PBT library\cn{}.
 
-% These insights lay the groundwork for generator libraries that combine high-level
-% design with low-level performance.
+We isolate and quantify the performance benefits of faster randomness,
+showing that a DSL's choice of \rand{} has a dramatic impact on its
+performance.  \bcp{describe the experiment}
 
-% \bcp{It
-% feels a bit grand to call what we've done an ``approach''---it's
-% really just a single performance-enhancing technique, staging, plus
-% the observation that the RNG matters and you should use the fastest
-% one you can.}
-
-To demonstrate the multi-language applicability of \name{}, we implement staged generator DSLs in two strict functional languages: OCaml and Scala 3.
-In OCaml, we build \camlname{}, based on \bq{}---a
-high-quality PBT library in OCaml, authored by software engineers at the trading firm Jane Street \cn{}.
-In Scala 3, we build \scalaname{}, based on ScalaCheck---the language's standard PBT library\cn{}.
 In both languages, our libraries preserve the semantics of the original: given the same random seed, generators written using \camlname or \scalaname produce exactly the same sequence of values as equivalent generators using \bq or ScalaCheck, respectively.
 This semantic equivalence enables pointwise---as opposed to distributional---bug-finding comparisons, ensuring that if a \name{} generator finds bugs faster, this is attributable \textit{solely} to staging and \rand optimizations, not luck with seeds.
-% \jwc{BCP thinks this should be a little stronger: ``and not obscured by the probablistic nature of generation'', or something like that. ``Comparing distributions of speed is hard, comparing pointwise is easier.''. This needs to have its own sentence here.}
+
+
+
 
 We evaluate the optimizations with a series of case studies in each
 generator library, and show that the \name{} generators run faster than their unstaged equivalents.
