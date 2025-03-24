@@ -532,7 +532,7 @@ Different generator DSLs use variatoins on this basic design, but the basics are
 
 % Different PBT libraries use variations on this basic design. The largest source of variation is how the random seed is threaded through the generator.
 % \bcp{Sentence starts with lowerase} \bq{} uses a reader monad with a mutable seed, while Haskell's QuickCheck uses a reader monad with an immutable state
-% that is ``split'' at \texttt{bind}s \cn. Meanwhile, ScalaCheck (a) uses an immutable state type and state monad \cn{} to thread
+% that is ``split'' at \texttt{bind}s. Meanwhile, ScalaCheck (a) uses an immutable state type and state monad to thread
 % the state through, and (b) has an \texttt{Option} as its return type, to allow generation to fail.
 % \bcp{This discussion should go elsewhere...}
 
@@ -859,7 +859,7 @@ In the staging literature, this task is known as ``binding-time analysis,'' and 
 % instead be \texttt{t code} --- in other words,
 % figuring out which parts of the DSL can be determined statically (and can be
 % part of the compile-time stage), and which parts are only known dynamically (and
-% hence must be \texttt{code}) --- is an art known as ``binding-time analysis'' \cn.
+% hence must be \texttt{code}) --- is an art known as ``binding-time analysis''
 
 The crux of our binding time analysis is that the \emph{only} parts of a generator that are not
 known at compile time are the random seed and
