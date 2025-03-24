@@ -1404,7 +1404,7 @@ in OCaml and ScalaCheck in Scala, allowing us to assess the effectiveness of our
 technique across different languages and runtime
 environments.
 
-This section presents our experimental setup, and addresses the following research questions:
+This section presents our experimental setup and addresses the following research questions:
 
 \begin{itemize}
   \item \textbf{RQ1}: Do generators written using our technique run faster than those written with regular generator combinators?
@@ -1418,23 +1418,20 @@ The baseline OCaml generators were written with \bq{} 0.16.
 \scalaname{} and all Scala benchmarks
 were run on Scala 3.6.3
 and OpenJDK 21.0.6, using ScalaCheck version 1.17 as the baseline.
-We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for performance microbenchmarking. \tr{Etna?}
+We used \texttt{core\_bench} 0.16 \cn in OCaml and \texttt{jmh} 0.4.7 \cn for performance microbenchmarking. For assessing and comparing PBT techniques, we used the Etna\cn platform.
 
 \subsection{Benchmarking Generator Speed}
 \label{subsection:benchmarking}
-To answer \textbf{RQ1}, we microbenchmark generators, comparing generators in \camlname to semantically identical ones in \bq,
+To answer \textbf{RQ1}, we microbenchmark generators, comparing generators written in \camlname to semantically identical ones in \bq 
 and generators in \scalaname to those in ScalaCheck.
  We vary the choice of \rand in our \camlname generators, using both \bq's default
 \texttt{splittable\_random} and \csplitmix, as discussed
-in \secref{subsection:faster-rng}. Our test cases consist of generators for boolean lists, binary search trees (BST), and simply
-typed lambda calculus (STLC) terms. We implement generators for these benchmarks using a
-variety of \textit{strategies} varying in structure and
+in \secref{subsection:faster-rng}. Our test cases consist of generators for boolean lists, binary search trees (BSTs), and simply
+typed lambda-calculus (STLC) terms. We implement generators for these benchmarks using a
+variety of \textit{strategies}, varying in structure and
 sophistication.
 
-\subsubsection{\camlname}
-\label{subsubsection:ocaml}
-
-In \camlname, our strategies include type-derived generators for BSTs and STLC terms, 
+In \camlname, our strategies include: type-derived generators for BSTs and STLC terms, 
 following the approach described in \secref{subsection:type-derived}; two custom 
 BST generators---one that builds a tree incrementally by repeatedly inserting 
 values into an initially empty structure, and another that constructs the 
@@ -1462,20 +1459,20 @@ For each strategy, we compare three treatments: our \bq baseline;
 a \camlname version using \bq's randomness 
 library, \texttt{splittable\_random}; and a
 \camlname version using \csplitmix. For each treatment, we measure the
-time to generate a value (i.e., a BST, a STLC term, or a boolean list), using a random seed, varying generation sizes (10, 100, 1,000, 10,000).\footnote{The way size is used in a generator is a domain-specific implementation detail---in a list generator, size might correspond to the desired length of the list, whereas in a tree generator it refer to number of nodes, number of leaves, depth of tree, etc. Regardless of how size is encoded, our goal is to show that performance trends scale.}
-We run each treatment for 5 seconds---enough for several thousand generations---and compute the average generation time of a value produced in that interval.
+time to generate a value (i.e., a BST, STLC term, or boolean list), using a random seed, varying generation sizes (10, 100, 1,000, 10,000).\footnote{The way size is used in a generator is a domain-specific implementation detail---in a list generator, size might correspond to the desired length of the list, whereas in a tree generator it refer to number of nodes, number of leaves, depth of tree, etc. Regardless of how size is used, our goal is to show that performance trends scale.}
+We run each treatment for 5 seconds and compute the average generation time of a value produced in that interval.
 
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
   \includegraphics[scale=0.43]{time.png}
-  \caption{Time to generate values of varying sizes using each \camlname strategy. Lower lines translate to greater performance benefit. BQ is \bq; Staged SR is \camlname using \bq's \texttt{splittable\_random} RNG; Staged CSR is \camlname using \csplitmix.}
+  \caption{Time to generate values of varying sizes using each \camlname strategy. Lower is better. Both axes are logarithmic. BQ is \bq; Staged SR is \camlname using \bq's \texttt{splittable\_random} RNG; Staged CSR is \camlname using \csplitmix.}
   \label{fig:time}
 \end{figure}
 
 Our results are summarized in \figref{fig:time}.
-Our type-derived \camlname BST generator achieves speedups ranging from $1.30-1.38\times$, which increase
+The type-derived \camlname BST generator achieves speedups ranging from $1.30-1.38\times$, which increase
 dramatically, to $2.13-7.76\times$, when combined with \csplitmix. The insertion-based BST generator sees
-$1.18-1.22\times$ speedups with staging alone, and $3.83-6.31\times$ when also
+$1.18-1.22\times$ speedups with staging alone and $3.83-6.31\times$ when also
 using \csplitmix. The single-pass BST generator benefits more from
 staging, with speedups of $2.22-2.25\times$, rising to $9.05-9.82\times$ when combined with
 \csplitmix. 
@@ -1495,7 +1492,7 @@ $2.90-5.39\times$ and $5.33-8.33\times$.
 % randomness libraries but rely extensively on generator library functions.
 
 The boolean list generator experiences $2.77-7.47\times$ speedups with
-staging, and its performance changes minimally when
+staging, and its performance changes only minimally when
 combined with \csplitmix ($2.77-7.57\times$). This is likely because sampling
 booleans is cheap enough that the overhead of crossing the FFI barrier is
 comparable to that of generating values directly in OCaml.
@@ -1506,13 +1503,14 @@ One likely explanation is that the two techniques address different performance 
 generators that sample more often benefit more from improved random sampling, while those that rely
 heavily on generator library combinators gain more from staging.
 To test this idea, we use measurable proxies that approximate a generator's reliance on its randomness and generator libraries.
-For the former, we use the number of calls to \texttt{bind}---the central monadic generator function, extensively used both directly and within other combinators.
-For the latter, we count the number of times a generator invokes the SplitMix sampling routine \texttt{next\_int64}. 
+For the former, we count the number of times a generator invokes the SplitMix sampling routine \texttt{next\_int64}. 
+For the latter, we use the number of calls to \texttt{bind}---the central monadic generator function, extensively used both directly and within other combinators.
 
-We select four strategies with disparate speedups: insertion-based BSTs, single-pass BSTs, 
-boolean lists, and well-typed STLC terms. To determine how often \texttt{bind} is invoked, we generate 10,000 values using a fixed generation size of 100, and 
-record the average number of \texttt{bind} calls. To determine the number of random samples, we repeat the same test, but use Intel ProcessorTrace \cn{} to capture a 4ms snapshot of processor activity.
-We then count the number of invocations of \texttt{next\_int64} and average this over the number of complete generations in the trace.
+
+We select four strategies with disparate speedup profiles: insertion-based BSTs, single-pass BSTs, 
+boolean lists, and well-typed STLC terms. To determine how often \texttt{bind} is invoked, we generate 10,000 values using a fixed generation size of 100 and 
+record the average number of \texttt{bind} calls. To determine the number of random samples, we repeat the same test but use Intel ProcessorTrace \cn{} to capture a 4ms snapshot of processor activity.
+We then count the number of invocations of \texttt{next\_int64} and average this over the number of generator calls in the trace.
 
 \begin{figure}[h]
   \includegraphics[scale=0.28]{bind.png}
@@ -1521,7 +1519,7 @@ We then count the number of invocations of \texttt{next\_int64} and average this
   \label{fig:binds}
 \end{figure}
 
-\figref{fig:binds} summarizes our results. The left plot shows a clear linear 
+\figref{fig:binds} summarizes the results. The left plot shows a clear linear 
 relationship between performance benefit from staging and number of calls 
 to \texttt{bind}. The right plot shows a separation between 
 generators that sample heavily (BST strategies) and those that 
@@ -1535,12 +1533,11 @@ ones benefit more from staging. Since both factors influence performance
 significantly, generator libraries should use both in order to handle diverse
 workloads.
 
-\subsubsection{\scalaname}
 In \scalaname, we implement a subset of the \camlname
 strategies: the boolean list generator, single-pass BST generator, and
 well-typed STLC term generator.\footnote{By default, ScalaCheck does not support deriving gnenerators from types,
 so those strategies are excluded.} We did not implement an optimized version of ScalaCheck's
-\rand, but our experimental setup was otherwise the same as in \secref{subsubsection:ocaml}.
+\rand, but our experimental setup was otherwise the same as in OCaml.
 
 As shown in \figref{fig:scala}, \scalaname achieves an even greater performance
 gain---purely from staging---over ScalaCheck than \camlname does over \bq. In particular,
@@ -1550,7 +1547,7 @@ ScalaCheck's representation of generators as functions of type \texttt{size ->
 seed -> Option[A]}: each generator combinator must construct and then
 pattern-match on these \texttt{Option} values, introducing significant boxing
 and unboxing overhead at each step.  Staging eliminates this
-overhead. These results show that \name generalizes well across languages.
+overhead. These results show that the \name approach generalizes well across languages.
 
 % \subsubsection{Scala} To show that the benefit of staging extends to
 % other strict functional languages, we apply it to ScalaCheck, a widely-used PBT
@@ -1559,7 +1556,7 @@ overhead. These results show that \name generalizes well across languages.
 \begin{figure}[h]
   \centering
   \includegraphics[scale=0.41]{scala.png}
- \caption{Time to generate values of varying sizes using each \scalaname strategy. SC is ScalaCheck; Staged is \scalaname.}
+ \caption{Time to generate values of varying sizes using each \scalaname strategy. Lower is better. Both axes are logarithmic. SC is ScalaCheck; Staged is \scalaname.}
  \label{fig:scala}
  \end{figure}
 
@@ -1575,39 +1572,37 @@ overhead. These results show that \name generalizes well across languages.
 %}
 \subsection{Benchmarking bug-finding speed}
 To answer \textbf{RQ2}, we evaluate the bug-finding speed of our BST and STLC
-case studies using Etna\cn{}, a platform for assessing and comparing PBT techniques.
+case studies using Etna\cn{}.
 Etna allows users to measure the effectiveness of different generator
 implementations by injecting bugs into the system under test and recording the
-time taken for a relevant property to fail in response. For example, in a tree
-with an ordering property, a bug injection might consist of inserting a value
-into the tree that violates that ordering. Each case study includes a diverse
+time taken for a relevant property to fail in response. Each case study includes a diverse
 set of \textit{tasks}, where a task consists of a specific bug-property pair
-designed to test different aspects of the system (e.g., BST includes tasks that
-test insertion, deletion, and union operations on binary search trees).
+designed to test a specific aspect of the system (e.g., BST includes tasks that
+test insertion, deletion, and union operations).
 In particular, BST has 37 tasks, and STLC has 20. Strategies for BST and STLC
 are implemented in
 \camlname; they are unchanged from their description in \secref{subsection:benchmarking}. 
 Etna does not support Scala, so we were unable to test \scalaname's bug-finding speed in Etna, but we
-we see no reason our results in this section would not extend to \scalaname.
+expect the results in this section should extend to \scalaname.
 
 It is worth noting that the time-to-failure of a given strategy on a given seed
 is not necessarily representative of the strategy's average time-to-failure over
 a large number of trials. We normalize by computing the relative performance, or
 the ``speedup''. This works in most cases, but it is not perfect.  For example,
 it is theoretically possible to choose a seed such that the \textit{first} value
-produced by a generator discovers the bug, which would elide any differential
-speedup (and likewise if both generators fail to find the bug).  To account for
+produced by a generator discovers the bug, which would eliminate any differential
+speedup, and likewise if both generators fail to find the bug.  To account for
 these cases, we repeat the above process over 30 random seeds---that is, all strategies
-are run on the same seed so that they produce identical sequences of values, and this process
-is repeated 30 times.\footnote{Although the
+run on the same seed so that they produce identical sequences of values, and this process
+is repeated 30 times. Although the
 variance \textit{between} seeds in Etna can be vast, timing results are
 replicable for a \textit{given} seed. Across 1,000 trials using the same seed,
-the observed variance in time-to-failure was less than a nanosecond.}
+the observed variance in time-to-failure was less than a nanosecond.
 
 We run each
 strategy on all tasks using a 60-second timeout.  If a bug is not found within
-this limit, the task is considered unsolved.  Tasks where all strategies fail to
-find the bug are excluded from our dataset, as they provide no basis for
+this limit, the task is considered ``unsolved.''  We exclude tasks where all strategies fail to
+find the bug from our dataset, as they provide no basis for
 comparison.  Similarly, we exclude tasks where the \bq strategy completes in
 under 5ms, as such negligible runtimes do not yield meaningful insights into
 relative performance. Across all 30 seeds, these filters remove
@@ -1616,7 +1611,7 @@ relative performance. Across all 30 seeds, these filters remove
 149/1110 (14.42\%) of type-derived BST's tasks,
 268/1110 (24.1\%) of single-pass BST's tasks, and
 371/1110 (33.42\%) of insertion-based BST's tasks. More sophisticated
-strategies tend to find bugs faster, leading to a higher number of filtered
+strategies tend to find bugs very quickly, leading to a higher number of filtered
 tasks. By applying these filters, we ensure that our reported speedups reflect
 optimizations that meaningfully impact performance.
 
@@ -1645,15 +1640,14 @@ these results give strong evidence that \camlname consistently benefits bug-find
   \label{fig:swarm}
 \end{figure}
 
-\subsubsection{Do improved type-derived generators reduce timeouts?}
 In addition to \camlname's overall bug-finding speed, we evaluate 
 the performance of its type-derived generators---specifically, 
 whether they can transform previously intractable tasks into 
 tractable ones. Out of 78 tasks that initially timed out, 
 30 (38.4\%) completed successfully using \camlname alone, and 
 50 (64.1\%) completed successfully after adding \csplitmix. 
-This suggests that staged type-derived generators can provide 
-significant performance improvements for free---that is, without
+This shows that staged type-derived generators can provide 
+significant performance improvements for free, without
  any additional effort from the user.
 
 \section{Beyond OCaml and Scala}
