@@ -1479,7 +1479,7 @@ record the average number of \texttt{bind} calls. To determine the number of ran
 We then count the number of invocations of \texttt{next\_int64} and average this over the number of generator calls in the trace.
 
 \begin{figure}[h]
-  \includegraphics[scale=0.46]{bind.pdf}
+  \includegraphics[scale=0.44]{bind.pdf}
   \caption{Left: Speedup from staging (compared to \bq) versus the number of \texttt{bind} calls.
   Right: Speedup from \csplitmix (compared to \camlname alone) versus the number of random samples.}
   \label{fig:binds}
@@ -1521,7 +1521,7 @@ overhead. These results show that the \name approach generalizes well across lan
 
 \begin{figure}[h]
   \centering
-  \includegraphics[scale=0.66]{scala.pdf}
+  \includegraphics[scale=0.68]{scala.pdf}
  \caption{Time to generate values of varying sizes using each \scalaname strategy. Lower is better. Both axes are logarithmic. SC is ScalaCheck; Staged is \scalaname.}
  \label{fig:scala}
  \end{figure}
@@ -1582,7 +1582,7 @@ tasks. By applying these filters, we ensure that our reported speedups reflect
 optimizations that meaningfully impact performance.
 
 \begin{figure}[h]
-  \includegraphics[scale=0.45]{speedup.pdf}
+  \includegraphics[scale=0.59]{speedup.pdf}
   \caption{Geometric average of all speedups---relative to \bq---for each strategy and benchmark, showing that staging leads to better bug-finding speed across the board. CSM is \csplitmix.
   }
   \label{fig:etna}
@@ -1601,7 +1601,7 @@ Overall,
 these results give strong evidence that \camlname consistently benefits bug-finding speed, sometimes drastically.
 
 \begin{figure}[h]
-  \includegraphics[scale=0.35]{swarm.pdf}
+  \includegraphics[scale=0.36]{swarm.pdf}
   \caption{Distribution of individual-task speedups across strategies and benchmarks. Gray dots represent tasks. Plots with extremely low variance have no swarm overlay. CSM is \csplitmix.}
   \label{fig:swarm}
 \end{figure}
