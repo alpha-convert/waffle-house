@@ -1,4 +1,4 @@
-\documentclass[sigplan,screen,acmsmall,anonymous,review]{acmart}%%
+\documentclass[acmsmall,screen,review,anonymous]{acmart}
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
   \providecommand\BibTeX{{%
@@ -970,7 +970,7 @@ let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
 \subsection{Staging Combinators}
 
 In Section~\ref{section:motiv}, we noted that generator combinators like \texttt{weighted\_union}
-allocate lists in the hot path of the generator. Even though these lists are usually small---at most a few dozen elements---each allocation takes us closer to the next garbage collection\proposecut{, which is bad for performance}.
+allocate lists in the hot path of the generator. Even though these lists are usually small---at most a few dozen elements---each allocation takes us closer to the next garbage collection, which is bad for performance.
 
 This is an ideal opportunity to exercise another feature of staging: compile-time specialization.
 Since we almost always know the particular list of choices at compile time, a staged version of \texttt{weighted\_union}
@@ -1176,7 +1176,7 @@ To avoid confusion with random data generators, we refer to this type as \texttt
 Most importantly, the \texttt{CodeCps} type supports a function \texttt{let\_insert}, which, given \texttt{cx : 'a code},
 let-binds \texttt{let x = .\~{}cx}, and then passes \texttt{.<x>.} to the
 continuation.
-\hg{I'm getting lost in the inline code again}
+% \hg{I'm getting lost in the inline code again}
 
 We can then redefine
 our staged generator monad type to be
@@ -1229,8 +1229,8 @@ ties the knot and builds a recursive generator.
 
 In our setting, letting programmers define recursive generators as recursive functions is out of the question.
 With staged programming, recursion must be handled with care: it is far too easy to accidentally recursively
-define an infinite \texttt{code} value and have the program diverge at compile time\proposecut{, when trying to write
-a \texttt{code} representing a recursive program.}
+define an infinite \texttt{code} value and have the program diverge at compile time, when trying to write
+a \texttt{code} representing a recursive program.
 To this end, we develop a staged recursive generator combinator\footnote{
 We actually provide a more general API that allows programmers to define \emph{parameterized}
 recursive combinators, of type \texttt{'r code -> 'a code Gen.t}, for any type \texttt{'r}.
