@@ -414,7 +414,7 @@ produced by a {\em generator}---a program written in some domain-specific
 language (DSL) that allows the developer to express precisely how values should
 be sampled.
 
-\begin{wrapfigure}{r}{.5\textwidth}
+\begin{figure}[h]
 \begin{lstlisting}
 module Bq : sig
   type 'a t
@@ -433,7 +433,7 @@ end
 \end{lstlisting}
 \caption{Some functions from the API of the \bq{} generator DSL.}
 \label{fig:bq-api}
-\end{wrapfigure}
+\end{figure}
 
 The standard design for a generator DSL, introduced in Haskell's QuickCheck
 library~\cite{quickcheck00} and copied in dozens of other frameworks,
@@ -495,8 +495,16 @@ single program and tune the data distribution. Also important are functions like
 generated values and \texttt{fixed\_point} that is used to define recursive
 generators.
 
-\begin{wrapfigure}{r}{.5\textwidth}
-\begin{lstlisting}
+\begin{wrapfigure}{r}{.49\textwidth}
+  \vspace{1.5em}
+\begin{lstlisting}[
+    xleftmargin=0pt,
+    xrightmargin=0pt,
+    aboveskip=0pt,
+    belowskip=0pt,
+    basicstyle=\ttfamily\footnotesize,
+    lineskip=0pt
+  ]
 let tree_of g = fixed_point (fun rg ->
   let%bind n = size in
   weighted_union [
@@ -883,6 +891,37 @@ function from dynamically known size and seed to dynamically determined result.
 
 The basic functionality of the staged monadic generator DSL can be
 found in Figure~\ref{fig:gen-staged-basic}.
+
+\begin{figure}[h]
+  \begin{lstlisting}
+  module Gen = struct
+    type 'a t = int code -> Random.t code -> 'a code
+  
+    let return (cx : 'a code) : 'a t = fun size random -> cx
+  
+    let bind (g : 'a t) (k : 'a code -> 'b t) : 'b t =
+      fun size random ->
+        .<
+          let a = .~(g size random) in
+          .~(k .<a>. size random)
+        >.
+  
+    let int (lo : int code) (hi : int code) : int t =
+      fun size random ->
+        .< SR.int .~random .~lo .~hi >.
+  
+    let to_bq (g : 'a code Gen.t) : ('a Bq.t) code =
+      .<
+        fun size random -> .~(g .<size>. .<random>.)
+      >.
+  end
+  \end{lstlisting}
+  \caption{Basic Staged Generator Library\ifaftersubmission\bcp{We could
+      save some space if needed by eliminating a couple of linebreaks
+      here.}\fi}
+  \label{fig:gen-staged-basic}
+  \end{figure}
+
 The constant generator \texttt{return} runs at compile time. Given \texttt{cx : 'a code}, the code for an \texttt{'a}, it
 returns the generator that ignores its \texttt{size} and
 \texttt{random} arguments and simply runs\bcp{returns the code for?} \texttt{cx}. Similarly,
@@ -909,42 +948,12 @@ content is already pretty low-level}
 \fi
 
 
-\begin{figure}
-\begin{lstlisting}
-module Gen = struct
-  type 'a t = int code -> Random.t code -> 'a code
-
-  let return (cx : 'a code) : 'a t = fun size random -> cx
-
-  let bind (g : 'a t) (k : 'a code -> 'b t) : 'b t =
-    fun size random ->
-      .<
-        let a = .~(g size random) in
-        .~(k .<a>. size random)
-      >.
-
-  let int (lo : int code) (hi : int code) : int t =
-    fun size random ->
-      .< SR.int .~random .~lo .~hi >.
-
-  let to_bq (g : 'a code Gen.t) : ('a Bq.t) code =
-    .<
-      fun size random -> .~(g .<size>. .<random>.)
-    >.
-end
-\end{lstlisting}
-\caption{Basic Staged Generator Library\ifaftersubmission\bcp{We could
-    save some space if needed by eliminating a couple of linebreaks
-    here.}\fi}
-\label{fig:gen-staged-basic}
-\end{figure}
-
 Returning to our running example, Figure~\ref{fig:running-staged} shows the
 int-pair generator written with the staged \texttt{Gen.t} monad, as well as the
 inlined code that results from calling \texttt{Gen.to\_bq} (changing some identifier names for clarity).
 The code generated is identical to the manually inlined version from Section~\ref{section:motiv}.
 
-\begin{figure}
+\begin{figure}[h]
 \begin{lstlisting}
 let int_pair_staged : (int * int) Gen.t =
   Gen.bind (Gen.int .<0>. .<100>.) (fun cx ->
@@ -976,7 +985,7 @@ If we use weighted union on a compile-time list of generators \texttt{g1}, \text
 we can emit code that picks between the generators without realizing the list at
 run time.
 
-\begin{figure}
+\begin{figure}[h]
 \begin{lstlisting}
 module Gen =
 $\dots$
@@ -1030,7 +1039,7 @@ Given a list of (in this case constant) generators with weights ``the current si
 the generated code first computes the sum of these numbers, samples between \texttt{0} and the sum, and
 traverses the tree of three \texttt{if}s to find the correct value to return.
 
-\begin{figure}
+\begin{figure}[h]
 \begin{lstlisting}
 let grades : char Bq.t = Gen.to_bq (
   Gen.bind size (fun n ->
@@ -1129,6 +1138,39 @@ let-insertion needed to preserve the CBV effects. To solve this problem, we
 turn to a classic technique from the multistage programming literature: writing
 our staged programs in continuation-passing style \cite{bondorf92}.
 
+\begin{figure}[h]
+  \begin{lstlisting}
+  module CodeCps = struct
+    type 'a t = { cps : 'z. ('a -> 'z code) -> 'z code }
+  
+    let return x = {cps = fun k -> k x}
+  
+    let bind (x : 'a t) (f : 'a -> 'b t) : 'b t =
+      {cps = fun k -> x.cps (fun a -> (f a).cps k)}
+  
+    let run (t : ('a code) t) : 'a code = t.cps (fun x -> x)
+  
+    let let_insert (cx : 'a code) : 'a code t =
+      {cps = fun k -> k .< let x = .~cx in .~(k .<x>.) >.}
+  end
+  
+  module Gen = struct
+    type 'a t = int code -> SR.t code -> 'a CodeCps.t
+  
+    let return (x : 'a) : 'a t = fun _ _ -> Codecps.return x
+  
+    let bind (g : 'a t) (f : 'a -> 'b t) =
+      fun size random ->
+        CodeCps.bind (g size random) (fun x -> (f x) size random)
+  
+    let int (lo : int code) (hi : int code) : int code t =
+      fun size random -> let_insert .< SR.int .~random .~lo .~hi >.
+  end
+  \end{lstlisting}
+  \caption{CodeCPS and the Final Gen Monad}
+  \label{fig:codecps-and-final-gen}
+  \end{figure}
+
 In Figure~\ref{fig:codecps-and-final-gen}, following prior work \cite{kovacs24, carrette05}, we define
 the type \texttt{'a CodeCps.t = 'z. ('a -> 'z code) -> 'z code}: a polymorphic continuation transformer with the result type
 always in \texttt{code}.\footnote{This is an instance of the \emph{codensity} monad \cite{janis08}---a fact that deserves further investigation.}
@@ -1159,38 +1201,6 @@ individual combinators must be carefully written to ensure that \texttt{'a code}
 To validate the library, we built a PBT harness to compare staged generators to their \bq equivalents over 1,000 random seeds.
 By differentially testing~\cite{difftesting} a large suite of generators in this way, we gained confidence that \camlname is equivalent to \bq{}.
 
-\begin{figure}
-\begin{lstlisting}
-module CodeCps = struct
-  type 'a t = { cps : 'z. ('a -> 'z code) -> 'z code }
-
-  let return x = {cps = fun k -> k x}
-
-  let bind (x : 'a t) (f : 'a -> 'b t) : 'b t =
-    {cps = fun k -> x.cps (fun a -> (f a).cps k)}
-
-  let run (t : ('a code) t) : 'a code = t.cps (fun x -> x)
-
-  let let_insert (cx : 'a code) : 'a code t =
-    {cps = fun k -> k .< let x = .~cx in .~(k .<x>.) >.}
-end
-
-module Gen = struct
-  type 'a t = int code -> SR.t code -> 'a CodeCps.t
-
-  let return (x : 'a) : 'a t = fun _ _ -> Codecps.return x
-
-  let bind (g : 'a t) (f : 'a -> 'b t) =
-    fun size random ->
-      CodeCps.bind (g size random) (fun x -> (f x) size random)
-
-  let int (lo : int code) (hi : int code) : int code t =
-    fun size random -> let_insert .< SR.int .~random .~lo .~hi >.
-end
-\end{lstlisting}
-\caption{CodeCPS and the Final Gen Monad}
-\label{fig:codecps-and-final-gen}
-\end{figure}
 
 
 % \subsubsection{The Trick at Other Types}
@@ -1254,7 +1264,7 @@ Programmers can then define recursive generators by \texttt{fixed\_point}, which
 % end
 % \end{lstlisting}
 
-\begin{figure}
+\begin{figure}[h]
 \begin{lstlisting}
 type 'a handle
 val recurse : 'a handle -> 'a code Gen.t
