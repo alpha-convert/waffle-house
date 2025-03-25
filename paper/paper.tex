@@ -673,7 +673,7 @@ at run time. Aside from the previously-discussed issues that compilers
 cannot see through the abstraction boundary to optimize these programs,
 choice combinators like \texttt{weighted\_union} come with their own particular abstraction overhead.
 
-In practice, \texttt{weighted\_union} is (almost \footnote{
+In practice, \texttt{weighted\_union} is (almost\footnote{
 There are some generators where \texttt{weighted\_union} is passed a list which
 was itself the result of a generator: the well-typed STLC term generator used in Section~\ref{section:eval} is an example of this.
 }) always called with an explicitly constructed list, as in
