@@ -488,7 +488,7 @@ generator, written the monadic syntax.
 Generator libraries also include other functions that make generator
 construction easier; some examples of these are included in
 Figure~\ref{fig:bq-api}.  The \texttt{weighted\_union} function is a
-particularly well-used one: it makes making a weighted choice between different
+particularly well-used one: it makes a weighted choice between different
 generators, allowing the developer to combine different sub-generators into a
 single program and tune the data distribution. Also important are functions like
 \texttt{size} and \texttt{with\_size} that are used to control the sizes of
@@ -636,7 +636,7 @@ def intPairInlined : (Gen.Parameters, Seed) =>
         case Some(y) => (Some(x,y),seed3)
       }
     }
-}
+  }
 \end{lstlisting}
 \caption{Simplifying a Generator in Scala}\label{fig:simplify-scala}
   \end{subfigure}
@@ -651,7 +651,7 @@ simplification.\footnote{As we discuss in Section~\ref{section:other-langs}, pur
 means that Haskell is a slightly different story. GHC can and often does
 transformations of this form.} However even in cases as simple as
 Figure~\ref{fig:simplify}, the indirection of \texttt{return}
-and \texttt{bind} causes these heuristics to not fire.  Moreover, the story is
+and \texttt{bind} causes these heuristics to not fire.  The story is
 even worse for recursive generators, as the heuristics are necessarily even more
 conservative for optimizing recursive functions.
 
@@ -662,14 +662,14 @@ running a monadic bind allocates a short-lived closure
 for the continuation and then immediately jumps into it.
 In strict functional languages like OCaml and Scala,
 each individual closure allocation is relatively cheap; but doing lots of allocation in a
-generator is very costly because each allocation brings us closer to the next costly GC pause.
-This effect is also magnified in recursive generators: each iteration
+generator is very expensive because each allocation brings us closer to the next costly GC pause.
+This effect is magnified in recursive generators: each iteration
 through the recursive loop re-allocates closures for \texttt{bind}s, so the amount of allocation
 per generated value scales linearly with the number of recursive generator calls.
 
 \paragraph{Overhead of Choice Combinators}
 Like \texttt{return} and \texttt{bind}, combinators like \texttt{weighted\_union} incur a performance penalty
-at run time. Aside from the previously-discussed issues that compilers
+at run time. Aside from the previously-discussed issue that compilers
 cannot see through the abstraction boundary to optimize these programs,
 choice combinators like \texttt{weighted\_union} come with their own particular abstraction overhead.
 
@@ -702,8 +702,7 @@ perform this search, which incurs further run-time overhead.
 \subsection{Inefficient Randomness Libraries}
 \label{subsection:ineff-rand}
 The core of any PBT generator library is a source of randomness.
-Different PBT libraries use different randomness libraries implementing different algorithms.
-\footnote{The common term for such an algorithm or library is a ``Random Number
+Different PBT libraries use different randomness libraries implementing different algorithms.\footnote{The common term for such an algorithm or library is a ``Random Number
 Generator'' (RNG). We will avoid this term and instead say ``randomness library''
 to avoid confusing RNG implementations with the PBT generator libraries that
 use them.}
@@ -746,8 +745,8 @@ values of the OCaml type \texttt{int64} are not machine words, but rather
 that \emph{all} \texttt{int64} operations (both arithmetic and bitwise) must
 allocate memory cells to contain their output, which has a significant performance benefit.
 By building a version that uses much faster ``unboxed'' 64-bit integer
-arithmetic, we can (a) demonstrate just how much faster bugs can be found just by
-using a more performant \rand{}, and (b) explore which generators benefit the most from faster \rand{}.
+arithmetic, we (a) demonstrate how much faster bugs can be found just by
+using a more performant \rand{}, and (b) explore which generators benefit the most from faster \rands{}.
 
 \section{How Can I Make My Generator Library Faster?}
 \label{section:faster-generators}
