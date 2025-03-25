@@ -483,7 +483,7 @@ sugar for them. In OCaml, \footnote{OCaml actually has a few ways to implement
 monadic syntax; this is the one provided by Jane Street's libraries.}, this
 looks like \texttt{let\%bind x = e in e'} which desugars to
 \texttt{bind e (fun x => e')}. Figure~\ref{fig:simple-macro} shows the same
-generator, written the monadic syntax.
+generator, written in the monadic syntax.
 
 Generator libraries also include other functions that make generator
 construction easier; some examples of these are included in
@@ -534,7 +534,7 @@ Figure~\ref{fig:bq-internals} shows the internals of (a simplified version of) \
 A generator \texttt{'a Bq.t} is just a function of type~\texttt{int -> SR.t -> 'a},
 taking an \texttt{int} representing the current size parameter and a random seed \texttt{SR.t},
 and returning a generated value \texttt{'a}.
-The random seed \texttt{SR.t} from \bq's \rand{} called \texttt{Splittable\_random}, henceforth aliased in code as \texttt{SR}.
+The random seed \texttt{SR.t} from \bq's \rand{} is called \texttt{Splittable\_random}, henceforth aliased in code as \texttt{SR}.
 It is an invariant of the generator library that every function of this type is
 deterministic: for a fixed size and seed, it will always return the same value, so all of the randomness in testing comes from varying the initial seed.
 The monad functions \texttt{return} and \texttt{bind} are defined in the usual way:
@@ -586,7 +586,7 @@ repeatedly reducing simplifiable terms like \lstinline{(fun x -> e) e'} where an
   ScalaCheck & \texttt{intPair}            & 458                      \\
   ScalaCheck & \texttt{intPairInlined}     & 266
   \end{tabular}
-\caption{Microbenchmarks of generators in \bq{} and ScalaCheck. Average over 10000 generations with random seeds and a fixed size.}
+\caption{Microbenchmarks of generators in \bq{} and ScalaCheck. Average over 10,000 generations with random seeds and a fixed size.}
 \label{fig:overhead-explanation-perf}
 \end{figure}
 
@@ -761,9 +761,9 @@ faster \rand{} leads to failing faster  (\ref{subsection:faster-rng}).
 \subsection{Background: Multi-Stage Programming}
 \label{subsection:msp}
 
-In multi-stage programming (or simply ``staging''), programs execute
+In multi-stage programming, or simply ``staging,'' programs execute
 in multiple stages, with each stage producing code to be run
-in the next. For the purposes of this paper, we just need two stages: compile time and run time.
+in the next. For the purposes of this paper, we need just two stages: compile time and run time.
 
 \paragraph{Staging eDSLs}
 One of the primary uses of staging is in embedded DSL construction \cite{sheard99, lms, trattdsl}.
@@ -809,7 +809,7 @@ run-time \texttt{'a} and transforms it into a program computing a run-time
 \texttt{'b}. In particular, because \texttt{f} itself runs at compile time, the
 fact that the programmer called \texttt{f} does not matter at run time---the abstraction
 that \texttt{f} defines has been eliminated.
-A code-transforming function \texttt{'a code -> 'b code} can also be converted \emph{code for a function}---a value of type
+A code-transforming function \texttt{'a code -> 'b code} can also be converted to \emph{code for a function}---a value of type
 \texttt{('a -> 'b) code}---with the following program:
 \begin{lstlisting}
 let eta (f : 'a code -> 'b code) : ('a -> 'b) code = .<fun x -> .~(f .<x>.)>.
@@ -1189,7 +1189,7 @@ our staged generator monad type to be
 The (old) type \texttt{'a Gen.t} is now written as the (new) type \texttt{'a code Gen.t}, and this type change
 carries through all of our combinators. For example, \texttt{Gen.int} now returns \texttt{int code Gen.t}.
 
-This gives us the best of both worlds. First, we get a monad instance for \texttt{'a Gen.t} with the correct types, which lets us
+This approach gives us the best of both worlds. First, we get a monad instance for \texttt{'a Gen.t} with the correct types, which lets us
 use the monadic syntactic sugar of our chosen language. Moreover, we also get to maintain the correct
 effect ordering: effectful combinators like \texttt{Gen.int} do their \emph{own} let-insertion, ensuring
 that a program like \texttt{Gen.bind Gen.int (fun x -> ...)} generates a let-binding for the result of sampling the randomness library.
@@ -1289,7 +1289,7 @@ The speed of generation becomes particularly important in this setting. In a gen
 that produces only valid values, only a subset of them will trigger a bug; in
 a type-derived generator, however, only a subset of generated values will be valid,
 and only a subset of \textit{those} will find a bug. As a result, many more values must be produced,
-making it important to do so as quickly as possible.
+making generation speed particularly crucial.
 
 The type-deriving algorithm follows a compositional pattern. Generators for complex types
 are synthesized by structurally composing generators for their subtypes:
@@ -1667,7 +1667,7 @@ Next, we discuss language-by-language the degree to which the staging-related in
   \textbf{Racket} is the next target that we intend to test on.
   The entire Racket philosophy is intertwined with
   using macros to build small eDSLs like the ones we use to write generators, and so it seems a natural fit.
-  However, the racket macros literature, while extensive, does not usually concern itself with staging for performance purposes.
+  However, the Racket macros literature, while extensive, does not usually concern itself with staging for performance purposes.
   For this reason, we---the authorship team of this paper, devoid of much Racket expertise---decided to not use Racket as a test case in this paper.
 
   \textbf{Haskell} is home to the original PBT implementation, and
