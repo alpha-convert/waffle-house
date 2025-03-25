@@ -1032,7 +1032,7 @@ tree of \texttt{if}s, specialized to the list of weights known at compile time, 
 % for me to process}
 
 Figure~\ref{fig:staged-weighted-union-example} demonstrates a use of this staged weighted union.
-Given a list of (in this case constant) generators with weights ``the current size parameter'', \texttt{2}, and \texttt{1},
+Given a list of (in this case constant) generators with weights ``the current size parameter,'' \texttt{2}, and \texttt{1},
 the generated code first computes the sum of these numbers, samples between \texttt{0} and the sum, and
 traverses the tree of three \texttt{if}s to find the correct value to return.
 
