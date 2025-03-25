@@ -316,7 +316,7 @@ First, the high-level design approach followed by generator combinator
 libraries introduces layered abstractions  that are difficult for
 compilers to optimize.
 Second, the calls a generator makes to its \rand{} can constitute a large
-proportion of its run time, magnifying the cost of an inefficient
+proportion of its run-time, magnifying the cost of an inefficient
 implementation.
 %
 In this paper, we characterize, quantify, and address these issues.
@@ -532,7 +532,7 @@ deterministic: for a fixed size and seed, it will always return the same value, 
 The monad functions \texttt{return} and \texttt{bind} are defined in the usual way:
 for an instance of the reader monad~\cite{moggi91}: \texttt{return} ignores the size and seed and returns its argument, while \texttt{bind} runs \texttt{g} and passes the result to \texttt{k}.
 The \texttt{gen\_int} combinator simply calls out to the randomness library \texttt{Splittable\_random}, aliased as \texttt{SR} here.
-Different generator DSLs use variatoins on this basic design, but the basics are the same across the board.
+Different generator DSLs use variations on this basic design, but the basics are the same across the board.
 
 % Different PBT libraries use variations on this basic design. The largest source of variation is how the random seed is threaded through the generator.
 % \bcp{Sentence starts with lowerase} \bq{} uses a reader monad with a mutable seed, while Haskell's QuickCheck uses a reader monad with an immutable state
@@ -711,7 +711,7 @@ random numbers, since they usually use versions of rejection sampling~\cite{vn51
 Moreover, generator combinators like \texttt{list} usually make $O(n)$ calls to the \texttt{int} or \texttt{float} generators.
 Because of this, the speed of a single sample matters a great deal. Unfortunately,
 while existing PBT libraries by and large make sensible choices for their randomness libraries,
-they are not chosen with performance in mind, leading to worse bugfinding power than what is possible.
+they are not chosen with performance in mind, leading to worse bug-finding power than what is possible.
 
 For example, significantly faster algorithms than SplitMix or JSF exist,
 such as the Lehmer algorithm~\cite{lehmerrng}, WyRand~\cite{wyrand}, and the xorshiro family of algorithms~\cite{xorshiro}.
@@ -724,7 +724,7 @@ including pipelined or even ahead-of-time sampling.
 Of course, simply arguing that the randomness library is on the hot
 path for PBT does not guarantee that a faster sampling leads to measurably faster
 generation; for that, we need an experiment. The most obvious experiment is to
-simply swap out the randomness library of either \bq{} or ScalaCheck one of the afformentioned faster algorithms.
+simply swap out the randomness library of either \bq{} or ScalaCheck one of the aforementioned faster algorithms.
 But, as discussed previously, \camlname{} and \scalaname{} are designed to be 100\% semantically equivalent replacements for
 their unstaged counterparts, ensuring that any bug-finding speedups are solely attributable to generator performance and not lucky seeds.
 Choosing a different \rand{} would break this property, making it much more challenging to assess the performance compared to the baseline.
@@ -1219,7 +1219,7 @@ end
 \subsection{Recursive Generators}
 Generating values of recursive datatypes requires recursive generators. Different generator DSLs support recursive generators differently. Some allow recursive generators
 to be defined as recursive functions, while others
-(including both \bq and ScalaCheck) expose a fixpoint combinator to construct recursive generators.
+(including both \bq and ScalaCheck) expose a fixed-point combinator to construct recursive generators.
 Given a step function that takes a ``handle'' to sample from a recursive generator call, it
 ties the knot and builds a recursive generator.
 
@@ -1297,9 +1297,9 @@ with its staged counterpart. The derivation algorithm remains unchanged.
 Our implementation in OCaml uses the PPX (PreProcessor eXtension) system to synthesize
 staged generators from type definitions. However, any language that supports type-derived
 generators can implement a staged version using a similar implementation to the original. In Scala,
-for instance, the same strategy could be realized using typeclass
+for instance, the same strategy could be realized using type class
 resolution. In both settings, the result is a three-stage process: a
-metaprogram---via PPX or typeclasses---constructs a generator expression
+metaprogram---via PPX or type classes---constructs a generator expression
 composed of staged combinators; this expression is evaluated at compile
 time to produce a specialized generator; and finally, the generator is
 executed at run time to produce values.
@@ -1340,10 +1340,10 @@ We implemented this in \camlname; it is not yet implemented in \scalaname. We be
 % \bcp{``Performance opportunities in the RNG?''}
 As we discussed in Section~\ref{subsection:ineff-rand}, choosing an inefficient randomness library is
 another impediment to finding bugs fast.
-To demonstrate that faster random sampling can significanty impact bugfinding power, we
+To demonstrate that faster random sampling can significantly impact bug-finding power, we
 use the controlled experiment suggested by OCaml's inefficient implementation of
 SplitMix. By replacing this relatively slow randomness library with a faster but semantically equivalent
-implemetnation, we can precisely quantify the bugfinding speedup that a better randomness library gives across a range of PBT scenarios.
+implementation, we can precisely quantify the bug-finding speedup that a better randomness library gives across a range of PBT scenarios.
 
 Note that the performance intervention described here is OCaml-specific.
 In most other PBT frameworks, the randomness library used operates on machine
@@ -1443,7 +1443,12 @@ For each strategy, we compare three treatments: our \bq baseline;
 a \camlname version using \bq's randomness
 library, \texttt{splittable\_random}; and a
 \camlname version using \csplitmix. For each treatment, we measure the
-time to generate a value (i.e., a BST, STLC term, or boolean list), using a random seed, varying generation sizes (10, 100, 1,000, 10,000).\footnote{The specific meaning of generation size is a domain-specific implementation detail---in a list generator, size might correspond to the desired length of the list, whereas in a tree generator it refer to number of nodes, number of leaves, depth of tree, etc. Regardless, our goal is to show that performance trends scale.}
+time to generate a value (i.e., a BST, STLC term, or boolean list), using 
+a random seed, varying generation sizes (10, 100, 1,000, 10,000).\footnote{The 
+specific meaning of generation size is a domain-specific implementation 
+detail---in a list generator, size might correspond to the desired length of the list, 
+whereas in a tree generator it refer to number of nodes, number of leaves, depth of tree, 
+etc. Regardless, our goal is to show that performance trends scale.}
 We run each treatment for 5 seconds and compute the average generation time of a value produced in that interval.
 
 \begin{figure}[h]
@@ -1778,7 +1783,7 @@ matters in PBT.
 
 \subsection*{Data Availabilty Statement}
 For artifact evaluation we will submit (1) the source code of \camlname{} and \scalaname{} as well as (2) the code for our version of Etna,
-which we have modified slightly to pass deterministic seeds to all versions of a single strategy.
+which we have modified slightly to (a) support parallelism, and (b) pass deterministic seeds to all versions of a single strategy.
 These programs are not available publicly or anonymized at the time of submission.
 The dataset for our evaluation is produced by a combination of Etna and microbenchmarks in the \camlname{} and \scalaname{} sources.
 It is also not available publicly at the time of submission, but the artifact will contain the means and instructions to reproduce it.
