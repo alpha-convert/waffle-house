@@ -681,7 +681,7 @@ the options for which are always known.
 This list is allocated at the call site and then never needed after the call to \texttt{weighted\_union} returns.
 Since the elements of the list and its length \texttt{n} are known,
 a compiler could in principle unroll the loops in \texttt{weighted\_union} to depth \texttt{n} and specialize the function at each call site to avoid allocating the list.
-Unfortunately, (almost\footnote{GHC is a notable exception here, performing sophisticated list fusion optimizations \cite{gill93}}) no compilers perform this kind of optimization.
+Unfortunately, (almost\footnote{GHC is a notable exception here, performing sophisticated list fusion optimizations\cite{gill93}.}) no compilers perform this kind of optimization.
 This allocation (or rather, its tendency to cause GC pauses)---as well as the cost of running the code
 to traverse arbitrary lists compared to unrolled loops---has a significant impact on
 performance.
