@@ -1,4 +1,4 @@
-\documentclass[sigplan,screen,acmsmall,anonymous,review]{acmart}%%
+\documentclass[acmsmall,screen,review,anonymous]{acmart}
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
   \providecommand\BibTeX{{%
@@ -348,9 +348,6 @@ ensuring that, if an \name{} generator finds bugs faster, this is
 attributable \textit{solely} to the staging and \rand interventions,
 not lucky choice of seeds.
 
-
-
-
 We evaluate the optimizations with a series of case studies in each
 generator library, and show that the \name{} generators run faster
 than their unstaged equivalents. In \camlname, they run up to $7\times$
@@ -684,7 +681,7 @@ the options for which are always known.
 This list is allocated at the call site and then never needed after the call to \texttt{weighted\_union} returns.
 Since the elements of the list and its length \texttt{n} are known,
 a compiler could in principle unroll the loops in \texttt{weighted\_union} to depth \texttt{n} and specialize the function at each call site to avoid allocating the list.
-Unfortunately, (almost\footnote{GHC is a notable exception here, performing sophisticated list fusion optimizations \cite{gill93}}) no compilers perform this kind of optimization.
+Unfortunately, (almost\footnote{GHC is a notable exception here, performing sophisticated list fusion optimizations\cite{gill93}.}) no compilers perform this kind of optimization.
 This allocation (or rather, its tendency to cause GC pauses)---as well as the cost of running the code
 to traverse arbitrary lists compared to unrolled loops---has a significant impact on
 performance.
@@ -973,7 +970,7 @@ let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
 \subsection{Staging Combinators}
 
 In Section~\ref{section:motiv}, we noted that generator combinators like \texttt{weighted\_union}
-allocate lists in the hot path of the generator. Even though these lists are usually small---at most a few dozen elements---each allocation takes us closer to the next garbage collection\proposecut{, which is bad for performance}.
+allocate lists in the hot path of the generator. Even though these lists are usually small---at most a few dozen elements---each allocation takes us closer to the next garbage collection, which is bad for performance.
 
 This is an ideal opportunity to exercise another feature of staging: compile-time specialization.
 Since we almost always know the particular list of choices at compile time, a staged version of \texttt{weighted\_union}
@@ -1179,7 +1176,7 @@ To avoid confusion with random data generators, we refer to this type as \texttt
 Most importantly, the \texttt{CodeCps} type supports a function \texttt{let\_insert}, which, given \texttt{cx : 'a code},
 let-binds \texttt{let x = .\~{}cx}, and then passes \texttt{.<x>.} to the
 continuation.
-\hg{I'm getting lost in the inline code again}
+% \hg{I'm getting lost in the inline code again}
 
 We can then redefine
 our staged generator monad type to be
@@ -1232,8 +1229,8 @@ ties the knot and builds a recursive generator.
 
 In our setting, letting programmers define recursive generators as recursive functions is out of the question.
 With staged programming, recursion must be handled with care: it is far too easy to accidentally recursively
-define an infinite \texttt{code} value and have the program diverge at compile time\proposecut{, when trying to write
-a \texttt{code} representing a recursive program.}
+define an infinite \texttt{code} value and have the program diverge at compile time, when trying to write
+a \texttt{code} representing a recursive program.
 To this end, we develop a staged recursive generator combinator\footnote{
 We actually provide a more general API that allows programmers to define \emph{parameterized}
 recursive combinators, of type \texttt{'r code -> 'a code Gen.t}, for any type \texttt{'r}.
@@ -1646,7 +1643,7 @@ tractable ones. Out of 79 tasks that initially timed out,
 This shows that staged type-derived generators can provide
 significant performance improvements for free, without
  any additional effort from the user.
-
+ 
 \section{Beyond OCaml and Scala}
 \label{section:other-langs}
 
