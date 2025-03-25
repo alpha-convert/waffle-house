@@ -1364,7 +1364,7 @@ present purposes; the key fact is that all of its operations are
 defined in terms of arithmetic and bitwise operations on 64-bit integers. In OCaml,
 because of details related to the garbage collector, the 64-bit integer type \texttt{int64} is represented
 at run time as a \emph{pointer} to an unscanned block of memory containing (among other things)
-a 64-bit integer~\cite{ocamlruntimerep}. This means that all operations that return an \texttt{int64} must allocate this block of memory,
+a 64-bit integer~\cite{realworldocaml}. This means that all operations that return an \texttt{int64} must allocate this block of memory,
 which has a significant impact on performance. A single call to
 one of the \bq library functions---like generating an arbitrary integer---may call into the \texttt{Splittable\_random}
 library times. Each call into \texttt{Splittable\_random}
