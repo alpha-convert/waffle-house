@@ -862,7 +862,7 @@ Our job is thus to carefully bisect the DSL, determining which inputs to generat
 combinators are known statically (and can be part of the compile time stage) and
 which parts are only known at run time (and must be treated as \texttt{code}).
 In the staging literature, this task is known as ``binding-time
-analysis,'' \cite{jones1993partial}.
+analysis\cite{jones1993partial}.''
 
 % carefully break up so that you push what you can into the compile time stage.
 % Figuring out which parts of the generator are known statically ()
@@ -937,7 +937,7 @@ Given any size and random seed, it returns a code block that calls \texttt{SR.in
 might not be known at compile time---they may themselves be the results of calling \texttt{Gen.int}---the arguments 
 \texttt{lo} and \texttt{hi} are of type \texttt{int code} and get spliced into the code block as arguments to \texttt{SR.int}.
 Lastly, \texttt{to\_bq} turns a staged generator into code for a normal \bq\
-generator. This is just a 2-argument version of ``The Trick''
+generator. This is just a two-argument version of ``The Trick''
 from Section~\ref{subsection:msp}.
 \ifaftersubmission
 \hg{TODO: Be really careful with formatting of the above paragraph. It's very
@@ -975,7 +975,7 @@ let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
 \subsection{Staging Combinators}
 
 In Section~\ref{section:motiv}, we noted that generator combinators like \texttt{weighted\_union}
-allocate lists in the hot path of the generator. Even though these lists are usually small---at most a few dozen elements---each allocation takes us closer to the next garbage collection, which is bad for performance.
+allocate lists in the hot path of the generator. Even though these lists are usually small---at most a few dozen elements---each allocation takes us closer to the next garbage collection\proposecut{, which is bad for performance}.
 
 This is an ideal opportunity to exercise another feature of staging: compile-time specialization.
 Since we almost always know the particular list of choices at compile time, a staged version of \texttt{weighted\_union}
@@ -1128,7 +1128,7 @@ return has type \texttt{'a -> 'a Gen.t} and bind has type \texttt{'a Gen.t -> ('
 To support convenient monadic programming, we need to adjust the type of \texttt{'a Gen.t} slightly.
 An initial attempt is to try \texttt{type 'a t = int code -> SR.t code -> 'a}. If we strip the \texttt{code} off the result type,
 the functions \texttt{return (x : 'a) = fun \_ \_ -> x} and \texttt{bind g k = fun size seed -> k (g size seed) size seed}
-have the proper types for a monad instance. Then, any combinators of type \texttt{'a Gen.t} before simply become \texttt{'a code Gen.t} with this new version.
+have the proper types for a monad instance. Then, any combinators of type \texttt{'a Gen.t} become \texttt{'a code Gen.t} in this new version.
 
 However, this definition of bind doesn't have call-by value effect semantics, as
 discussed in the previous section.  And because the type of \texttt{g size seed} is
@@ -1233,13 +1233,13 @@ Given a step function that takes a ``handle'' to sample from a recursive generat
 ties the knot and builds a recursive generator.
 
 In our setting, letting programmers define recursive generators as recursive functions is out of the question.
-With staged programming, recursion must be handled with care: it is far to easy to accidentally recursively
-define an infinite \texttt{code} value and have the program diverge at compile time, when trying to write
-a \texttt{code} representing a recursive program.
-To this end, we develop a staged recursive generator combinator.\footnote{
+With staged programming, recursion must be handled with care: it is far too easy to accidentally recursively
+define an infinite \texttt{code} value and have the program diverge at compile time\proposecut{, when trying to write
+a \texttt{code} representing a recursive program.}
+To this end, we develop a staged recursive generator combinator\footnote{
 We actually provide a more general API that allows programmers to define \emph{parameterized}
 recursive combinators, of type \texttt{'r code -> 'a code Gen.t}, for any type \texttt{'r}.
-}, whose API is shown in Figure~\ref{fig:staged-recursive-generator}
+}, whose API is shown in Figure~\ref{fig:staged-recursive-generator}.
 The recursion API consists of an opaque type \texttt{'a handle}, and a function \texttt{recurse} to perform recursive calls.
 Programmers can then define recursive generators by \texttt{fixed\_point}, which ties the recursive knot.
 
@@ -1703,8 +1703,8 @@ Next, we discuss language-by-language the degree to which the staging-related in
 Our work is unique in its approach to speeding up PBT, but it is certainly not
 the only work focused on making PBT faster.
 
-Perhaps the best-explored approaches to speeding up bug-finding with PBT is by
-changing the order in which test inputs are sampled. Feedback-driven mechanisms
+Reordering test input sampling is perhaps the most well-studied way to accelerate bug-finding in PBT.
+ Feedback-driven mechanisms
 like Targeted PBT~\cite{loscherTargetedPropertybasedTesting2017} and
 Coverage-Guided PBT~\cite{lampropoulosCoverageGuidedProperty2019} have the
 potential to speed up testing by changing the generation order to try to find
