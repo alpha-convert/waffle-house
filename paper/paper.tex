@@ -966,17 +966,46 @@ let int_pair : (int * int) Bq.t code = Gen.to_bq int_pair_staged
 \label{fig:running-staged}
 \end{figure}
 
-\subsection{Staging Combinators}
+\subsection{PBT-Specific Staging}
+While the techniques in the previous section eliminates monadic
+DSL overhead using standard ideas in staging, it cannot address some of the
+more subtle and domain-specific performance issues identified in Section~\ref{section:motiv},
+like hot-path allocations induced by generator combinators such as \texttt{weighted\_union}.
+Removing these allocations requires a observation that transcends simple 
+inlining: though the \emph{elements} of the lists may be dynamic, their
+\emph{spine}---the structure of the list itself---is in practice always statically
+known. This is an instance of \emph{partially-static data} \cite{partially-static}:
+a data structure whose shape is static but whose contents are dynamic.
 
-In Section~\ref{section:motiv}, we noted that generator combinators like \texttt{weighted\_union}
-allocate lists in the hot path of the generator. Even though these lists are usually small---at most a few dozen elements---each allocation takes us closer to the next garbage collection, which is bad for performance.
+This observation enables an optimization unique to the PBT generator library setting.
+Because the spine is static, we can unfold the choice-selection
+logic over the list at compile time time, specializing \texttt{weighted\_union} to the exact number
+and weights of choices. The result is a specialized generator that branches directly to the chosen
+alternative, without ever materializing the list of choices at run time.
 
-This is an ideal opportunity to exercise another feature of staging: compile-time specialization.
-Since we almost always know the particular list of choices at compile time, a staged version of \texttt{weighted\_union}
-can generate \emph{different code} depending on the number of generators in the union.
-If we use weighted union on a compile-time list of generators \texttt{g1}, \texttt{g2}, and \texttt{g3},
-we can emit code that picks between the generators without realizing the list at
-run time.
+% In Section~\ref{section:motiv}, we noted that generator combinators like
+% \texttt{weighted\_union} allocate lists in the hot path of the generator. Even
+% though these lists are usually small---at most a few dozen elements---each
+% allocation takes us closer to the next garbage collection, which is bad for
+% performance.
+
+% The simple staging we've used thusfar to remove the overhead of \texttt{return}
+% and \texttt{bind} cannot eliminate this allocation --- we must use structure specific
+% to PBT generator combinators to our advantage.
+
+% In particular, the \emph{spine} of the list of choices that \texttt{weighted\_union} picks from is
+% in practice always statically known, even if the elements themselves may be determined dynamically
+% --- the list is \emph{partially-static data} \cite{partially-static}.
+% Because of this, we can statically unroll the outer loop of the \texttt{weighted\_union} combinator
+% and specialize to the potential choices at compile-time.
+
+% This is an ideal opportunity to exercise another feature of staging: compile-time specialization.
+
+% Since we almost always know the particular list of choices at compile time, a staged version of \texttt{weighted\_union}
+% can generate \emph{different code} depending on the number of generators in the union.
+% If we use weighted union on a compile-time list of generators \texttt{g1}, \texttt{g2}, and \texttt{g3},
+% we can emit code that picks between the generators without realizing the list at
+% run time.
 
 \begin{figure}[h]
 \begin{lstlisting}
@@ -1012,7 +1041,7 @@ generators and weights. The weights themselves might only be known at run time--
 common to use the current size parameter as a weight, for instance---so they are \texttt{code}s.
 Instead of building a data structure representing a histogram of the distribution described by the weights at run time and then traversing it,
 the compile-time \texttt{weighted\_union} combinator generates a
-tree of \texttt{if}s, specialized to the list of weights known at compile time, that picks out the selected generator.
+tree of \texttt{if}s that picks out the selected generator.
 
 % \texttt{Gen.weighted\_union} begins by computing \texttt{sum\_code}, an \texttt{int code}
 % that is the sum of the weights. Note that this happens at compile time: we fold over a list
