@@ -319,12 +319,20 @@ proportion of its run time, magnifying the cost of an inefficient
 implementation.
 %
 In this paper, we characterize, quantify, and address these issues.
+% We address the overhead of
+% many common generator abstractions using \textit{multi-stage
+%   programming} (or {\em staging}), a well-studied technique for
+% building fast DSLs “without regret”~\cite{lms}.  We refer to this approach as \name.
+% %
 
+%
 We address the overhead of
 many common generator abstractions using \textit{multi-stage
   programming} (or {\em staging}), a well-studied technique for
-building fast DSLs “without regret”~\cite{lms}.  We refer to this approach as \name.
-%
+building fast DSLs "without regret"~\cite{lms}. Beyond the standard
+staging transformations, we apply advanced staging techniques~\cite{partially-static,kovacs24, carrette05}
+that let us leverage our domain-specific understanding of PBT generators to achieve the fastest possible code.
+We refer to this approach as \name.
 To demonstrate its generality, we implement staged generator DSLs in
 two strict functional languages: OCaml and Scala 3.  In OCaml, we
 build \camlname{}, based on \bq{}---a high-quality PBT library in
