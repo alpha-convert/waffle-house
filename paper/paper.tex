@@ -361,7 +361,9 @@ generators can detect the bugs. In Etna,
 \camlname generators find bugs up to $2.5\times$ faster on average than
 their \bq counterparts. With fast randomness,
 the average speedup rises to $3.8\times$,
-with some cases exceeding $13\times$.
+with some cases exceeding $13\times$. Finally, we review related libraries
+in other languages including Racket, F\#, Haskell, Rust, Clojure, and Swift,
+and discuss how the \name{} technique could be applied to them.
 
 In summary, we show that PBT generator DSLs incur significant
 performance costs across languages and present two interventions that
@@ -375,6 +377,10 @@ significantly impact performance (Section~\ref{section:motiv}).
 abstraction overhead of generators. We apply \name{} to standard
 generator libraries in both OCaml and Scala 3, showcasing its
 generality (Section~\ref{section:faster-generators}).
+\item We present a novel methodology for quantifying 
+      the precise speedup achieved using staging and fast randomness,
+      in which the performance benefit of each intervention can be
+      measured in isolation with absolutely no noise (Section~\ref{section:eval}).
 \item We demonstrate that writing generators using \name{} and fast
 \rands{} yields substantial performance improvements, both separately
 and in combination, and we show that these performance improvements
@@ -383,7 +389,7 @@ extend to significantly improved bug-finding speed (Section~\ref{section:eval}).
 
 Section~\ref{section:other-langs} discusses how the \name{}
 technique could be applied to PBT libraries in other
-languages---Racket, F\#, Haskell, and Rust.
+languages---Racket, F\#, Haskell, Rust, Clojure, and Swift.
 %
 Sections~\ref{section:related} and~\ref{section:concl} present related
 and future work.
@@ -1672,7 +1678,7 @@ This shows that staged type-derived generators can provide
 significant performance improvements for free, without
  any additional effort from the user.
  
-\section{Beyond OCaml and Scala}
+\section{Other Languages \& Libraries}
 \label{section:other-langs}
 
 In the years since the original QuickCheck paper~\cite{quickcheck00}, PBT has had remarkable success
