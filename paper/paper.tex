@@ -1187,7 +1187,7 @@ our staged programs in continuation-passing style \cite{bondorf92}.
     let run (t : ('a code) t) : 'a code = t.cps (fun x -> x)
 
     let let_insert (cx : 'a code) : 'a code t =
-      {cps = fun k -> k .< let x = .~cx in .~(k .<x>.) >.}
+      {cps = fun k -> .< let x = .~cx in .~(k .<x>.) >.}
   end
 
   module Gen = struct
