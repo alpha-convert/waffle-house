@@ -329,9 +329,17 @@ In this paper, we characterize, quantify, and address these issues.
 We address the overhead of
 many common generator abstractions using \textit{multi-stage
   programming} (or {\em staging}), a well-studied technique for
-building fast DSLs "without regret"~\cite{lms}. Beyond the standard
-staging transformations, we apply advanced staging techniques~\cite{partially-static,kovacs24, carrette05}
-that let us leverage our domain-specific understanding of PBT generators to achieve the fastest possible code.
+building fast DSLs "without regret"~\cite{lms}. 
+%
+The simple monadic structure of typical PBT generators lend themselves naturally
+to well-known staging transformations. Beyond these basic techniques, we observe
+that common usage patterns of fundemental PBT-specific combinators---e.g., weighted choices with statically known options---are amenable
+to advanced staging techniques~\cite{partially-static,kovacs24, carrette05}.
+
+% Beyond the standard
+% staging transformations, we apply advanced 
+% that let us leverage our domain-specific understanding of PBT generators to achieve the fastest possible code.
+
 We refer to this approach as \name.
 To demonstrate its generality, we implement staged generator DSLs in
 two strict functional languages: OCaml and Scala 3.  In OCaml, we
@@ -385,11 +393,11 @@ significantly impact performance (Section~\ref{section:motiv}).
 abstraction overhead of generators. We apply \name{} to standard
 generator libraries in both OCaml and Scala 3, showcasing its
 generality (Section~\ref{section:faster-generators}).
-\item We present a novel methodology for quantifying 
-      the precise speedup achieved using staging and fast randomness,
-      in which the performance benefit of each intervention can be 
-      attributed to the interventions themselves, as opposed to 
-      random chance (Section~\ref{section:eval}).
+% \item We present a novel methodology---enabled by the pointwise semantic equivalence of original and \name{}-optimized generators---for quantifying 
+%       the precise speedup achieved using staging and fast randomness,
+%       in which the performance benefit of each intervention can be 
+%       attributed to the interventions themselves, as opposed to 
+%       random chance (Section~\ref{section:eval}).
 \item We demonstrate that writing generators using \name{} and fast
 \rands{} yields substantial performance improvements, both separately
 and in combination, and we show that these performance improvements
