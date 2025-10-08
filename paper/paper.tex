@@ -387,8 +387,9 @@ generator libraries in both OCaml and Scala 3, showcasing its
 generality (Section~\ref{section:faster-generators}).
 \item We present a novel methodology for quantifying 
       the precise speedup achieved using staging and fast randomness,
-      in which the performance benefit of each intervention can be
-      measured in isolation with absolutely no noise (Section~\ref{section:eval}).
+      in which the performance benefit of each intervention can be 
+      attributed to the interventions themselves, as opposed to 
+      random chance (Section~\ref{section:eval}).
 \item We demonstrate that writing generators using \name{} and fast
 \rands{} yields substantial performance improvements, both separately
 and in combination, and we show that these performance improvements
@@ -753,7 +754,7 @@ due to implementation details related to the OCaml garbage collector,
 values of the OCaml type \texttt{int64} are not machine words, but rather
 \emph{pointers} to machine words. This means
 that \emph{all} \texttt{int64} operations (both arithmetic and bitwise) must
-allocate memory cells to contain their output, which has a significant performance benefit.
+allocate memory cells to contain their output, which has a significant performance penalty.
 By building a version that uses much faster ``unboxed'' 64-bit integer
 arithmetic, we (a) demonstrate how much faster bugs can be found just by
 using a more performant \rand{}, and (b) explore which generators benefit the most from faster \rands{}.
@@ -864,7 +865,7 @@ can ensure that any overhead of using the combinators is eliminated before run t
 
 \subsection{Design of a Staged Generator DSL}
 \label{subsection:basic-design}
-To build a staged version of a generator DSL, we want to rewrite the the generator
+To build a staged version of a generator DSL, we want to rewrite the generator
 combinators to do as much as possible at compile time.
 The compile-time stage will then produce simplified code, free of any DSL abstraction, that can be compiled and run
 with different sizes and seeds.
@@ -1702,8 +1703,7 @@ In other languages, serious thought should be put into using as fast of a \rand{
 as opposed to picking up any suitable option off the shelf.
 Next, we discuss language-by-language the degree to which the staging-related insights of this paper are portable.
 
-  \textbf{Racket} is the next target that we intend to test on.
-  The entire Racket philosophy is intertwined with
+  \textbf{Racket}'s entire philosophy is intertwined with
   using macros to build small eDSLs like the ones we use to write generators, and so it seems a natural fit.
   However, the Racket macros literature, while extensive, does not usually concern itself with staging for performance purposes.
   For this reason, we---the authorship team of this paper, devoid of much Racket expertise---decided to not use Racket as a test case in this paper.
@@ -1734,6 +1734,19 @@ Next, we discuss language-by-language the degree to which the staging-related in
   PBT libraries in Rust ask programmers to define generators directly as \texttt{seed -> value} functions.
   For this reason, staging does not seem directly applicable to any of
   the PBT libraries in Rust.
+
+  \textbf{Clojure}'s PBT library test.check\cite{test.check} is a straightforward port
+  of Haskell's QuickCheck. Like Racket, 
+  Clojure has a powerful macro system which could be employed to build staged generators. Further, since
+  Clojure runs on the JVM, we anticipate that the performance benefits of staging
+  would be similar to those observed in ScalaCheck.
+
+  \textbf{Swift}'s PBT library SwiftCheck\cite{swiftcheck} is likewise a direct port of Haskell's QuickCheck,
+  and Swift's macro system\cite{swiftmac} is expressive enough to support staged generators. Swift's inlining is
+  not as robust as GHC's, so we expect that it would also see some benefit from the \name{} technique. However,
+  SwiftCheck is not maintained, so we did not pursue this direction.
+
+This covers most of the major functional and functional-adjacent languages with both PBT libraries and metaprogramming capabilities.
 
 \section{Related Work}
 \label{section:related}
