@@ -56,7 +56,9 @@ features to type-derive standard (unstaged) ScalaCheck generators. Adapting this
 approach to emit ScAllegro would require engineering effort, but we anticipate
 no obstacles beyond that.  We chose to implement our type-derived generators in
 OCaml simply because none of the authors are Scala experts: we are much more
-familiar with OCaml, so we chose to focus our implementation efforts there.
+familiar with OCaml, so we chose to focus our implementation efforts there. In
+the camera ready, we will make it clear earlier that we only implemented type-derived
+generators in AllegrOCaml.
 
 
 # Reviewer B:
