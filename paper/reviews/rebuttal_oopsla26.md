@@ -1,4 +1,7 @@
-Reviewer A, Q1:
+## Reviewer A
+
+### Q1) Can you clarify the novelty of your paper? Does it introduce any optimization from the multi-stage programming not known before?
+
 The main novelty of this work lies in applying staging to PBT. While staging
 techniques are well established, their application to the abstractions and
 performance bottlenecks of PBT libraries has not been explored, nor is it
@@ -17,6 +20,31 @@ Unlike most staged libraries, which require users to understand metaprogramming,
 our approach is fully automatic. Since type-derived generators are constructed
 at compile time, they can be staged without altering user experience. This is a
 rare example of staging "for free."
+
+### Q2) Can you elaborate on the end-to-end effectiveness of your proposed solution?
+
+The end-to-end effectiveness of our solution depends on (a) the complexity 
+of the inputs being generated, and (b) the amount of time generation takes 
+relative to other parts of the testing process—most obviously, running the 
+system on the generated input. 
+
+In general, more complex generators contain more calls to bind that are 
+fused away using the Allegro technique; therefore, more complex generators 
+see a larger speedup. Figure 15 showcases this relationship. 
+
+The effectiveness of efficient input generation on total testing time is 
+dependent on how long everything that isn’t input generation takes. In systems 
+where running the tests themselves is slow, speeding up input generation won’t 
+have as large an impact; in systems where testing is fast, it will constitute a 
+major speedup. Our end-to-end tests on bug-finding speed, shown in Fig. 17 and 
+Fig. 18, show the time it takes for PBTs to find bugs in mutated programs. In 
+these examples, faster input generation has a measurable end-to-end impact on 
+all of our benchmarks—up to 2.65X using staging alone, and 3.40X in combination 
+with fast randomness.
+
+### Q3) What would it take to implement type-derived generators in Scala? Why did you decide not to implement it?
+
+
 
 ---
 
