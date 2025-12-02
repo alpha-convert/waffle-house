@@ -2,6 +2,8 @@
 
 > Q1) Can you clarify the novelty of your paper? Does it introduce any optimization from the multi-stage programming not known before?
 
+[JWC: ... and noticing that these sources of inefficiency exist in PBT]
+
 The main novelty of this work lies in applying staging to PBT. While staging
 techniques are well established, their application to the abstractions and
 performance bottlenecks of PBT libraries has not been explored, nor is it

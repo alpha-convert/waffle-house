@@ -198,7 +198,4 @@ Questions for authors to answer in their response
 
    In addition: Can you please share the code of the benchmarks?
 
-<<<<<<< HEAD
-=======
 4. Why was BST (Repeated Insert) not used for the ScAllegro experiments in Figure 16?
->>>>>>> 095361f450cc41290fcf4e76439bad7e6ab020a7
