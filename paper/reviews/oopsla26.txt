@@ -58,14 +58,16 @@ Line 141: There is an extra comma
 
 Questions for authors to answer in their response
 -------------------------------------------------
-Q1) Can you clarify the novelty of your paper? Does it introduce any 
-optimization from the multi-stage programming not known before?
+Q1) Can you clarify the novelty of your paper? Does it introduce any optimization from the multi-stage programming not known before?
 
-Q2) Can you elaborate on the end-to-end effectiveness of your proposed 
-solution?
+Q2) Can you elaborate on the end-to-end effectiveness of your proposed solution?
 
+<<<<<<< HEAD
 Q3) What would it take to implement type-derived generators in Scala? 
 Why did you decide not to implement it?
+=======
+Q3) What would it take to implement type-derived generators in Scala? Why did you decide not to implement it?
+>>>>>>> 095361f450cc41290fcf4e76439bad7e6ab020a7
 
 
 
@@ -138,6 +140,10 @@ worthwhile to perform further experiments with it. I wonder to what
 extent it would be possible to disable some of GHC's aggressive
 inlining, both in order to assess how much it is really paying off,
 and to compare its robustness to your staging approach.
+<<<<<<< HEAD
+=======
+
+>>>>>>> 095361f450cc41290fcf4e76439bad7e6ab020a7
 l996: "that is sometimes to build"
 
 Questions for authors to answer in their response
@@ -150,6 +156,10 @@ top of generic PBT libraries which perform as well as the hand-coded
 fuzzers used in practice? Does your work shed any light on how to
 tackle this question?
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 095361f450cc41290fcf4e76439bad7e6ab020a7
 
 Review #387C
 ===========================================================================
@@ -172,13 +182,9 @@ Strengths
 Weaknesses
 ----------
 
-1. I found the repeated shifting of focus between OCaml and Scala to be distracting. 
-An alternative approach might have been to describe the entirety of the approach for 
-OCaml, and then summarize the Scala-specific differences.
+1. I found the repeated shifting of focus between OCaml and Scala to be distracting. An alternative approach might have been to describe the entirety of the approach for OCaml, and then summarize the Scala-specific differences.
 
-   On a related note, the paper might be easier to read if there was a single table / 
-   figure that summarized the types of various values and objects used throughout the 
-   paper. I found myself making this list as I read the paper.
+   On a related note, the paper might be easier to read if there was a single table / figure that summarized the types of various values and objects used throughout the paper. I found myself making this list as I read the paper.
 
 2. It is not clear how the benchmarks were chosen, or what they look like.
 
@@ -188,11 +194,11 @@ Questions for authors to answer in their response
 
 2. How were the experimental benchmarks chosen?
 
-3. Can you clarify what you mean by "semantically identical" on Line 759? Apart from the 
-complications of Section 3.6, I would have expected that the AllegrOCaml and Base_quickcheck 
-benchmarks would be syntactically identical, modulo like-for-like substitution of 
-Base_quickcheck constructs for AllegrOCaml ones. And similarly for the ScAllegro 
-benchmarks.
+3. Can you clarify what you mean by "semantically identical" on Line 759? Apart from the complications of Section 3.6, I would have expected that the AllegrOCaml and Base_quickcheck benchmarks would be syntactically identical, modulo like-for-like substitution of Base_quickcheck constructs for AllegrOCaml ones. And similarly for the ScAllegro benchmarks.
 
    In addition: Can you please share the code of the benchmarks?
 
+<<<<<<< HEAD
+=======
+4. Why was BST (Repeated Insert) not used for the ScAllegro experiments in Figure 16?
+>>>>>>> 095361f450cc41290fcf4e76439bad7e6ab020a7

@@ -1,7 +1,6 @@
-Reviewer A:
+# Reviewer A
 
-> Q1) Can you clarify the novelty of your paper? Does it introduce any 
-optimization from the multi-stage programming not known before?
+> Q1) Can you clarify the novelty of your paper? Does it introduce any optimization from the multi-stage programming not known before?
 
 The main novelty of this work lies in applying staging to PBT. While staging
 techniques are well established, their application to the abstractions and
@@ -61,16 +60,14 @@ therefore is more like compile time metaprogramming than run-time
 metaprogramming, where programmers save the code output to disk to cache it.
 
 
-
 > Q3) What would it take to implement type-derived generators in Scala? 
 Why did you decide not to implement it?
 
 ...
 
 
--------------
 
-Reviewer B:
+# Reviewer B:
 
 > Typos on l379, l475, l621, l653, l718, l824
 
@@ -88,9 +85,9 @@ effect handlers in place of a monadic generator DSL.
 We are also now curious about this! Very interesting idea, direct-style generators
 could potentially be very performant and also have the benefit of being more idiomatic.
 
-> l989: You have conjectured that because GHC is set up to perform aggressive optimisations without staging then it is likely to benefit less from the kind of optimisations you exploit. It would be worth investigating to what extent this is indeed the case. 
+> l989: You have conjectured that because GHC is set up to perform aggressive optimisations without staging then it is likely to benefit less from the kind of optimisations you exploit. It would be worth investigating to what extent this is indeed the case. Given that GHC’s QuickCheck is the canonical PBT framework it seems particularly worthwhile to perform further experiments with it. I wonder to what extent it would be possible to disable some of GHC’s aggressive inlining, both in order to assess how much it is really paying off, and to compare its robustness to your staging approach.
 
-This is a fair point. Our conjecture is based on anecdotal evidence; one of the authors — an experienced Haskell developer — manually applied some of Allegro’s optimizations to a few Haskell generators, and they found that they could really only manage to make performance worse, not better. This is nowhere near a proof, but it discouraged us from exploring that path in the short term. We would be happy to mention this anecdotal experience and/or go into more detail about wanting to do this experiment as future work.
+This is a fair point. Our conjecture is based on anecdotal evidence; one of the authors — an experienced Haskell developer — manually applied some of Allegro’s optimizations to a few Haskell generators, and they found that they could really only manage to make performance worse, not better. This is nowhere near a proof, but it discouraged us from exploring that path in the short term. We would be happy to mention this anecdotal experience and/or go into more detail about wanting to do this experiment as future work
 
 > Can we can bridge the performance gap between bespoke
 highly-optimised fuzzing approaches and the much more generic PBT
@@ -112,7 +109,11 @@ Testing and Parsing Randomness may provide paths forward in those domains as wel
 
 ----
 
-Reviewer C:
+This is a really interesting question, and we think that our work speaks directly to part of it. Specifically, hand-coded fuzzers that construct inputs satisfying specific structural and semantic constraints are performing precisely the same task that PBT generators are designed for. Hand-coded fuzzers might be faster than PBT generators if users choose to optimize them aggressively, but ideally those optimizations should not need to be done manually. Our hope is that Allegro (and other advances from the PBT literature) can make PBT generators fast enough that developers could use them as highly-performant fuzzers, even though they are expressed in a higher-level language that is easier to write in and reason about. The question gets a bit less clear when considering fuzzers that use mutation and other techniques to obtain interesting inputs, rather than a hand-coded program, although ideas in papers like Coverage Guided Property-Based Testing and Parsing Randomness may provide paths forward in those domains as well.
+
+# Reviewer C
+
+> 1. Can you provide an example of how the recursive generator API in Section 3.6 is used?
 
 > 1. Can you provide an example of how the recursive generator API in Section 3.6 is used?
 Yes, it's used in Figure 3 --- we can include a figure down at Section 3.6 with a small example in the camera-ready version.
