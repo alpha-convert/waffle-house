@@ -13,15 +13,38 @@ Overall merit
 
 Paper summary
 -------------
-This paper applies multi-stage programming to property-based testing (PBT). Allegro is the implementation of this idea, and the paper provides it in both Scala 3 and OCaml using their multi-stage programming features. Allegro mainly uses the well-known multi-stage programming tricks and shows it is effective in both reducing the value generation time and bug finding time.
+This paper applies multi-stage programming to property-based testing (PBT).
+Allegro is the implementation of this idea, and the paper provides it in both
+Scala 3 and OCaml using their multi-stage programming features. Allegro mainly
+uses the well-known multi-stage programming tricks and shows it is effective in
+both reducing the value generation time and bug finding time.
 
 Detailed review
 ---------------
-The paper attacks an important problem with a well-thought-out solution. The proposed solution is based on the multi-stage programming technique and has been proven to be effective. Also, the paper is nicely written and it was enjoyable to read.
+The paper attacks an important problem with a well-thought-out solution. The
+proposed solution is based on the multi-stage programming technique and has been
+proven to be effective. Also, the paper is nicely written and it was enjoyable
+to read.
 
-The first criticism is the novelty of the paper; it mainly uses well-known techniques for improving the performance of PBT. The paper does not invent any novel technique to improve the performance. Except for changing the random generator library, the other optimizations are well-known in the multi-stage programming literature and have already been successfully employed in the literature. 
+The first criticism is the novelty of the paper; it mainly uses well-known
+techniques for improving the performance of PBT. The paper does not invent any
+novel technique to improve the performance. Except for changing the random
+generator library, the other optimizations are well-known in the multi-stage
+programming literature and have already been successfully employed in the
+literature. 
 
-The second criticism is with the evaluation. It is unclear to me if, in the software development cycle, the proposed improvement will provide any actual benefit for two main reasons. First, the compiler time is not taken into account. Multi-stage programming adds a runtime code generation time; the extent to which it is taken into account is unclear. It has an overhead that can be amortized if the computation itself is very time-consuming. The authors need to clarify if this time is taken into account. Second, based on Amdahl's Law, does the proposed improvement bring actual benefits in practice? RQ2 shows results for finding bugs in the Etna platform. However, it is still unclear how many practical applications one would see in which a massive proportion of overhead for the testing infrastructure vs. the time each function itself takes. The authors need to use more workloads and justify this more clearly.
+The second criticism is with the evaluation. It is unclear to me if, in the
+software development cycle, the proposed improvement will provide any actual
+benefit for two main reasons. First, the compiler time is not taken into
+account. Multi-stage programming adds a runtime code generation time; the extent
+to which it is taken into account is unclear. It has an overhead that can be
+amortized if the computation itself is very time-consuming. The authors need to
+clarify if this time is taken into account. Second, based on Amdahl's Law, does
+the proposed improvement bring actual benefits in practice? RQ2 shows results
+for finding bugs in the Etna platform. However, it is still unclear how many
+practical applications one would see in which a massive proportion of overhead
+for the testing infrastructure vs. the time each function itself takes. The
+authors need to use more workloads and justify this more clearly.
 
 Finally, it is mentioned very late in the paper (page 15) that:
 
@@ -40,25 +63,6 @@ optimization from the multi-stage programming not known before?
 
 Q2) Can you elaborate on the end-to-end effectiveness of your proposed 
 solution?
-
-The end-to-end effectiveness of our solution depends on (a) the complexity 
-of the inputs being generated, and (b) the amount of time generation takes 
-relative to other parts of the testing process—most obviously, running the 
-system on the generated input. 
-
-In general, more complex generators contain more calls to bind that are 
-fused away using the Allegro technique; therefore, more complex generators 
-see a larger speedup. Figure 15 showcases this relationship. 
-
-The effectiveness of efficient input generation on total testing time is 
-dependent on how long everything that isn’t input generation takes. In systems 
-where running the tests themselves is slow, speeding up input generation won’t 
-have as large an impact; in systems where testing is fast, it will constitute a 
-major speedup. Our end-to-end tests on bug-finding speed, shown in Fig. 17 and 
-Fig. 18, show the time it takes for PBTs to find bugs in mutated programs. In 
-these examples, faster input generation has a measurable end-to-end impact on 
-all of our benchmarks—up to 2.65X using staging alone, and 3.40X in combination 
-with fast randomness.
 
 Q3) What would it take to implement type-derived generators in Scala? 
 Why did you decide not to implement it?
@@ -134,16 +138,6 @@ worthwhile to perform further experiments with it. I wonder to what
 extent it would be possible to disable some of GHC's aggressive
 inlining, both in order to assess how much it is really paying off,
 and to compare its robustness to your staging approach.
-
-This is a fair point. Our conjecture is based on anecdotal evidence; 
-one of the authors — an experienced Haskell developer — manually 
-applied some of Allegro’s optimizations to a few Haskell generators, 
-and they found that they could really only manage to make performance 
-worse, not better. This is nowhere near a proof, but it discouraged us 
-from exploring that path in the short term. We would be happy to mention 
-this anecdotal experience and/or go into more detail about wanting to do 
-this experiment as future work.
-
 l996: "that is sometimes to build"
 
 Questions for authors to answer in their response
@@ -155,20 +149,6 @@ libraries exemplified by QuickCheck. Can we hope to build fuzzers on
 top of generic PBT libraries which perform as well as the hand-coded
 fuzzers used in practice? Does your work shed any light on how to
 tackle this question?
-
-This is a really interesting question, and we think that our work speaks 
-directly to part of it. Specifically, hand-coded fuzzers that construct 
-inputs satisfying specific structural and semantic constraints are performing 
-precisely the same task that PBT generators are designed for. Hand-coded fuzzers 
-might be faster than PBT generators if users choose to optimize them aggressively, 
-but ideally those optimizations should not need to be done manually. Our hope is 
-that Allegro (and other advances from the PBT literature) can make PBT generators 
-fast enough that developers could use them as highly-performant fuzzers, even 
-though they are expressed in a higher-level language that is easier to write 
-in and reason about. The question gets a bit less clear when considering fuzzers 
-that use mutation and other techniques to obtain interesting inputs, rather than 
-a hand-coded program, although ideas in papers like Coverage Guided Property-Based 
-Testing and Parsing Randomness may provide paths forward in those domains as well.
 
 
 Review #387C
@@ -216,9 +196,3 @@ benchmarks.
 
    In addition: Can you please share the code of the benchmarks?
 
-4. Why was BST (Repeated Insert) not used for the ScAllegro experiments in Figure 16?
-
-We picked a representative from each category of generators: trees, lists, and STLC terms, 
-representing low, medium, and high numbers of binds, respectively. We anticipate BST 
-(Repeated Insert) would see a slightly smaller speedup due to its lower number of binds, 
-and we would be happy to include this information in a revision.
