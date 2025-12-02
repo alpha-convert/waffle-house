@@ -1,0 +1,443 @@
+OOPSLA24-25 Paper #68 Reviews and Comments
+===========================================================================
+Paper #68 Fail Faster: Staging and Fast Randomness for High-Performance PBT
+
+
+Review #68A
+===========================================================================
+* Updated: Jun 11, 2025
+
+Overall merit
+-------------
+4. Weak Accept - lean positive, but will not argue to accept
+
+Reviewer expertise
+------------------
+2. I have passing familiarity with this area
+
+Paper summary
+-------------
+This paper contributes to the performance enhancement of property-based testing (PBT). In particular, the paper notices two key bottlenecks to PBT performance: unnecessary abstraction in generators, and slower randomness libraries. The paper proposes Allegro, implemented for OCaml and Scala, which uses staging to move as much of the generator abstraction into a compile-time task rather than a runtime task. Additionally, for OCaml, the paper proposes a faster randomness backend. The paper finds universal speedups in generator execution time over list, BST, and STLC term generators. These speedups translate to faster bug-finding capacity for several BST and STLC tasks.
+
+Detailed review
+---------------
+# Post-Response
+
+The authors adequately addressed my points in the rebuttal: I appreciate the discussion of the practical impact of the speedups. 
+
+As I am low-expertise in DSL staging, I was not able to make the case for the novelty of the core technique in the paper. The negative judgement of the paper hinged on this fact.  
+
+There was discussion that the evaluation methodology (with precise seeding) was a novel contribution, but my view is this would require a significant rewrite of the paper to make it the core contribution. 
+
+# Original Review
+I liked the paper overall. My rating being a weak accept mostly reflects (lack of) my expertise in the specifics of the area).
+
+If there's anything that we can have learned from research into fuzz testing (and even machine learning...) over the past few years, it is that a careful eye for performance can be key to make techniques viable in  practice. Thus, I appreciate any work in this space that identifies opportunities for performance improvement. 
+
+The paper seems novel enough for me, but perhaps someone with more experience in multi-stage programming or optimizing eDSLs would disagree. The paper did work was to determine which performance bottlenecks were important in practice, and then addressed these in a reasonable manner. It is a pretty solid methodology from that perspective.
+
+The number of generators and data formats explored was a little small for my taste; this leads to some difficulty in figuring out trends. (E.g., Figure 5b, the large gap in speedup for STLC vs BST (SP) while they have a relatively close number of samples is difficult to interpret. Is one of them an outlier? Or is this measurement of random samples through IPT an imperfect measure of random samples?). I was quite happy to see that there were several tasks for each data type in Section 4.2.
+
+I thought the paper was fairly well-written. It certainly got me interested in the topic right away.  I am not that familiar with scala and ocaml, so I cannot necessarily judge whether the code samples provided throughout are very clear. I found only one typo: an extra "the" on line 388.
+
+As I was reading the paper, I thought that ScAllegro and AllegroOCaml were going to be drop-in replacements for the QuickCheck libraries they are based off of. But then I came about Section 3.6, and saw that recursive generators were not supported. I've certainly seen recursive generators in PBT libraries in other languages, not having that ability seems like a serious problem. Do the authors have any information on how common recursive generators are in the languages they are targeting? 
+
+Another potential sour point is that the speedups, while consistent, may not change user experience much in reality. See my questions for authors below.
+
+On lines 1008-1009, coverage-guided PBT is mentioned as a way of speeding up testing. There's a bit more nuance here: coverage-guidance can indeed speed up testing if random sampling is unlikely to ever come up with a bug-finding input. Really, in those cases, coverage-guidance can help find bugs that are effectively undiscoverable with random testing.  But, if random testing can find the bug-finding input, the overheads of gathering coverage can lead to reduced testing speed. It would be nice for this nuance to appear in the discussion. For an example (you need not cite this paper, just giving examples of this happening in practice), see Table 1 in the RLCheck [1] paper, where, when random testing was run at full speed, it generally found bugs faster than a coverage-guided approach.
+
+
+[1] S. Reddy, C. Lemieux, R. Padhye and K. Sen, "Quickly Generating Diverse Valid Test Inputs with Reinforcement Learning," 2020 IEEE/ACM 42nd International Conference on Software Engineering (ICSE), Seoul, Korea (South), 2020, pp. 1410-1421.
+
+Is the Data-Availability Statement reasonable?
+----------------------------------------------
+It is reasonable. There is nothing for us to review at this stage. They say they will submit to artifact evaluation.
+
+Questions for authors to answer in their response
+-------------------------------------------------
+1. As per Section 3.6, Allegro does not support generators to be defined as recursive functions. Were any of the generators used in the evaluation originally written as recursive? If so, they had to be rewritten --- what was that process like? If not, is there any data on how common recursive generators are for ScalaCheck/Base_quickcheck?
+2. For the filters mentioned in Lines 914-916: what is the distribution of tasks that were filtered out because they were "too easy" vs "too hard"? Right now these categories are collapsed in the percentages. Was it half-and-half, or dominated by one category?
+3. While the paper finds consistent speedups, it's unclear whether these actually lead to an improved user experience. For instance, speeding up from ~30s to <3s could likely help developers avoid a context switch. Line 927 says that tasks that run on the order of seconds achieve more moderate speedups (up to 3.5x). Are there instances of speedups that could really improve user experience?
+
+
+
+Review #68B
+===========================================================================
+
+Overall merit
+-------------
+2. Reject - will argue to reject
+
+Reviewer expertise
+------------------
+3. I know the material, but am not an expert
+
+Paper summary
+-------------
+The starting point of this paper is that  two sources of
+performance degradation for the generators
+used in property testing are:
+
+1) These generators tend to be written in an embedded DSL that consists of
+higher-order combinators. As a result, compilers struggle to optimize 
+the implementation of generators, which manifests as missed opportunities
+for inlining and unnecessary allocation. 
+
+2) Some times, these generators depend on base sources of randomness that
+are not optimal. 
+
+For the first issue, the paper suggests staging as a solution.  In
+particular, the paper discusses at length the re-design and
+re-implementation of typed generator DSLs for OCaml an Scala that are
+staged, and showcases how the staged combinators result in code that
+avoids the above issues. 
+
+For the second issue, the paper suggests the use of more efficient base
+sources of randomness. 
+
+The paper provides evidence of its two suggestions through an empirical
+study that evaluates the benefits of the suggestions in terms of
+generation and bug-finding speed.
+
+Detailed review
+---------------
+I enjoyed reading this paper, and in particular 
+
+(i) the careful design of the DSL with the many illustrative code snippets;
+
+and
+
+(ii) the careful design of the empirical evaluation that lead to an
+apples-to-apples comparisons that controls for a range of parameters,
+discerns the contributions of the two solutions to performance gains, and
+can explain how the characteristics of scenarios determine the
+effectiveness of each suggestion. 
+
+Moreover,  the empirical evaluation provides evidence in favor of the claims
+of the paper about the benefits of the two proposed suggestions. 
+
+Finally, the paper is well-written and, importantly, it should be a good
+read for a broad range of PL researchers. 
+
+
+That said, I have serious reservations that this paper meets the
+expectations for an OOPSLA paper. This is because I am neither convinced about
+the novelty of the results, nor I think the paper demonstrates adequately
+the significance of the problem in hand. 
+
+-- The first problem, efficiency of DSLs, is well-known and expected. In
+fact, it has motivated a large body of research over the last few decades,
+some of it this paper cites and points out as source of inspiration. 
+
+-- The proposed solution to the first problem, meta-programming, follows a
+well-trotted path, as the paper also states. Arguably, one can trace this
+line of research to the 50s and the introduction of macros in LISP,
+exactly to avoid issues like the paper brings up. But, closer to the
+technical context of the paper, the work by Odersky's group and more
+recently's Rompf's group have provided many examples of how staging can
+lead to building efficient abstractions in a typed world. (Btw, for the
+latest example of how macros can been used in Racket for optimization see
+Balantine et al.'s ICFP 2024 pearl)
+
+-- The second problem is also not particularly surprising as library
+evolution and maintenance is in general a thorny issue. 
+
+-- The proposed solution to this second problem is also straight-forward. 
+
+Given the above, the main question is if there is
+something specific to the context of this paper that makes the problems
+significantly more pressing, and the solutions significantly more tricky
+or surprisingly more effective. 
+
+I do not think that the paper provides an satisfying answer to that. 
+
+  --- The paper does not provide any evidence that the issues with
+ the combinatorial design and the use of inefficient sources of
+ randomness are widespread. One way to demonstrate this would be a corpus
+ study across multiple languages and libraries that takes a macro-view of
+ the use of generator DSLs and their effect on the performance of property-based
+ testing (in contrast to the micro-benchmark approach of the paper). 
+
+ --- The proposed generator DSL seems like a straightforward
+ combination of the surface design of QuickCheck and staging tricks.
+
+Is the Data-Availability Statement reasonable?
+----------------------------------------------
+Yes.
+
+Questions for authors to answer in their response
+-------------------------------------------------
+Could you please explain the unique challenges and key insights for staging in
+the specific context of the generator DSL?
+
+
+
+Review #68C
+===========================================================================
+* Updated: Jun 18, 2025
+
+Overall merit
+-------------
+4. Weak Accept - lean positive, but will not argue to accept
+
+Reviewer expertise
+------------------
+4. I know a lot about this area
+
+Paper summary
+-------------
+This paper applies multi-stage programming to address the performance issue in property-based testing. The paper identifies two bottlenecks of performance in PBT, that is the abstraction overhead and the randomness library. The developed approach Allegro applies to MetaOCaml and Scala 3 (using the metaprogramming facilities from the language). The work also develops an optimization to the SplitMix algorithm. The paper conducts control experiments to evaluate the performance improvement of Allgero.
+
+Detailed review
+---------------
+## Update after response
+
+Thank you for your response. After reading it, my opinion remains that the techniques used in the work appear standard from the perspective of staging and metaprogramming. That said, applying these techniques effectively in the context of PBT is still an applaudable contribution, and the benchmarking methodology is solid. I believe the current submission would already make a very strong GPCE paper, but I do not feel it is quite strong enough for me to give it a 5. I hope these comments are helpful to the authors as they continue revising the work.
+
+## Pros
+
+- Nice application of staging to an important practical problem. 
+
+- Performance evaluation looks solid, and the improvement is impressive. 
+
+- The paper is well written and straightforward to follow. 
+
+## Cons
+
+- The problem itself doesn't look challenging, since the eDSL itself doesn't impose an abstraction barrier that really requires domain knowledge (e.g. algebraic laws wrt abstractions) going beyond standard compiler optimization. This is also implied from the discussion of Haskell in Section 5, as GHC can already do most of the job of inlining here. 
+
+  And the solution presented in this paper (staging away combinators, let-insertions, and CPS) seems quite standard. It would be more impressive if the problem/work had more space to do further interesting optimizations, such as rewriting with domain knowledge (e.g., partially-static data, intentional analysis with Scala 3, graph transformation in LMS, etc.).
+
+## Other comments
+
+- Line 244: I guess you mean the JIT compiler of JVM? (assuming you compile Scala 3 to JVM bytecode).
+
+- Line 319: I don't get why additional allocation leads to a performance benefit? 
+
+- Line 348: a bit more relevant to the testing context here, several related works have applied staging to symbolic execution (as a white-box fuzzing/testing): Compiling Parallel Symbolic Execution with Continuations, Wei et al, ICSE 23; Compiling Symbolic Execution with Staging and Algebraic Effects, Wei et al, OOPSLA 20
+
+- Line 374: Some missing citation for two-level eta-expansion:
+  Partial Evaluation and Automatic Program Generation, Jones et al; 
+  Eta-Expansion Does The Trick, Danvy 
+
+- Line 397 and many other places: By saying "compile time" here, I guess you mean the staging time? Since for MetaOCaml, staging happens at run-time, instead of the compile-time of OCaml.
+
+- Fig 15 shows speedups that are linear to the number of binds. Is it also observed on Scala/JVM? Or, how sensitive this result is wrt the underlying runtime GC?
+
+- Line 1028: nit: I would be carefully distinguishing "macros" and "staging", as there is also MacroML (ICFP 01).
+
+- Scala 3 has both run-time staging and compile-time macros with the same syntax. I didn't find anything discussing the Scala implementation details, but they do make a difference in where you count the overhead of staging itself. Since in your case, generators except seed and size are known at compile-time, it suggests that you don't need run-time code generation and can have higher runtime performance by using just compile-time macros. This applies to Template Haskell too.
+
+Is the Data-Availability Statement reasonable?
+----------------------------------------------
+Yes
+
+Questions for authors to answer in their response
+-------------------------------------------------
+Questions in my detailed comments.
+
+
+
+R2InitResp Response by Author [Cynthia Richey <lapwing@seas.upenn.edu>] (2473 words)
+---------------------------------------------------------------------------
+Thank you for your comments and questions! We start by discussing some common high-level concerns, then address all comments in order. 
+
+Reviewers B and C raise concerns about the novelty of our contributions in the context of multi-stage programming.
+
+The main novelty of this work lies in applying staging to PBT. While staging techniques are well established, their application to the abstractions and performance bottlenecks of PBT libraries has not been explored, nor is it straightforward. Our paper is intended to promote staging as a tool in the PBT developer’s toolkit by showing that it can erase abstraction overhead, leading to substantial performance improvements.
+
+Moreover, we argue that, prior to this work, neither abstraction overhead nor sampling costs were viewed as major targets for optimization in PBT. As evidence, we point to SOTA libraries like `Base_quickcheck`, which is highly performance sensitive yet retains design choices (monadic combinators, expensive randomness) that introduce significant overhead.
+
+Additional novelty lies in Section 3.7, where we stage type-derived generators. Unlike most staged libraries, which require users to understand metaprogramming, our approach is fully automatic. Since type-derived generators are constructed at compile time, they can be staged without altering user experience. This is a rare example of staging "for free."
+
+Finally, our evaluation methodology is a contribution. Because our staged and unstaged generators are semantically equivalent, we can compare them directly on a per-seed basis, holding generator behavior constant while measuring performance. This enables precise, pointwise comparisons that isolate the effects of our interventions. Prior work, including the original Etna paper, could only compare performance distributions across seeds, confounding legitimate performance benefit with random variance.
+
+Reviewers B and C suggest that combining staging with PBT is straightforward. Up to a point, we agree: the two integrate naturally, and significant gains can be achieved with "straightforward" transformations. However, we did not stop at those naïve transformations; our approach adapts staging to _fully_ eliminate abstraction overhead and to preserve generator semantics. These advances were not straightforward.
+ 
+In particular, staging a generator library is not simply a matter of using staging constructs. Choice combinators, such as `weighted_union`, select from a statically known list of generators using a random value sampled at runtime. In unstaged PBT libraries, this list is allocated and traversed at runtime, resulting in significant abstraction overhead; our staged implementation generates a static control structure that avoids allocation entirely. This is a case where PBT-specific constructs contain partially static data, to which staging provides a targeted solution.
+
+The process of ensuring semantic equivalence also required considerable care: it is easy to reorder or duplicate random sampling effects when staging, leading to different outputs.
+
+Our contributions show that both staging and randomness are fundamental performance levers for PBT. We focused on these areas because they apply across virtually all PBT libraries in strict functional and functional-imperative languages, regardless of higher-level design. We hope this work will lay the foundation for a new direction in PBT designs which makes performance a first-class concern without discarding existing abstractions.
+
+-------------------------------------------------------------------------------------------------
+### Review A
+
+> On lines 1008-1009, coverage-guided PBT is mentioned as a way of speeding up testing. 
+> There's a bit more nuance here: coverage-guidance can indeed speed up testing if random 
+> sampling is unlikely to ever come up with a bug-finding input. Really, in those cases, coverage-
+> guidance can help find bugs that are effectively undiscoverable with random testing.  But, 
+> if random testing can find the bug-finding input, the overheads of gathering coverage can lead 
+> to reduced testing speed. It would be nice for this nuance to appear in the discussion. For an 
+> example (you need not cite this paper, just giving examples of this happening in practice), see 
+> Table 1 in the RLCheck [1] paper, where, when random testing was run at full speed, it generally 
+> found bugs faster than a coverage-guided approach.
+
+We will discuss this nuance in the next revision.
+
+> 1. As per Section 3.6, Allegro does not support generators to be defined as recursive 
+> functions. Were any of the generators used in the evaluation originally written as recursive? If 
+> so, they had to be rewritten --- what was that process like? If not, is there any data on how 
+> common recursive generators are for ScalaCheck/Base_quickcheck?
+
+Allegro does, in fact, support recursive generators---indeed, all of the generators that appear in the evaluation are recursive! Section 3.6 describes how we extend the earlier presentation of the non-recursive part of Allegro to support recursive generators.
+
+> 2. For the filters mentioned in Lines 914-916: what is the distribution of tasks that were 
+> filtered out because they were "too
+> easy" vs "too hard"? Right now these categories are collapsed in the percentages. Was it 
+> half-and-half, or dominated by one category?
+
+Thanks for asking! All of type-derived STLC’s filtered tasks were “too hard,” and 62/168 (36%) of regular STLC’s tasks were “too hard.” All of BST’s filtered tasks were “too easy.”
+
+> 3. While the paper finds consistent speedups, it's unclear whether these actually lead to an 
+> improved user experience. For instance, speeding up from ~30s to <3s could likely help 
+> developers avoid a context switch. Line 927 says that tasks that run on the order of seconds 
+> achieve more moderate speedups (up to 3.5x). Are there instances of speedups that could 
+> really improve user experience?
+
+We think so, yes. First, it is important to note that developers usually run multiple properties at once as part of a larger test suite. In the aggregate, this means that even small absolute differences can add up. For example, if you have 100 properties that each run in around 500 milliseconds, and they take 60 milliseconds staged, this is the difference between 50 seconds and 6 seconds.
+
+Second, smaller relative speedups for longer running tests still translate to significant absolute differences in testing time. A speedup of 3.5x on a 15 second test brings testing time down to below 5 seconds.
+
+Together, these effects mean that speedups in the range we observed certainly have the potential to make the difference between finding a bug and not finding it within a developer’s time budget.
+
+> I found only one typo: an extra "the" on line 388.
+
+On it. :-)
+
+-------------------------------------------------------------------------------------------------
+### Review B
+
+> The paper does not provide any evidence that the issues with the combinatorial design and 
+> the use of inefficient sources of randomness are widespread. One way to demonstrate this 
+> would be a corpus study across multiple languages and libraries that takes a macro-view of
+> the use of generator DSLs and their effect on the performance of property-based testing (in 
+> contrast to the micro-benchmark approach of the paper).
+
+In Section 5, we discuss the landscape of PBT tools for Racket, Haskell, F#, and Rust. In addition, we reviewed a variety of PBT libraries in the languages for which Allegro is implemented (OCaml, Scala). 
+
+We are confident our technique could benefit Racket and F# in addition to OCaml and Scala.  For Racket, see lines 978 to 983: 
+
+“Racket is the next target that we intend to test on. The entire Racket 
+philosophy is intertwined with using macros to build small eDSLs like the 
+ones we use to write generators, and so it seems a  natural fit. However, 
+the Racket macros literature, while extensive, does not usually concern 
+itself with staging for performance purposes. For this reason, we—the 
+authorship team of this paper, devoid of much Racket expertise—decided to 
+not use Racket as a test case in this paper.”
+
+Notably, Racket has a port of Haskell's `QuickCheck`, implemented in a similar way, to which we could apply our technique.
+
+Regarding F#, from 994 to 997 in the paper:
+
+“F# has both multi-stage programming capabilities and a well-used PBT 
+library called `FsCheck`. The internals of `FsCheck`’s generator eDSL are very 
+similar to both `Base_quickcheck` and `ScalaCheck`, so we expect that building 
+Allegro-style generators in F# should be a straightfor-ward engineering 
+effort.”
+
+In addition to `Base_quickcheck`, which we compare against, OCaml has a popular library called `qcheck` which could also benefit from our technique. 
+
+With respect to randomness, all of these libraries use relatively expensive sources of randomness. They could benefit from our insights on this front as well.
+
+While the `ScAllegro` implementation sees greater speedups in generation time than `AllegrOCaml`, they show the same general performance trends. This gives us good indication that, while some implementations may already be more performance-tuned than others, pretty much any monadic generator eDSL can benefit from staging. 
+
+Finally, since submission, we have looked at Clojure’s `test.check` and Swift’s `SwiftCheck`, which are both fairly straightforward ports of Haskell’s `QuickCheck` that expose a monadic generator interface. Both languages also have support for compile-time metaprogramming. Since we see significant performance improvement in Scala and since Clojure is also a JVM language, we expect that Clojure should see comparable benefit from the Allegro technique. We are less familiar with the internals of Swift’s compiler, but it too appears to be a promising vector. 
+
+To recap, we are confident that the Allegro technique could be applied to F#’s `FsCheck`, Racket’s `QuickCheck`, and OCaml’s `qcheck` in addition to its existing implementations replicating Scala’s `ScalaCheck` and OCaml’s `Base_quickcheck`. We also expect that Clojure’s `test.check` and Swift’s `SwiftCheck` will see benefit. This covers a wide spectrum of languages and libraries in the strict functional(ish) language space.
+
+We would be happy to include more discussion of this in the next revision. Specifically, while it would be a large effort to implement fully fleshed-out versions of Allegro in all these languages, we could fairly easily profile the performance of staged vs. unstaged versions of a few specific generators in each. We can also include a discussion of weaknesses in the current implementations, and how staging can fix them. 
+
+> Could you please explain the unique challenges and key insights for staging in the specific 
+> context of the generator DSL?
+
+See the high-level comments at the top.
+
+-------------------------------------------------------------------------------------------------
+### Review C
+
+> The problem itself doesn't look challenging, since the eDSL itself doesn't impose an 
+> abstraction barrier that really requires domain knowledge (e.g. algebraic laws wrt abstractions) 
+> going beyond standard compiler optimization. This is also implied > from the discussion 
+> of Haskell in Section 5, as GHC can already do most of the job of inlining here.
+> 
+> And the solution presented in this paper (staging away combinators, let-insertions, and CPS) 
+> seems quite standard. It would be more impressive if the problem/work had more space to do 
+> further interesting optimizations, such as rewriting with domain knowledge (e.g., partially-static 
+> data, intentional analysis with Scala 3, graph transformation in LMS, etc.).
+
+Besides what we wrote at the top, we should emphasize that we _do_ perform optimizations over partially static data in the case of choice combinators. These optimizations, where we generate static control structures at staging time to avoid having to allocate at runtime, are core to the effectiveness of the approach. This is something GHC cannot do. 
+
+Regarding GHC, we view this work partially as a way of approximating GHC’s excellent optimizations in other languages with less aggressive compilers. Haskell has been a proving ground for concepts in functional programming that then get ported to more popular or industrially relevant languages, often (as with many ports of Haskell `QuickCheck`) somewhat naively. These ports incur abstraction overhead that GHC does not, making them less efficient than one might expect. Staging can erase this problem in strict functional languages with support for metaprogramming, in a lightweight way, without reengineering the compiler. 
+
+> Line 244: I guess you mean the JIT compiler of JVM? (assuming you compile Scala 3 to JVM 
+> bytecode).
+
+Yes.
+
+> Line 319: I don't get why additional allocation leads to a performance benefit?
+
+Whoops, that was a typo. We meant “performance penalty”!
+
+> Line 348: a bit more relevant to the testing context here, several related works have applied 
+> staging to symbolic execution (as a white-box fuzzing/testing): Compiling Parallel Symbolic 
+> Execution with Continuations, Wei et al, ICSE 23; Compiling Symbolic Execution with Staging 
+> and Algebraic Effects, Wei et al, OOPSLA 20
+
+Thank you for bringing our attention to this other work combining staging and testing! We are less familiar with the symbolic execution space, and we welcome the opportunity to learn more.
+
+Our understanding is that the work by Wei et al. transforms a language’s definitional interpreter into a symbolic definitional interpreter, which is then specialized to a particular program and emitted as C++ code free of interpretation overhead. The ICSE ’23 work further refines this system by converting the interpreter to continuation-passing style, allowing the resulting symbolic execution to be split across threads for parallel path exploration with minimal coordination.
+
+Our approach differs in focus and scope. Wei et al.’s work automates test generation by optimizing a symbolic executor for a given program. In contrast, our work remains within the black-box paradigm of PBT, where users write explicit generators and properties, and uses staging to optimize random data generators. In essence Wei et al.’s work and ours both leverage staging to speed up programs, but we apply that staging to the test harness rather than a symbolic version of the system under test.
+
+It would be exciting to see if a future system could leverage both of these ideas at once. One could potentially accelerate a concolic tester by using staging to speed up both the random test harness and the symbolic evaluator at the same time. We will discuss both papers in our Related Work section and touch on this potential vision in Future Work.
+
+> Line 374: Some missing citation for two-level eta-expansion: Partial Evaluation and Automatic 
+> Program Generation, Jones et al; Eta-Expansion Does The Trick, Danvy
+
+Thank you for bringing this to our attention. We will cite these works in the next revision.
+
+> Line 397 and many other places: By saying "compile time" here, I guess you mean the staging 
+> time? Since for MetaOCaml, staging happens at run-time, instead of the compile-time of 
+> OCaml.
+
+You’re absolutely right, and others have mentioned this. “Staging time” is what we mean, and we will use this language in the next revision. 
+
+> Fig 15 shows speedups that are linear to the number of binds. Is it also observed on 
+> Scala/JVM? Or, how sensitive this result is wrt the underlying runtime GC?
+
+Yes, this is also observed in Scala. We can include a graph showing this in the next revision.
+
+> Line 1028: nit: I would be carefully distinguishing "macros" and "staging", as there is also 
+> MacroML (ICFP 01).
+
+Good point, thank you. We will be more careful with our terminology.
+
+> Scala 3 has both run-time staging and compile-time macros with the same syntax. I didn't find 
+> anything discussing the Scala implementation details, but they do make a difference in where 
+> you count the overhead of staging itself. Since in your case, generators except seed and size 
+> are known at compile-time, it suggests that you don't need run-time code generation and can 
+> have higher runtime performance by using just compile-time macros. This applies to Template 
+> Haskell too.
+
+That’s right. We use compile-time staging for Scala.
+
+
+
+Comment @A1 by Administrator
+---------------------------------------------------------------------------
+Authors: sorry that you did not get a meta-review or an updated review from R2. I would say the most central comments were:
+
+> I don't think the rebuttal makes a convincing case about what is a unique or challenging aspect of the issues in the specific context of PBT. I still see the issue of overhead due to the indirection of combinators and the use of suboptimal libraries as expected, well-known pitfalls when building DSLs with meta-programming.
+
+> Moreover, I do not think the solutions bring anything new to the table.
+
+> The point that I do think is interesting and innovative is the design of the apples-to-apples evaluation method for PBT optimizations (or in general random testing). But, making that the focal point of the paper would require a complete restructure.
+
+One other important comment was:
+
+> BTW, another point I forgot to mention is that, in my experience at least, the main reason for slow-down with PBT is not generation but the loop of generation-trial-regeneration for inputs that satisfy their desired property. Usually speed-ups there come from property specific algorithmic tricks that affect the generation strategy. Because of that, besides showing that the generation-related issues are widespread, the paper should also show that the gains from generation translate into gains in the real world (the platform used in the second part of the evaluation is a step in this direction but is not the same as a macro-benchmark evaluation).
+
+Based on all this, the reviewers felt that the paper either is a good fit right now at a weaker conference, or the focal point of the paper would need a "complete restructure", which they felt was outside the scope of even a Major Revision.
+
+Hope these comments are helpful to you as you revise the paper.

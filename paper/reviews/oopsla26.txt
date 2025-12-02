@@ -1,0 +1,167 @@
+OOPSLA 2026 Paper #387 Reviews and Comments
+===========================================================================
+Paper #387 Fail Faster: Staging and Fast Randomness for High-Performance
+PBT
+
+
+Review #387A
+===========================================================================
+
+Overall merit
+-------------
+3. Weak Accept - lean positive, but will not argue to accept
+
+Paper summary
+-------------
+This paper applies multi-stage programming to property-based testing (PBT). Allegro is the implementation of this idea, and the paper provides it in both Scala 3 and OCaml using their multi-stage programming features. Allegro mainly uses the well-known multi-stage programming tricks and shows it is effective in both reducing the value generation time and bug finding time.
+
+Detailed review
+---------------
+The paper attacks an important problem with a well-thought-out solution. The proposed solution is based on the multi-stage programming technique and has been proven to be effective. Also, the paper is nicely written and it was enjoyable to read.
+
+The first criticism is the novelty of the paper; it mainly uses well-known techniques for improving the performance of PBT. The paper does not invent any novel technique to improve the performance. Except for changing the random generator library, the other optimizations are well-known in the multi-stage programming literature and have already been successfully employed in the literature. 
+
+The second criticism is with the evaluation. It is unclear to me if, in the software development cycle, the proposed improvement will provide any actual benefit for two main reasons. First, the compiler time is not taken into account. Multi-stage programming adds a runtime code generation time; the extent to which it is taken into account is unclear. It has an overhead that can be amortized if the computation itself is very time-consuming. The authors need to clarify if this time is taken into account. Second, based on Amdahl's Law, does the proposed improvement bring actual benefits in practice? RQ2 shows results for finding bugs in the Etna platform. However, it is still unclear how many practical applications one would see in which a massive proportion of overhead for the testing infrastructure vs. the time each function itself takes. The authors need to use more workloads and justify this more clearly.
+
+Finally, it is mentioned very late in the paper (page 15) that:
+
+"We implemented this in AllegrOCaml; it is not yet implemented in ScAllegro."
+
+There is no reason given for this, and it is mentioned very late.
+
+Minor:
+
+Line 141: There is an extra comma
+
+Questions for authors to answer in their response
+-------------------------------------------------
+Q1) Can you clarify the novelty of your paper? Does it introduce any optimization from the multi-stage programming not known before?
+
+Q2) Can you elaborate on the end-to-end effectiveness of your proposed solution?
+
+Q3) What would it take to implement type-derived generators in Scala? Why did you decide not to implement it?
+
+
+
+Review #387B
+===========================================================================
+
+Overall merit
+-------------
+4. Accept - will argue to accept
+
+Paper summary
+-------------
+The core aim of this work is to speed up property-based testing (PBT)
+by speeding up test-generation. If we can speed up testing then we can
+perform more tests and thus increase the chance of finding bugs given
+a fixed testing time. The paper describes the design of a staged
+generator library which exploits staging in multiple ways in order to
+support inlining of code. A secondary optimisation is also
+investigated in which the underlying randomness library is switched
+out for a faster one. Both staging and alternative randomness
+libraries are evaluated using standard property-based libraries for
+OCaml and Scala on a range of generator microbenchmarks.
+
+Detailed review
+---------------
+The paper addresses an important problem with property-based testing
+libraries. The approach is clearly explained with the aid of a series
+of examples of staging optimisations. The experiments yield
+substantial performance improvements. The results are both useful and
+interesting. I am in favour of acceptance.
+
+Minor comments:
+
+I found the floating code figures a tad awkward. Perhaps consider
+placing all code figures at the top of the page, or, perhaps better,
+inlining all of the code in the body of the text.
+
+l119: I'm curious whether OCaml 5 might benefit from using it's native
+effect handlers in place of a monadic generator DSL.
+
+p4: It's odd that Figure 4 appears before Figure 3.
+
+l379: "returns a code" should be "returns code"
+
+l475: "a observation"
+
+l621: "a 'a code" - perhaps you mean "a value of type 'a code"?
+
+l639: Testing is all well and good, but have you not also considered
+trying to construct a more rigorous proof that AllegrOCaml is correct
+by program transformation / calculation?
+
+l653: "write a code" - perhaps you mean "generate code"?
+
+l718: "Splittable_random library times"
+
+l751: Given that MetaOCaml is compatible with OCaml 5, why are you
+still using OCaml 4?
+
+l824: The text reads a bit oddly to me at this point, as you are
+talking about an experiment you performed in the past and yet you
+insist on using the present tense.
+
+l989: You have *conjectured* that because GHC is set up to perform
+aggressive optimisations without staging then it is likely to benefit
+less from the kind of optimisations you exploit. It would be worth
+investigating to what extent this is indeed the case. Given that GHC's
+QuickCheck is the canonical PBT framework it seems particularly
+worthwhile to perform further experiments with it. I wonder to what
+extent it would be possible to disable some of GHC's aggressive
+inlining, both in order to assess how much it is really paying off,
+and to compare its robustness to your staging approach.
+
+l996: "that is sometimes to build"
+
+Questions for authors to answer in their response
+-------------------------------------------------
+One somewhat open-ended question I am wondering about is to what
+extent we can bridge the performance gap between bespoke
+highly-optimised fuzzing approaches and the much more generic PBT
+libraries exemplified by QuickCheck. Can we hope to build fuzzers on
+top of generic PBT libraries which perform as well as the hand-coded
+fuzzers used in practice? Does your work shed any light on how to
+tackle this question?
+
+
+
+Review #387C
+===========================================================================
+
+Overall merit
+-------------
+3. Weak Accept - lean positive, but will not argue to accept
+
+Paper summary
+-------------
+This paper describes how staging can be used to accelerate property-based testing libraries. PBT libraries typically provide a DSL in which generators for random testing data can be expressed. Essentially, the idea is to use compile-time code generation ("staging") to optimize this process. The approach is implemented for OCaml's Base_quickcheck (using MetaOCaml) and for the ScalaCheck (using scala.quoted) PBT libraries. The paper also investigates how (a) certain binary search-based weighted choice algorithms can be sped up by replacing them with asymptotically slower but practically faster linear search algorithms, and (b) Base_quickcheck's random number generator (SplitMix) can be further accelerated by replacing some hotpaths with a C implementation, thereby eliding some boxed allocations. The approach both leads to speedups on several benchmarks, when generating inputs across multiple size scales, and also leads to the faster detection of artificially introduced bugs.
+
+Detailed review
+---------------
+Strengths
+---------
+
+1. The approach is clean, and I am surprised that staging and other meta-programming approaches are not already applied to PBT libraries.
+
+Weaknesses
+----------
+
+1. I found the repeated shifting of focus between OCaml and Scala to be distracting. An alternative approach might have been to describe the entirety of the approach for OCaml, and then summarize the Scala-specific differences.
+
+   On a related note, the paper might be easier to read if there was a single table / figure that summarized the types of various values and objects used throughout the paper. I found myself making this list as I read the paper.
+
+2. It is not clear how the benchmarks were chosen, or what they look like.
+
+Questions for authors to answer in their response
+-------------------------------------------------
+1. Can you provide an example of how the recursive generator API in Section 3.6 is used?
+
+2. How were the experimental benchmarks chosen?
+
+3. Can you clarify what you mean by "semantically identical" on Line 759? Apart from the complications of Section 3.6, I would have expected that the AllegrOCaml and Base_quickcheck benchmarks would be syntactically identical, modulo like-for-like substitution of Base_quickcheck constructs for AllegrOCaml ones. And similarly for the ScAllegro benchmarks.
+
+   In addition: Can you please share the code of the benchmarks?
+
+4. Why was BST (Repeated Insert) not used for the ScAllegro experiments in Figure 16?
