@@ -109,18 +109,14 @@ that use mutation and other techniques to obtain interesting inputs, rather than
 a hand-coded program, although ideas in papers like Coverage Guided Property-Based 
 Testing and Parsing Randomness may provide paths forward in those domains as well.
 
-----
-
-This is a really interesting question, and we think that our work speaks directly to part of it. Specifically, hand-coded fuzzers that construct inputs satisfying specific structural and semantic constraints are performing precisely the same task that PBT generators are designed for. Hand-coded fuzzers might be faster than PBT generators if users choose to optimize them aggressively, but ideally those optimizations should not need to be done manually. Our hope is that Allegro (and other advances from the PBT literature) can make PBT generators fast enough that developers could use them as highly-performant fuzzers, even though they are expressed in a higher-level language that is easier to write in and reason about. The question gets a bit less clear when considering fuzzers that use mutation and other techniques to obtain interesting inputs, rather than a hand-coded program, although ideas in papers like Coverage Guided Property-Based Testing and Parsing Randomness may provide paths forward in those domains as well.
-
 # Reviewer C
 
 > 1. Can you provide an example of how the recursive generator API in Section 3.6 is used?
 
-> 1. Can you provide an example of how the recursive generator API in Section 3.6 is used?
 Yes, it's used in Figure 3 --- we can include a figure down at Section 3.6 with a small example in the camera-ready version.
 
 > 2. How were the experimental benchmarks chosen?
+
 We used the subset of the pre-existing Etna suite of benchmarks. Etna was
 designed exactly for this purpose: to test the bugfinding capabilities of
 competing PBT generators.  There are two benchmarks from the original Etna we
