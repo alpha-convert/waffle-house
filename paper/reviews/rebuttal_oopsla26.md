@@ -7,14 +7,17 @@ Thank you for your comments and questions! We start by discussing some common hi
 The main novelties are (1) identifying previously unrecognized sources of inefficiency in PBT, and (2) applying staging to address them.
 
 Prior to this work, neither DSL abstraction overhead nor sampling costs were viewed as optimization targets in PBT. As evidence, SOTA libraries like `Base_quickcheck` use imperative features (mutable arrays, stateful RNG) to try to improve performance, yet retain design choices (monadic combinators, expensive randomness) that introduce significant overhead.
+[BCP: Yes!]
 
 While our staging techniques are well established, their application to PBT abstractions and bottlenecks has not been explored. This paper promotes staging as a tool for PBT developers by showing it can erase abstraction overhead, yielding substantial performance improvements.
+[BCP: ... but was it hard?]
 
 <!-- Additional novelty lies in Section 3.7, where we stage type-derived generators.
 Unlike most staged libraries, which require users to understand metaprogramming,
 our approach is fully automatic. Since type-derived generators are constructed
 at compile time, they can be staged without altering user experience. This is a
 rare example of staging "for free." -->
+[BCP: Why not include this? Seems strong.]
 <!-- 
 [JWC can we also say that this is an instance of two-level metaprogramming? It's a metaprogram that generates metaprograms!] -->
 
@@ -32,7 +35,8 @@ In general, more complex generators contain more calls to bind that are
 fused away using the Allegro technique; therefore, more complex generators 
 see a larger speedup. Figure 15 showcases this relationship. 
 
-The effectiveness of efficient input generation on total testing time is 
+As the reviewer notes,
+the effectiveness of efficient input generation on total testing time is 
 dependent on how long everything that isn’t input generation takes. In systems 
 where running the tests themselves is slow, speeding up input generation won’t 
 have as large an impact; in systems where testing is fast, it will constitute a 
@@ -56,6 +60,7 @@ on generation across real-world PBT workloads is an interesting question
 that merits further study, and doing so would be an important research 
 contribution in itself; we view this as future work outside 
 the scope of this paper.
+[BCP: Maybe explain why it's not easy?]
 
 As for compilation time of emitted generator code, we do not believe this is an
 issue for two reasons. First, our metaprogrammed generators compile extremely
