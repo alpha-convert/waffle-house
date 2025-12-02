@@ -86,6 +86,7 @@ We were not aware that MetaOCaml was now compatible with OCaml 5 -- this is good
 to know!  When we began the project earlier this year, the MetaOCaml homepage
 instructed users to install a version compatible with OCaml 4.14.1, which is
 what we did (it has since been updated to recommend 5.3.0).
+[BCP: How hard would it be to upgrade?]
 
 > l824: The text reads a bit oddly to me at this point, as you are
 talking about an experiment you performed in the past and yet you
@@ -95,14 +96,14 @@ Thanks for the feedback, we'll workshop this prose to make it less awkward.
 
 > l989: You have conjectured that because GHC is set up to perform aggressive optimisations without staging then it is likely to benefit less from the kind of optimisations you exploit. It would be worth investigating to what extent this is indeed the case. Given that GHC’s QuickCheck is the canonical PBT framework it seems particularly worthwhile to perform further experiments with it. I wonder to what extent it would be possible to disable some of GHC’s aggressive inlining, both in order to assess how much it is really paying off, and to compare its robustness to your staging approach.
 
-This is a fair point. Our conjecture is based on anecdotal evidence; one of the authors — an experienced Haskell developer — manually applied some of Allegro’s optimizations to a few Haskell generators, and they found that they could really only manage to make performance worse, not better. This is nowhere near a proof, but it discouraged us from exploring that path in the short term. We would be happy to mention this anecdotal experience and/or go into more detail about wanting to do this experiment as future work
+This is a fair point. Our conjecture is based on anecdotal evidence; one of the authors — an experienced Haskell developer — manually applied some of Allegro’s optimizations to a few Haskell generators, and they only managed to make performance worse, not better. This is nowhere near a proof, but it discouraged us from exploring that path in the short term. We would be happy to mention this anecdotal experience and/or go into more detail about wanting to do this experiment as future work
 
 > Can we can bridge the performance gap between bespoke
 highly-optimised fuzzing approaches and the much more generic PBT
 libraries exemplified by QuickCheck?
 
 This is a really interesting question, and we think that our work speaks 
-directly to part of it. Specifically, hand-coded fuzzers that construct 
+directly to part of it.[BCP: Blah.] Specifically, hand-coded fuzzers that construct 
 inputs satisfying specific structural and semantic constraints are performing 
 precisely the same task that PBT generators are designed for. Hand-coded fuzzers 
 might be faster than PBT generators if users choose to optimize them aggressively, 
@@ -123,7 +124,7 @@ Yes, it's used in Figure 3 --- we can include a figure down at Section 3.6 with 
 
 > 2. How were the experimental benchmarks chosen?
 
-We used the subset of the pre-existing Etna suite of benchmarks. Etna was
+We used the subset of the pre-existing Etna benchmark suite. Etna was
 designed exactly for this purpose: to test the bugfinding capabilities of
 competing PBT generators.  There are two benchmarks from the original Etna we
 did not use. One tests Red-Black trees, and the other tests a lambda calculus
@@ -136,26 +137,28 @@ we would see an exaggerated version of the speedups in the STLC eval.
 
 > 3. What do you mean by "semantically identical", and are the generators also syntactically similar?
 
-Yes, the AllegrOCaml and Base_quickcheck generors are as you imagine: essentially syntactically identical, modulo
-some extra syntactic cruft for staging. We plan to submit all of our code with the artifact evaluation, but for now, we
-include an example from our evals of a generator and its staged counterpart below the fold.
+Yes, the AllegrOCaml and Base_quickcheck generors are as you imagine:
+essentially identical syntactically, modulo
+some extra cruft for staging. We plan to submit all of our code with the artifact evaluation, but for now, we
+include an example from our evals of a generator and its staged counterpart below.
 
-By "semantically identical", we mean that given the same random seeds, the two
+By "semantically identical", we mean that, given the same random seeds, the two
 generators produce the same generated output.  This property is important
 because it guarantees that all of our bug-finding speedups are solely
 attributable to the improved performance of staged generators, and not because
 the staged generators happen to luckily create bug-squashing outputs. The
-sequence of outputs is the same between the staged and unstaged versions, the staged
+sequence of outputs is the same between the staged and unstaged versions; the staged
 generators just produce them faster.
 
-We further note that this is not an obvious or simple property to maintain:
+This is not an obvious or simple property to maintain:
 staged and unstaged programs can look syntactically similar but behave
 non-equivalently, especially in the presence of effects (for example, `let x =
 print "hi" in x;x` and `let x = .<print "hi">. in .<$x;$x>. --- the former
 prints once, the latter twice). Section 3.4 is essentially about ensuring that
-programmers need not worry about this, and can write their generators in a
+programmers need not worry about this and can write their generators in a
 manner that is syntactically as similar as possible to the non-staged versions.
 
+[BCP: Brief reminder what this is:]
 ```
 let rec gen ~(lo: int) ~(hi: int)  =
   let%bind sz = size in
@@ -212,7 +215,7 @@ Thanks for this feedback. We'll try to further isolate the discussion of Scala t
 
 > On a related note, the paper might be easier to read if there was a single table / figure that summarized the types of various values and objects used throughout the paper. I found myself making this list as I read the paper.
 
-This is a great idea, we'll do this with the extra space in the camera-ready version.
+This is a great idea: we'll do it with the extra space in the camera-ready version.
 
 ----
 
