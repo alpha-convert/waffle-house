@@ -67,26 +67,46 @@ metaprogramming, where programmers save the code output to disk to cache it.
 > Q3) What would it take to implement type-derived generators in Scala? 
 Why did you decide not to implement it?
 
-None of the authors are Scala experts. We are much more familiar with OCaml, so we chose to focus our implementation efforts there. That said, we see no fundamental barrier to implementing type-derived staged generators in Scala. Indeed, the scalacheck-derived project already uses Scala's runtime reflection to type-derive standard (unstaged) ScalaCheck generators. Adapting this approach to emit ScAllegro would require engineering effort, but we anticipate no fundamental obstacles beyond that.
+None of the authors are Scala experts: we are much more familiar with OCaml, so
+we chose to focus our implementation efforts there. That said, we see no
+fundamental barrier to implementing type-derived staged generators in Scala.
+Indeed, the scalacheck-derived project already uses Scala's reflection features
+to type-derive standard (unstaged) ScalaCheck generators. Adapting this approach
+to emit ScAllegro would require engineering effort, but we anticipate no
+fundamental obstacles beyond that.
 
 
 # Reviewer B:
 
 > Typos on l379, l475, l621, l653, l718, l824
 
-p4: It's odd that Figure 4 appears before Figure 3.
-
-: "returns a code" should be "returns code"
-
-: "a observation"
-
-: "a 'a code" - perhaps you mean "a value of type 'a code"?
+Thank you! We'll fix these for the camera ready.
 
 > l119: I'm curious whether OCaml 5 might benefit from using it's native
 effect handlers in place of a monadic generator DSL.
 
 We are also now curious about this! Very interesting idea, direct-style generators
 could potentially be very performant and also have the benefit of being more idiomatic.
+
+> l639: Testing is all well and good, but have you not also considered
+trying to construct a more rigorous proof that AllegrOCaml is correct
+by program transformation / calculation?
+
+We had not considered this, but it would be interesting to investigate.
+
+> l751: Given that MetaOCaml is compatible with OCaml 5, why are you
+still using OCaml 4?
+
+We were not aware that MetaOCaml was now compatible with OCaml 5, this is good
+to know!  When we began the project earlier this year, the MetaOCaml homepage
+instructed users to install a version compatible with OCaml 4.14.1, which is
+what we did (it has since been updated to recommend 5.3.0).
+
+> l824: The text reads a bit oddly to me at this point, as you are
+talking about an experiment you performed in the past and yet you
+insist on using the present tense.
+
+Thanks for the feedback, we'll workshop this prose to make it less awkward.
 
 > l989: You have conjectured that because GHC is set up to perform aggressive optimisations without staging then it is likely to benefit less from the kind of optimisations you exploit. It would be worth investigating to what extent this is indeed the case. Given that GHC’s QuickCheck is the canonical PBT framework it seems particularly worthwhile to perform further experiments with it. I wonder to what extent it would be possible to disable some of GHC’s aggressive inlining, both in order to assess how much it is really paying off, and to compare its robustness to your staging approach.
 
