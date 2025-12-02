@@ -19,7 +19,7 @@ let rec gen ~(lo: int) ~(hi: int)  =
       (1., return E);
       (float_of_int sz , (
         let%bind k = int_inclusive ~lo ~hi in
-        let%bind v = (Nat.quickcheck_generator_parameterized bst_bespoke_limits) in
+        let%bind v = Nat.quickcheck_generator_parameterized bst_bespoke_limits in
         let%bind left = with_size (gen ~lo:lo ~hi:(k - 1)) ~size_c:(sz / 2) in
         let%bind right = with_size (gen ~lo:(k + 1) ~hi:hi) ~size_c:(sz / 2) in
         return (T (left, k, v, right))  

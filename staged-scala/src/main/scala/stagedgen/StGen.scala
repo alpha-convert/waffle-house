@@ -191,18 +191,5 @@ object StGen {
     )
   }
 
-  def wgImpl (using q : Quotes): Expr[Int => Seed => Int] = {
-    val e = StGen.splat(
-      StGen.frequency(
-        '{2} -> StGen.pure('{999}),
-        '{3} -> StGen.pure('{111})
-      )
-    )
-    e
-  }
-
-  inline def wg = {
-    ${wgImpl}
-  }
 }
 

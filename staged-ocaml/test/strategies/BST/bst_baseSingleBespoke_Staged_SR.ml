@@ -24,7 +24,7 @@ let staged_quickcheck_generator (lo: int code) (hi: int code) : tree code G.t =
         (.< 1. >., return .< E >.);
         ((G.C.i2f sz), (
           let%bind k = int_inclusive ~lo ~hi in
-          let%bind v = (Nat.staged_quickcheck_generator_sr_t (G.C.lift bst_bespoke_limits)) in
+          let%bind v = Nat.staged_quickcheck_generator_sr_t (G.C.lift bst_bespoke_limits) in
           let%bind left = with_size ~size_c:(G.C.div2 sz) (recurse go .<(.~lo, .~k - 1) >.) in
           let%bind right = with_size ~size_c:(G.C.div2 sz) (recurse go .<(.~k + 1, .~hi) >.) in
           return (.< T (.~left, .~k, .~v, .~right) >.)))
