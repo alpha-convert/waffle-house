@@ -35,11 +35,33 @@ Line 141: There is an extra comma
 
 Questions for authors to answer in their response
 -------------------------------------------------
-Q1) Can you clarify the novelty of your paper? Does it introduce any optimization from the multi-stage programming not known before?
+Q1) Can you clarify the novelty of your paper? Does it introduce any 
+optimization from the multi-stage programming not known before?
 
-Q2) Can you elaborate on the end-to-end effectiveness of your proposed solution?
+Q2) Can you elaborate on the end-to-end effectiveness of your proposed 
+solution?
 
-Q3) What would it take to implement type-derived generators in Scala? Why did you decide not to implement it?
+The end-to-end effectiveness of our solution depends on (a) the complexity 
+of the inputs being generated, and (b) the amount of time generation takes 
+relative to other parts of the testing process—most obviously, running the 
+system on the generated input. 
+
+In general, more complex generators contain more calls to bind that are 
+fused away using the Allegro technique; therefore, more complex generators 
+see a larger speedup. Figure 15 showcases this relationship. 
+
+The effectiveness of efficient input generation on total testing time is 
+dependent on how long everything that isn’t input generation takes. In systems 
+where running the tests themselves is slow, speeding up input generation won’t 
+have as large an impact; in systems where testing is fast, it will constitute a 
+major speedup. Our end-to-end tests on bug-finding speed, shown in Fig. 17 and 
+Fig. 18, show the time it takes for PBTs to find bugs in mutated programs. In 
+these examples, faster input generation has a measurable end-to-end impact on 
+all of our benchmarks—up to 2.65X using staging alone, and 3.40X in combination 
+with fast randomness.
+
+Q3) What would it take to implement type-derived generators in Scala? 
+Why did you decide not to implement it?
 
 
 
@@ -113,6 +135,15 @@ extent it would be possible to disable some of GHC's aggressive
 inlining, both in order to assess how much it is really paying off,
 and to compare its robustness to your staging approach.
 
+This is a fair point. Our conjecture is based on anecdotal evidence; 
+one of the authors — an experienced Haskell developer — manually 
+applied some of Allegro’s optimizations to a few Haskell generators, 
+and they found that they could really only manage to make performance 
+worse, not better. This is nowhere near a proof, but it discouraged us 
+from exploring that path in the short term. We would be happy to mention 
+this anecdotal experience and/or go into more detail about wanting to do 
+this experiment as future work.
+
 l996: "that is sometimes to build"
 
 Questions for authors to answer in their response
@@ -125,6 +156,19 @@ top of generic PBT libraries which perform as well as the hand-coded
 fuzzers used in practice? Does your work shed any light on how to
 tackle this question?
 
+This is a really interesting question, and we think that our work speaks 
+directly to part of it. Specifically, hand-coded fuzzers that construct 
+inputs satisfying specific structural and semantic constraints are performing 
+precisely the same task that PBT generators are designed for. Hand-coded fuzzers 
+might be faster than PBT generators if users choose to optimize them aggressively, 
+but ideally those optimizations should not need to be done manually. Our hope is 
+that Allegro (and other advances from the PBT literature) can make PBT generators 
+fast enough that developers could use them as highly-performant fuzzers, even 
+though they are expressed in a higher-level language that is easier to write 
+in and reason about. The question gets a bit less clear when considering fuzzers 
+that use mutation and other techniques to obtain interesting inputs, rather than 
+a hand-coded program, although ideas in papers like Coverage Guided Property-Based 
+Testing and Parsing Randomness may provide paths forward in those domains as well.
 
 
 Review #387C
@@ -148,9 +192,13 @@ Strengths
 Weaknesses
 ----------
 
-1. I found the repeated shifting of focus between OCaml and Scala to be distracting. An alternative approach might have been to describe the entirety of the approach for OCaml, and then summarize the Scala-specific differences.
+1. I found the repeated shifting of focus between OCaml and Scala to be distracting. 
+An alternative approach might have been to describe the entirety of the approach for 
+OCaml, and then summarize the Scala-specific differences.
 
-   On a related note, the paper might be easier to read if there was a single table / figure that summarized the types of various values and objects used throughout the paper. I found myself making this list as I read the paper.
+   On a related note, the paper might be easier to read if there was a single table / 
+   figure that summarized the types of various values and objects used throughout the 
+   paper. I found myself making this list as I read the paper.
 
 2. It is not clear how the benchmarks were chosen, or what they look like.
 
@@ -160,8 +208,17 @@ Questions for authors to answer in their response
 
 2. How were the experimental benchmarks chosen?
 
-3. Can you clarify what you mean by "semantically identical" on Line 759? Apart from the complications of Section 3.6, I would have expected that the AllegrOCaml and Base_quickcheck benchmarks would be syntactically identical, modulo like-for-like substitution of Base_quickcheck constructs for AllegrOCaml ones. And similarly for the ScAllegro benchmarks.
+3. Can you clarify what you mean by "semantically identical" on Line 759? Apart from the 
+complications of Section 3.6, I would have expected that the AllegrOCaml and Base_quickcheck 
+benchmarks would be syntactically identical, modulo like-for-like substitution of 
+Base_quickcheck constructs for AllegrOCaml ones. And similarly for the ScAllegro 
+benchmarks.
 
    In addition: Can you please share the code of the benchmarks?
 
 4. Why was BST (Repeated Insert) not used for the ScAllegro experiments in Figure 16?
+
+We picked a representative from each category of generators: trees, lists, and STLC terms, 
+representing low, medium, and high numbers of binds, respectively. We anticipate BST 
+(Repeated Insert) would see a slightly smaller speedup due to its lower number of binds, 
+and we would be happy to include this information in a revision.
