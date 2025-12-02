@@ -244,21 +244,59 @@ Thank you for your comments and questions! We start by discussing some common hi
 
 Reviewers B and C raise concerns about the novelty of our contributions in the context of multi-stage programming.
 
-The main novelty of this work lies in applying staging to PBT. While staging techniques are well established, their application to the abstractions and performance bottlenecks of PBT libraries has not been explored, nor is it straightforward. Our paper is intended to promote staging as a tool in the PBT developer’s toolkit by showing that it can erase abstraction overhead, leading to substantial performance improvements.
+The main novelty of this work lies in applying staging to PBT. While staging
+techniques are well established, their application to the abstractions and
+performance bottlenecks of PBT libraries has not been explored, nor is it
+straightforward. Our paper is intended to promote staging as a tool in the PBT
+developer’s toolkit by showing that it can erase abstraction overhead, leading
+to substantial performance improvements.
 
-Moreover, we argue that, prior to this work, neither abstraction overhead nor sampling costs were viewed as major targets for optimization in PBT. As evidence, we point to SOTA libraries like `Base_quickcheck`, which is highly performance sensitive yet retains design choices (monadic combinators, expensive randomness) that introduce significant overhead.
+Moreover, we argue that, prior to this work, neither abstraction overhead nor
+sampling costs were viewed as major targets for optimization in PBT. As
+evidence, we point to SOTA libraries like `Base_quickcheck`, which is highly
+performance sensitive yet retains design choices (monadic combinators, expensive
+randomness) that introduce significant overhead.
 
-Additional novelty lies in Section 3.7, where we stage type-derived generators. Unlike most staged libraries, which require users to understand metaprogramming, our approach is fully automatic. Since type-derived generators are constructed at compile time, they can be staged without altering user experience. This is a rare example of staging "for free."
+Additional novelty lies in Section 3.7, where we stage type-derived generators.
+Unlike most staged libraries, which require users to understand metaprogramming,
+our approach is fully automatic. Since type-derived generators are constructed
+at compile time, they can be staged without altering user experience. This is a
+rare example of staging "for free."
 
-Finally, our evaluation methodology is a contribution. Because our staged and unstaged generators are semantically equivalent, we can compare them directly on a per-seed basis, holding generator behavior constant while measuring performance. This enables precise, pointwise comparisons that isolate the effects of our interventions. Prior work, including the original Etna paper, could only compare performance distributions across seeds, confounding legitimate performance benefit with random variance.
+Finally, our evaluation methodology is a contribution. Because our staged and
+unstaged generators are semantically equivalent, we can compare them directly on
+a per-seed basis, holding generator behavior constant while measuring
+performance. This enables precise, pointwise comparisons that isolate the
+effects of our interventions. Prior work, including the original Etna paper,
+could only compare performance distributions across seeds, confounding
+legitimate performance benefit with random variance.
 
-Reviewers B and C suggest that combining staging with PBT is straightforward. Up to a point, we agree: the two integrate naturally, and significant gains can be achieved with "straightforward" transformations. However, we did not stop at those naïve transformations; our approach adapts staging to _fully_ eliminate abstraction overhead and to preserve generator semantics. These advances were not straightforward.
- 
-In particular, staging a generator library is not simply a matter of using staging constructs. Choice combinators, such as `weighted_union`, select from a statically known list of generators using a random value sampled at runtime. In unstaged PBT libraries, this list is allocated and traversed at runtime, resulting in significant abstraction overhead; our staged implementation generates a static control structure that avoids allocation entirely. This is a case where PBT-specific constructs contain partially static data, to which staging provides a targeted solution.
+Reviewers B and C suggest that combining staging with PBT is straightforward. Up
+to a point, we agree: the two integrate naturally, and significant gains can be
+achieved with "straightforward" transformations. However, we did not stop at
+those naïve transformations; our approach adapts staging to _fully_ eliminate
+abstraction overhead and to preserve generator semantics. These advances were
+not straightforward.
 
-The process of ensuring semantic equivalence also required considerable care: it is easy to reorder or duplicate random sampling effects when staging, leading to different outputs.
+In particular, staging a generator library is not simply a matter of using
+staging constructs. Choice combinators, such as `weighted_union`, select from a
+statically known list of generators using a random value sampled at runtime. In
+unstaged PBT libraries, this list is allocated and traversed at runtime,
+resulting in significant abstraction overhead; our staged implementation
+generates a static control structure that avoids allocation entirely. This is a
+case where PBT-specific constructs contain partially static data, to which
+staging provides a targeted solution.
 
-Our contributions show that both staging and randomness are fundamental performance levers for PBT. We focused on these areas because they apply across virtually all PBT libraries in strict functional and functional-imperative languages, regardless of higher-level design. We hope this work will lay the foundation for a new direction in PBT designs which makes performance a first-class concern without discarding existing abstractions.
+The process of ensuring semantic equivalence also required considerable care: it
+is easy to reorder or duplicate random sampling effects when staging, leading to
+different outputs.
+
+Our contributions show that both staging and randomness are fundamental
+performance levers for PBT. We focused on these areas because they apply across
+virtually all PBT libraries in strict functional and functional-imperative
+languages, regardless of higher-level design. We hope this work will lay the
+foundation for a new direction in PBT designs which makes performance a
+first-class concern without discarding existing abstractions.
 
 -------------------------------------------------------------------------------------------------
 ### Review A
