@@ -50,6 +50,19 @@ these examples, faster input generation has a measurable end-to-end impact on
 all of our benchmarks—up to 2.65X using staging alone, and 3.40X in combination 
 with fast randomness. -->
 
+Regarding end-to-end effectiveness: Etna is the standard platform for 
+evaluating the bug-finding speed of PBT generators. It was designed 
+as a testbench for comparing generator strategies against each other, and, 
+to our knowledge, no more comprehensive benchmark suite exists for this 
+purpose. Our results show consistent speedups across Etna's tasks, with 
+generation time translating directly to faster bug-finding.
+
+We acknowledge that characterizing the proportion of testing time spent 
+on generation across real-world PBT workloads is an interesting question 
+that merits further study, and doing so would be an important research 
+contribution in itself; we view this as future work outside 
+the scope of this paper.
+
 As for the compilation time of the emitted generator code, we do not believe
 that this is an issue, for two reasons. The first is that our metaprogrammed
 generators compile extremely quickly in AllegrOCaml: 33ms for the simple Bool List
