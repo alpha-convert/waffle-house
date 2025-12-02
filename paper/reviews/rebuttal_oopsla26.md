@@ -1,4 +1,4 @@
-Thank you for your comments and questions! We start by discussing some common high-level concerns, then address all comments in order.
+Thank you for your comments and questions! We start by summarizing our responses to some high-level concerns, and then discuss all reviewer questions in detail after the fold.
 
 Reviewr A about novelty
 
