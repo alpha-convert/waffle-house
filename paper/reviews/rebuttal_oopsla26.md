@@ -90,7 +90,7 @@ Thanks for the feedback, we'll workshop this prose to make it less awkward.
 
 > l989: You have conjectured that because GHC is set up to perform aggressive optimisations without staging then it is likely to benefit less from the kind of optimisations you exploit. It would be worth investigating to what extent this is indeed the case. Given that GHC’s QuickCheck is the canonical PBT framework it seems particularly worthwhile to perform further experiments with it. I wonder to what extent it would be possible to disable some of GHC’s aggressive inlining, both in order to assess how much it is really paying off, and to compare its robustness to your staging approach.
 
-This is a fair point. Our conjecture is based on anecdotal evidence; one of the authors — an experienced Haskell developer — manually applied some of Allegro’s optimizations to a few Haskell generators, and they found that they could really only manage to make performance worse, not better. This is nowhere near a proof, but it discouraged us from exploring that path in the short term. We would be happy to mention this anecdotal experience and/or go into more detail about wanting to do this experiment as future work
+This is a fair point. Our conjecture is based on anecdotal evidence; one of the authors — an experienced Haskell developer — manually applied some of Allegro’s optimizations to a few Haskell generators, and they found that they could really only manage to make performance identical or worse. This is nowhere near a proof, but it discouraged us from exploring that path in the short term. We would be happy to mention this anecdotal experience and/or go into more detail about wanting to do this experiment as future work
 
 > Can we can bridge the performance gap between bespoke
 highly-optimised fuzzing approaches and the much more generic PBT
@@ -118,16 +118,17 @@ Yes, it's used in Figure 3 --- we can include a figure down at Section 3.6 with 
 
 > 2. How were the experimental benchmarks chosen?
 
-We used the subset of the pre-existing Etna suite of benchmarks. Etna was
-designed exactly for this purpose: to test the bugfinding capabilities of
-competing PBT generators.  There are two benchmarks from the original Etna we
-did not use. One tests Red-Black trees, and the other tests a lambda calculus
-typed with System FSub, a more sophisticated type system.  We felt that the RBT eval was
-redundant with the BTS eval we already used: the generators are very similar.
-We chose not to use the FSub eval for two reasons. First, it had not been implemented
-in OCaml, and second, we felt this would be redundant with the STLC
-evals. The FSub generator is even more complex with more combinators than the STLC one, but the testing code and properties are essentially the same:
-we would see an exaggerated version of the speedups in the STLC eval.
+We used benchmarks from Etna, which was specifically designed to test the
+bugfinding capabilities of competing PBT generators.  There are two benchmarks
+from the original Etna we did not use. One tests Red-Black trees, and the other
+tests a lambda calculus typed with System FSub, a more sophisticated type
+system.  We felt that the RBT eval was redundant with the BTS eval we already
+used: the generators are very similar.  We chose not to use the FSub eval for
+two reasons. First, it had not been implemented in OCaml, and second, we felt
+this would be redundant with the STLC evals. The FSub generator is even more
+complex with more combinators than the STLC one, but the testing code and
+properties are essentially the same: we would see an exaggerated version of the
+speedups in the STLC eval.
 
 > 3. What do you mean by "semantically identical", and are the generators also syntactically similar?
 
