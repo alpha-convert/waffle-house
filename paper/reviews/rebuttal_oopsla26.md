@@ -102,6 +102,7 @@ This is a really interesting question, and we think that our work speaks directl
 # Reviewer C
 
 > 1. Can you provide an example of how the recursive generator API in Section 3.6 is used?
+
 Yes, it's used in Figure 3 --- we can include a figure down at section 3.6 with a small example in the camera ready.
 
 > 2. How were the experimental benchmarks chosen?
