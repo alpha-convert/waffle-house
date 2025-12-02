@@ -774,6 +774,8 @@ With a sense of two main inefficiences in generator libraries, we set out in thi
 We begin with a quick tour through multi-stage programming (Section~\ref{subsection:msp}),
 then incrementally build \camlname, layering on features and
 functionality  (Sections~\ref{subsection:basic-design} through \ref{subsection:type-derived}).
+We begin with simple staging tricks, then move on to more advanced techniques that
+leverage our domain-specific understanding of PBT generators.
 Last, we present a controlled experiment demonstrating how a
 faster \rand{} leads to failing faster  (\ref{subsection:faster-rng}).
 
@@ -1754,7 +1756,8 @@ Next, we discuss language-by-language the degree to which the staging-related in
   not as robust as GHC's, so we expect that it would also see some benefit from the \name{} technique. However,
   SwiftCheck is not maintained, so we did not pursue this direction.
 
-This covers most of the major functional and functional-adjacent languages with both PBT libraries and metaprogramming capabilities.
+This covers a large swath of functional and functional-adjacent languages with both PBT libraries and metaprogramming capabilities,
+suggesting that the Allegro technique is widely applicable.
 
 \section{Related Work}
 \label{section:related}
