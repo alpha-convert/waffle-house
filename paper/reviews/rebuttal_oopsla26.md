@@ -16,7 +16,7 @@ Unlike most staged libraries, which require users to understand metaprogramming,
 our approach is fully automatic. Since type-derived generators are constructed
 at compile time, they can be staged without altering user experience. This is a
 rare example of staging "for free." -->
-[BCP: Why not include this? Seems strong.]
+[BCP: include this! Seems strong.]
 <!-- 
 [JWC can we also say that this is an instance of two-level metaprogramming? It's a metaprogram that generates metaprograms!] -->
 
@@ -65,11 +65,13 @@ familiar with OCaml, so we chose to focus our implementation efforts there.
 
 Thank you! We'll fix these for the camera ready.
 
+[BCP: IMO we can elide low-level comments and responses.]
+
 > l119: I'm curious whether OCaml 5 might benefit from using it's native
 effect handlers in place of a monadic generator DSL.
 
-We are also now curious about this! Very interesting idea, direct-style generators
-could potentially be very performant and also have the benefit of being more idiomatic.
+Now we are also curious about this! Very interesting idea: direct-style generators
+could potentially be very performant (and more idiomatic).
 
 > l639: Testing is all well and good, but have you not also considered
 trying to construct a more rigorous proof that AllegrOCaml is correct
@@ -80,7 +82,7 @@ We had not considered this, but it would be interesting to investigate.
 > l751: Given that MetaOCaml is compatible with OCaml 5, why are you
 still using OCaml 4?
 
-We were not aware that MetaOCaml was now compatible with OCaml 5, this is good
+We were not aware that MetaOCaml was now compatible with OCaml 5 -- this is good
 to know!  When we began the project earlier this year, the MetaOCaml homepage
 instructed users to install a version compatible with OCaml 4.14.1, which is
 what we did (it has since been updated to recommend 5.3.0).
