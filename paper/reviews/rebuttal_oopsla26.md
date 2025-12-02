@@ -1,5 +1,15 @@
 Thank you for your comments and questions! We start by discussing some common high-level concerns, then address all comments in order.
 
+Reviewr A about novelty
+
+Reviewrs A and C about generality and choice of our benchmarks.
+
+Reviewer A further about compilation time
+
+Reviewer B about fuzzing
+
+Reviewer C about sematnically identical
+
 # Reviewer A
 
 > Q1) Can you clarify the novelty of your paper? Does it introduce any optimization from the multi-stage programming not known before?
@@ -11,12 +21,13 @@ Prior to this work, neither DSL abstraction overhead nor sampling costs were vie
 While our staging techniques are well established, their application to PBT has not been explored. This paper promotes staging as a tool for PBT developers by showing it can erase abstraction overhead, yielding substantial performance improvements.
 [BCP: ... but was it hard?]
 
-<!-- Additional novelty lies in Section 3.7, where we stage type-derived generators.
+Additional novelty lies in Section 3.7, where we stage type-derived generators.
 Unlike most staged libraries, which require users to understand metaprogramming,
 our approach is fully automatic. Since type-derived generators are constructed
 at compile time, they can be staged without altering user experience. This is a
-rare example of staging "for free." -->
-[BCP: include this! Seems strong.]
+rare example of staging "for free."
+
+<!-- We say more after the fold After the fold -->
 <!-- 
 [JWC can we also say that this is an instance of two-level metaprogramming? It's a metaprogram that generates metaprograms!] -->
 
@@ -39,7 +50,7 @@ the scope of this paper.
 
 As for compilation time of emitted generator code, we do not believe this is an
 issue for two reasons. First, our metaprogrammed generators compile extremely
-quickly: 33ms for Bool List up to 54ms for STLC (full table after the fold).
+quickly: a average of 33ms for Bool List up to 54ms for STLC, plus or minus 5ms for each (full table after the fold).
 Amortized across testing multiple properties (which usually take seconds each),
 this is negligible. Second, generators change infrequently compared to code
 being tested, and the generator only needs to be recompiled when it changes.
@@ -51,10 +62,10 @@ altogether.
 Why did you decide not to implement it?
 
 We see no fundamental barrier to implementing type-derived staged generators in
-Scala.  Indeed, the scalacheck-derived project already uses Scala's reflection
+Scala. Indeed, the scalacheck-derived project already uses Scala's reflection
 features to type-derive standard (unstaged) ScalaCheck generators. Adapting this
 approach to emit ScAllegro would require engineering effort, but we anticipate
-no obstacles beyond that.  We chose to implement our type-derived generators in
+no obstacles beyond that. We chose to implement our type-derived generators in
 OCaml simply because none of the authors are Scala experts: we are much more
 familiar with OCaml, so we chose to focus our implementation efforts there.
 
@@ -114,6 +125,8 @@ in and reason about. The question gets a bit less clear when considering fuzzers
 that use mutation and other techniques to obtain interesting inputs, rather than 
 a hand-coded program, although ideas in papers like Coverage Guided Property-Based 
 Testing and Parsing Randomness may provide paths forward in those domains as well.
+
+``we think so, making tenerators more performmant increases the chance they can be used in fuzzing workflows --- we say more belowt he fold''
 
 # Reviewer C
 
