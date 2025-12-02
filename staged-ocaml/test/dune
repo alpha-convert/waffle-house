@@ -1,6 +1,6 @@
 (test
 (preprocess (pps ppx_jane ppx_deriving.eq ppx_deriving.show))
- (libraries fast_gen alcotest core core_bench util)
+ (libraries fast_gen alcotest core core_bench BST BoolList STLC)
   (foreign_stubs
   (language c)
   (names stop_stubs)) 

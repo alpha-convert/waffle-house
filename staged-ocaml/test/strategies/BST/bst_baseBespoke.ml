@@ -1,4 +1,4 @@
-open Bst_type
+open Type
 open Util.Limits
 let rec insert_correct (t : tree) (k, v) =
   match t with
@@ -8,9 +8,9 @@ let rec insert_correct (t : tree) (k, v) =
       else if k' < k then T (l, k', v', insert_correct r (k, v))
       else T (l, k', v, r)
 
-type t = Bst_type.tree [@@deriving sexp, quickcheck]
+type t = Type.tree [@@deriving sexp, quickcheck]
 
 let quickcheck_generator =
   let open Base_quickcheck.Generator in
-  list (both (Nat.quickcheck_generator_parameterized bst_bespoke_limits) (Nat.quickcheck_generator_parameterized bst_bespoke_limits))
+  list (both (Nat.quickcheck_generator_parameterized 1000) (Nat.quickcheck_generator_parameterized 1000))
   >>= fun l -> Base.List.fold l ~init:E ~f:insert_correct |> return

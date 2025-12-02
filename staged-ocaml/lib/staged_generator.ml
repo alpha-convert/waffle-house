@@ -1,7 +1,10 @@
-(* open Core;; *)
 open Codelib;;
 open Codecps;;
 (* open Codecps.Let_syntax;; *)
+
+let search_paths : (string,unit) Hashtbl.t = Hashtbl.create 10
+let () = Runnative.add_search_path (Util.run_ocamlfind_query "base_quickcheck")
+let () = Runnative.add_search_path ((Util.run_ocamlfind_query "base") ^ " -O3 -w -26")
 
 module MakeStaged(R : Random_intf.S) = struct
 
@@ -335,10 +338,21 @@ let int_uniform_inclusive ~(lo : int code) ~(hi : int code) : int code t = {
   let print sg = Codelib.print_code Format.std_formatter (to_bq sg)
 
   let jit ?extra_cmi_paths cde =
-    List.iter Runnative.add_search_path (List.flatten (Option.to_list extra_cmi_paths));
-    List.iter Runnative.add_search_path R.dep_paths;
-    Runnative.add_search_path (Util.run_ocamlfind_query "base_quickcheck");
-    Runnative.add_search_path ((Util.run_ocamlfind_query "base") ^ " -O3 -w -26");
+    let extra_cmi_paths = List.flatten (Option.to_list extra_cmi_paths) in
+    List.iter (fun path ->
+        if Hashtbl.mem search_paths path then ()
+        else
+          Hashtbl.add search_paths path ();
+          Runnative.add_search_path path
+      ) extra_cmi_paths;
+    List.iter (fun path ->
+        if Hashtbl.mem search_paths path then ()
+        else
+          Hashtbl.add search_paths path ();
+          Runnative.add_search_path path
+      ) R.dep_paths;
+    (* List.iter Runnative.add_search_path extra_cmi_paths; *)
+    (* List.iter Runnative.add_search_path R.dep_paths; *)
     (* this is one of the evilest hacks i've ever pulled. runnative doesn't let
     you pass flags to ocamlopt explicitly, so i just inject them onto the end of
     one of the dependencies. It constructs the ocamlopt call directly from this string. *)

@@ -1,0 +1,24 @@
+(include_subdirs unqualified)
+
+(library
+ (name BST)
+ (modules
+  type
+  bst_baseType
+  bst_baseType_Staged_SR
+  bst_baseType_Staged_CSR
+  bst_baseBespoke
+  bst_baseBespoke_Staged_SR
+  bst_baseBespoke_Staged_CSR
+  bst_baseSingleBespoke
+  bst_baseSingleBespoke_Staged_SR
+  bst_baseSingleBespoke_Staged_CSR
+  nat)
+ (libraries qcheck fast_gen util core core_unix ppxlib)
+ (preprocess
+  (pps ppx_jane ppxlib.metaquot)))
+
+(env
+ (dev
+  (flags
+   (:standard -g -w "-26-27-32-33-34-37-39"))))

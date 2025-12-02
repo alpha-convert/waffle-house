@@ -1,7 +1,7 @@
 open Codelib;;
 open Fast_gen
 open Base
-open Type_defn;;
+open Type;;
 
 module M : Fast_gen.Splittable.S = struct
   type nonrec t = expr
@@ -37,13 +37,13 @@ open Let_syntax
 module GS = G.MakeSplit(M)
 module GTS = G.MakeSplit(MT)
 
-type t = Type_defn.expr [@@deriving quickcheck, sexp]
+type t = Type.expr [@@deriving quickcheck, sexp]
 
 let split_expr = GS.split
 let split_typ = GTS.split
 
 
-let genTyp : Type_defn.typ code G.t =
+let genTyp : Type.typ code G.t =
   recursive .<()>. @@ fun go u ->
     let%bind n = size in
     let%bind b = split_bool .< .~n <= 1 >. in
@@ -57,15 +57,15 @@ let genTyp : Type_defn.typ code G.t =
           return .<TFun(.~t1,.~t2)>.
       ]
 
-let genConst t : Type_defn.expr code G.t =
+let genConst t : Type.expr code G.t =
     recursive t @@ fun go t ->
       let%bind t = split_typ t in
       match t with
       | `TBool -> map ~f:(fun b -> .<Bool .~b>.) bool
       | `TFun(t1,t2) -> map ~f:(fun e -> .<Abs(.~t1,.~e)>.) (recurse go t2)
 
-let genVar g t : Type_defn.expr option code G.t =
-  let%bind vars = return .<List.filter_mapi ~f:(fun i t' -> if Type_defn.equal .~t t' then Some (Some (Var i)) else None) .~g>. in
+let genVar g t : Type.expr option code G.t =
+  let%bind vars = return .<List.filter_mapi ~f:(fun i t' -> if Type.equal .~t t' then Some (Some (Var i)) else None) .~g>. in
   let%bind vars_s = split_list vars in
   match vars_s with
   | `Nil -> return .<None>.
@@ -93,6 +93,9 @@ let genExpr =
   let%bind t = genTyp in
   genExactExpr n .<[]>. t
 
-let quickcheck_generator = G.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"] genExpr
+let make_quickcheck_generator () =
+  G.jit ~extra_cmi_paths:["/home/jcutler/Documents/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"; "/home/jcutler/Documents/waffle-house/staged-ocaml/_build/default/test/strategies/STLC/.STLC.objs/byte"] genExpr
+
+let quickcheck_generator = make_quickcheck_generator ()
 
 let sexp_of_t = sexp_of_t

@@ -1,1 +1,1 @@
-type t = Bst_type.tree [@@deriving sexp, quickcheck]
+type t = Type.tree [@@deriving sexp, quickcheck]

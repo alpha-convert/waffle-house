@@ -350,7 +350,7 @@ module Bm = Benchmark
     "C", g3;
     "CSR", g4;
     "Lehmer", g5
-  ] ~sizes:[10;50;100;1000] ~seeds:[100] ~num_calls:10000 *)
+  ] ~sizes:[10;50;100;1000] ~seeds:[100] ~quota:(Core_bench.Bench.Quota.Num_calls 10000) *)
 
 
 (* let () =
@@ -381,13 +381,15 @@ module Bm = Benchmark
 (* open Bst_benchmark *)
 (* open Stlc_benchmark *)
 
+open Test_compile_time
+
 (* let () = Count_binds.run ~size:100 ~num_trials:10000 "boollist" Boollist.quickcheck_generator
 let () = Count_binds.run ~size:100 ~num_trials:10000 "bst single pass" Bst_baseSingleBespoke.quickcheck_generator
 let () = Count_binds.run ~size:100 ~num_trials:10000 "stlc bespoke" Stlc_baseBespoke.quickcheck_generator
- *)
+ (* *)
 let () = Trace_generator.run ~size:100 ~num_trials:10000 "boollist" Boollist.quickcheck_generator
 let () = Trace_generator.run ~size:100 ~num_trials:10000 "bst single pass" Bst_baseSingleBespoke.quickcheck_generator
-let () = Trace_generator.run ~size:100 ~num_trials:10000 "stlc bespoke" Stlc_baseBespoke.quickcheck_generator
+let () = Trace_generator.run ~size:100 ~num_trials:10000 "stlc bespoke" Stlc_baseBespoke.quickcheck_generator *)
 
 
           (* BST type
@@ -396,8 +398,7 @@ let () = Trace_generator.run ~size:100 ~num_trials:10000 "stlc bespoke" Stlc_bas
           BST bespoke
           BST single pass
           bool list *)
-(* 
-let () =
+(* let () =
   let open Alcotest in
   run "Staged Generators" [
     (* "Derived", [derived_testcase] *)

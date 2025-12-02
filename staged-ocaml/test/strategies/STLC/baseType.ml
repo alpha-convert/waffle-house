@@ -1,3 +1,3 @@
-open Type_defn;;
+open Type;;
 
 type t = expr [@@deriving sexp, quickcheck]

@@ -7,10 +7,10 @@ module G = Fast_gen.Bq_generator
 open G
 open Base
 open Let_syntax
-open Type_defn
+open Type
 
 type t = expr [@@deriving sexp, quickcheck]
-let genTyp : Type_defn.typ G.t =
+let genTyp : Type.typ G.t =
   recursive () @@ fun go _ ->
     let%bind n = size in
     if n <= 1 then return TBool
@@ -23,7 +23,7 @@ let genTyp : Type_defn.typ G.t =
     ]
 
 let genVar g t : expr option G.t =
-  let vars = List.filter_mapi ~f:(fun i t' -> if Type_defn.equal t t' then Some (Some (Var i)) else None) g in
+  let vars = List.filter_mapi ~f:(fun i t' -> if Type.equal t t' then Some (Some (Var i)) else None) g in
   match vars with
   | [] -> return None
   | _ -> of_list vars

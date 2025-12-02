@@ -1,11 +1,11 @@
-open Type_defn;;
+open Type;;
 open Fast_gen;;
 open Core;;
 open Core_unix;;
 
 module G = Fast_gen.Staged_generator.MakeStaged(Fast_gen.C_sr_dropin_random)
 
-type t = Type_defn.expr [@@deriving quickcheck, sexp]
+type t = Type.expr [@@deriving quickcheck, sexp]
 let staged_quickcheck_generator_typ =
   G.recursive (G.C.lift ())
     (fun go ->
@@ -86,5 +86,8 @@ let staged_code =
                [_pair__042_; _pair__043_; _pair__044_; _pair__045_] in
            G.bind G.size
              ~f:(fun x -> G.if_z x _gen__040_ _gen__041_))
-let quickcheck_generator = G.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"] staged_code
+let make_quickcheck_generator () =
+  G.jit ~extra_cmi_paths:["/home/jcutler/Documents/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"; "/home/jcutler/Documents/waffle-house/staged-ocaml/_build/default/test/strategies/STLC/.STLC.objs/byte"] staged_code
+
+let quickcheck_generator = make_quickcheck_generator ()
 let sexp_of_t = sexp_of_t
