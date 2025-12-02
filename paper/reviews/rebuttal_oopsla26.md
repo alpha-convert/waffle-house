@@ -1,6 +1,6 @@
 # Reviewer A
 
-### Q1) Can you clarify the novelty of your paper? Does it introduce any optimization from the multi-stage programming not known before?
+> Q1) Can you clarify the novelty of your paper? Does it introduce any optimization from the multi-stage programming not known before?
 
 The main novelty of this work lies in applying staging to PBT. While staging
 techniques are well established, their application to the abstractions and
@@ -21,7 +21,7 @@ our approach is fully automatic. Since type-derived generators are constructed
 at compile time, they can be staged without altering user experience. This is a
 rare example of staging "for free."
 
-### Q2) Can you elaborate on the end-to-end effectiveness of your proposed solution?
+> Q2) Can you elaborate on the end-to-end effectiveness of your proposed solution?
 
 The end-to-end effectiveness of our solution depends on (a) the complexity 
 of the inputs being generated, and (b) the amount of time generation takes 
@@ -42,7 +42,7 @@ these examples, faster input generation has a measurable end-to-end impact on
 all of our benchmarks—up to 2.65X using staging alone, and 3.40X in combination 
 with fast randomness.
 
-### Q3) What would it take to implement type-derived generators in Scala? Why did you decide not to implement it?
+> Q3) What would it take to implement type-derived generators in Scala? Why did you decide not to implement it?
 
 ---
 
@@ -88,6 +88,16 @@ This is a fair point. Our conjecture is based on anecdotal evidence; one of the 
 
 <!-- 
 The second criticism is with the evaluation. It is unclear to me if, in the software development cycle, the proposed improvement will provide any actual benefit for two main reasons. First, the compiler time is not taken into account. Multi-stage programming adds a runtime code generation time; the extent to which it is taken into account is unclear. It has an overhead that can be amortized if the computation itself is very time-consuming. The authors need to clarify if this time is taken into account. Second, based on Amdahl's Law, does the proposed improvement bring actual benefits in practice? RQ2 shows results for finding bugs in the Etna platform. However, it is still unclear how many practical applications one would see in which a massive proportion of overhead for the testing infrastructure vs. the time each function itself takes. The authors need to use more workloads and justify this more clearly. -->
+
+> One somewhat open-ended question I am wondering about is to what
+extent we can bridge the performance gap between bespoke
+highly-optimised fuzzing approaches and the much more generic PBT
+libraries exemplified by QuickCheck. Can we hope to build fuzzers on
+top of generic PBT libraries which perform as well as the hand-coded
+fuzzers used in practice? Does your work shed any light on how to
+tackle this question?
+
+This is a really interesting question, and we think that our work speaks directly to part of it. Specifically, hand-coded fuzzers that construct inputs satisfying specific structural and semantic constraints are performing precisely the same task that PBT generators are designed for. Hand-coded fuzzers might be faster than PBT generators if users choose to optimize them aggressively, but ideally those optimizations should not need to be done manually. Our hope is that Allegro (and other advances from the PBT literature) can make PBT generators fast enough that developers could use them as highly-performant fuzzers, even though they are expressed in a higher-level language that is easier to write in and reason about. The question gets a bit less clear when considering fuzzers that use mutation and other techniques to obtain interesting inputs, rather than a hand-coded program, although ideas in papers like Coverage Guided Property-Based Testing and Parsing Randomness may provide paths forward in those domains as well.
 
 # Reviewer C
 
