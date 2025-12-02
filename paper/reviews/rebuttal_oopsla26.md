@@ -42,11 +42,30 @@ these examples, faster input generation has a measurable end-to-end impact on
 all of our benchmarks—up to 2.65X using staging alone, and 3.40X in combination 
 with fast randomness. -->
 
-As for compilation time of emitted generator code, we do not believe this is an issue for two reasons. First, our metaprogrammed generators compile extremely quickly: 33ms for Bool List up to 54ms for STLC (full table after the fold). Amortized across testing multiple properties (which usually take seconds each), this is negligible. Second, generators change infrequently compared to code being tested, and the generator only needs to be recompiled when it changes. Indeed,
-we anticipate that a production-ready instantiation of Allegro could let programmers
-cache generator code to disk, to avoid compilation at testing-time altogether.
 <!-- Unlike typical run-time metaprogramming which must be frequently recompiled because application code itself is written as a metaprogram, our usage is more like compile-time metaprogramming, where programmers can cache generated code to disk.
  -->
+Regarding end-to-end effectiveness: Etna is the standard platform for 
+evaluating the bug-finding speed of PBT generators. It was designed 
+as a testbench for comparing generator strategies against each other, and, 
+to our knowledge, no more comprehensive benchmark suite exists for this 
+purpose. Our results show consistent speedups across Etna's tasks, with 
+generation time translating directly to faster bug-finding.
+
+We acknowledge that characterizing the proportion of testing time spent 
+on generation across real-world PBT workloads is an interesting question 
+that merits further study, and doing so would be an important research 
+contribution in itself; we view this as future work outside 
+the scope of this paper.
+
+As for compilation time of emitted generator code, we do not believe this is an
+issue for two reasons. First, our metaprogrammed generators compile extremely
+quickly: 33ms for Bool List up to 54ms for STLC (full table after the fold).
+Amortized across testing multiple properties (which usually take seconds each),
+this is negligible. Second, generators change infrequently compared to code
+being tested, and the generator only needs to be recompiled when it changes.
+Indeed, we anticipate that a production-ready instantiation of Allegro could let
+programmers cache generator code to disk, to avoid compilation at testing-time
+altogether.
 
 > Q3) What would it take to implement type-derived generators in Scala? 
 Why did you decide not to implement it?
