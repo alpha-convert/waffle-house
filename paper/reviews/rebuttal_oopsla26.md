@@ -1,30 +1,22 @@
+Thank you for your comments and questions! We start by discussing some common high-level concerns, then address all comments in order.
+
 # Reviewer A
 
 > Q1) Can you clarify the novelty of your paper? Does it introduce any optimization from the multi-stage programming not known before?
 
-[JWC: ... and noticing that these sources of inefficiency exist in PBT]
+The main novelties are (1) identifying previously unrecognized sources of inefficiency in PBT, and (2) applying staging to address them.
 
-The main novelty of this work lies in applying staging to PBT. While staging
-techniques are well established, their application to the abstractions and
-performance bottlenecks of PBT libraries has not been explored, nor is it
-straightforward. Our paper is intended to promote staging as a tool in the PBT
-developer’s toolkit by showing that it can erase abstraction overhead, leading
-to substantial performance improvements.
+Prior to this work, neither DSL abstraction overhead nor sampling costs were viewed as optimization targets in PBT. As evidence, SOTA libraries like `Base_quickcheck` use imperative features (mutable arrays, stateful RNG) to try to improve performance, yet retain design choices (monadic combinators, expensive randomness) that introduce significant overhead.
 
-Prior to this work, neither DSL abstraction overhead nor sampling costs were
-viewed as targets for optimization in PBT. As evidence, we point to SOTA
-libraries like `Base_quickcheck`, which is has had a lot of optimization effort
-put into it --- it uses imperative features like mutable arrays and a stateful
-RNG for performance reasons --- yet retains design choices (monadic combinators,
-expensive randomness) that introduce significant overhead.
+While our staging techniques are well established, their application to PBT abstractions and bottlenecks has not been explored. This paper promotes staging as a tool for PBT developers by showing it can erase abstraction overhead, yielding substantial performance improvements.
 
-Additional novelty lies in Section 3.7, where we stage type-derived generators.
+<!-- Additional novelty lies in Section 3.7, where we stage type-derived generators.
 Unlike most staged libraries, which require users to understand metaprogramming,
 our approach is fully automatic. Since type-derived generators are constructed
 at compile time, they can be staged without altering user experience. This is a
-rare example of staging "for free."
-
-[JWC can we also say that this is an instance of two-level metaprogramming? It's a metaprogram that generates metaprograms!]
+rare example of staging "for free." -->
+<!-- 
+[JWC can we also say that this is an instance of two-level metaprogramming? It's a metaprogram that generates metaprograms!] -->
 
 >  Q2) Can you elaborate on the end-to-end effectiveness of your proposed 
 solution?
@@ -50,19 +42,11 @@ these examples, faster input generation has a measurable end-to-end impact on
 all of our benchmarks—up to 2.65X using staging alone, and 3.40X in combination 
 with fast randomness. -->
 
-As for the compilation time of the emitted generator code, we do not believe
-that this is an issue, for two reasons. The first is that our metaprogrammed
-generators compile extremely quickly in AllegrOCaml: 33ms for the simple Bool List
-generator, up to 54ms for the STLC generator (a full table of the AllegrOCaml generators and their compilation times can be found after the fold).  Amortized across testing multiple
-properties (which frequently take on the order of seconds to run), this is
-negligible. Second, generator code changes extremely infrequently compared to
-code being tested, and the generator metaprogram needs to be re-run and the
-output code recompiled only when the generator itself changes. This is somewhat
-different from many other uses of run-time metaprogramming, where the
-application code itself is written as a metaprogram. Our intended mode of usage
-therefore is more like compile time metaprogramming than run-time
-metaprogramming, where programmers save the code output to disk to cache it.
-
+As for compilation time of emitted generator code, we do not believe this is an issue for two reasons. First, our metaprogrammed generators compile extremely quickly: 33ms for Bool List up to 54ms for STLC (full table after the fold). Amortized across testing multiple properties (which usually take seconds each), this is negligible. Second, generators change infrequently compared to code being tested, and the generator only needs to be recompiled when it changes. Indeed,
+we anticipate that a production-ready instantiation of Allegro could let programmers
+cache generator code to disk, to avoid compilation at testing-time altogether.
+<!-- Unlike typical run-time metaprogramming which must be frequently recompiled because application code itself is written as a metaprogram, our usage is more like compile-time metaprogramming, where programmers can cache generated code to disk.
+ -->
 
 > Q3) What would it take to implement type-derived generators in Scala? 
 Why did you decide not to implement it?
@@ -212,14 +196,22 @@ let staged_quickcheck_generator (lo: int code) (hi: int code) : tree code G.t =
 
 > 4. Why was BST (Repeated Insert) not used for the ScAllegro experiments in Figure 16?
 
-We picked a representative from each category of generators: trees, lists, and STLC terms, 
-representing low, medium, and high numbers of binds, respectively. We anticipate BST 
-(Repeated Insert) would see a slightly smaller speedup due to its lower number of binds, 
-and we would be happy to include this information in a revision. Our goal in this evaluation subsection was not to point-by-point reproduce the AllegrOCaml evaluation in ScAllegro, but
-simply to demonstrate that the performance improvments of the Allegro technique are portable
-across languges.
+We picked a representative from each category of generators: trees, lists, and
+STLC terms, representing low, medium, and high numbers of binds, respectively.
+We anticipate BST (Repeated Insert) would see a slightly smaller than the other
+generators speedup due to its lower number of binds, and we would be happy to
+include this information in a revision. Our goal in this evaluation subsection
+was not to point-by-point reproduce the AllegrOCaml evaluation in ScAllegro, but
+simply to demonstrate that the performance improvments of the Allegro technique
+are portable across languges.
 
+> I found the repeated shifting of focus between OCaml and Scala to be distracting. An alternative approach might have been to describe the entirety of the approach for OCaml, and then summarize the Scala-specific differences.
 
+Thanks for this feedback. We'll try to further isolate the discussion of Scala to just the intro and the bits of the evaluation where we evaluate ScAllegro.
+
+> On a related note, the paper might be easier to read if there was a single table / figure that summarized the types of various values and objects used throughout the paper. I found myself making this list as I read the paper.
+
+This is a great idea, we'll do this with the extra space in the camera-ready version.
 
 ----
 
