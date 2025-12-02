@@ -6,10 +6,9 @@ Thank you for your comments and questions! We start by discussing some common hi
 
 The main novelties are (1) identifying previously unrecognized sources of inefficiency in PBT, and (2) applying staging to address them.
 
-Prior to this work, neither DSL abstraction overhead nor sampling costs were viewed as optimization targets in PBT. As evidence, SOTA libraries like `Base_quickcheck` use imperative features (mutable arrays, stateful RNG) to try to improve performance, yet retain design choices (monadic combinators, expensive randomness) that introduce significant overhead.
+Prior to this work, neither DSL abstraction overhead nor sampling costs were viewed as optimization targets in PBT. As evidence, SOTA libraries like `Base_quickcheck` use imperative features (mutable arrays, stateful instead of functional RNG) to try to improve performance, yet retain design choices (monadic combinators, relatively expensive randomness) that introduce significant overhead.
 [BCP: Yes!]
-
-While our staging techniques are well established, their application to PBT abstractions and bottlenecks has not been explored. This paper promotes staging as a tool for PBT developers by showing it can erase abstraction overhead, yielding substantial performance improvements.
+While our staging techniques are well established, their application to PBT has not been explored. This paper promotes staging as a tool for PBT developers by showing it can erase abstraction overhead, yielding substantial performance improvements.
 [BCP: ... but was it hard?]
 
 <!-- Additional novelty lies in Section 3.7, where we stage type-derived generators.
@@ -24,31 +23,7 @@ rare example of staging "for free." -->
 >  Q2) Can you elaborate on the end-to-end effectiveness of your proposed 
 solution?
 
-[JWC: reframe this to be more about the eval.]
-<!-- 
-The effectiveness depends on (a) the complexity 
-of the inputs being generated, and (b) the amount of time generation takes 
-relative to other parts of the testing process—most obviously, running the 
-system on the generated input. 
-
-In general, more complex generators contain more calls to bind that are 
-fused away using the Allegro technique; therefore, more complex generators 
-see a larger speedup. Figure 15 showcases this relationship. 
-
-As the reviewer notes,
-the effectiveness of efficient input generation on total testing time is 
-dependent on how long everything that isn’t input generation takes. In systems 
-where running the tests themselves is slow, speeding up input generation won’t 
-have as large an impact; in systems where testing is fast, it will constitute a 
-major speedup. Our end-to-end tests on bug-finding speed, shown in Fig. 17 and 
-Fig. 18, show the time it takes for PBTs to find bugs in mutated programs. In 
-these examples, faster input generation has a measurable end-to-end impact on 
-all of our benchmarks—up to 2.65X using staging alone, and 3.40X in combination 
-with fast randomness. -->
-
-<!-- Unlike typical run-time metaprogramming which must be frequently recompiled because application code itself is written as a metaprogram, our usage is more like compile-time metaprogramming, where programmers can cache generated code to disk.
- -->
-Regarding end-to-end effectiveness: Etna is the standard platform for 
+Our evaluation uses Etna, the standard platform for 
 evaluating the bug-finding speed of PBT generators. It was designed 
 as a testbench for comparing generator strategies against each other, and, 
 to our knowledge, no more comprehensive benchmark suite exists for this 
@@ -75,18 +50,18 @@ altogether.
 > Q3) What would it take to implement type-derived generators in Scala? 
 Why did you decide not to implement it?
 
-None of the authors are Scala experts: we are much more familiar with OCaml, so
-we chose to focus our implementation efforts there. That said, we see no
-fundamental barrier to implementing type-derived staged generators in Scala.
-Indeed, the scalacheck-derived project already uses Scala's reflection features
-to type-derive standard (unstaged) ScalaCheck generators. Adapting this approach
-to emit ScAllegro would require engineering effort, but we anticipate no
-fundamental obstacles beyond that.
+We see no fundamental barrier to implementing type-derived staged generators in
+Scala.  Indeed, the scalacheck-derived project already uses Scala's reflection
+features to type-derive standard (unstaged) ScalaCheck generators. Adapting this
+approach to emit ScAllegro would require engineering effort, but we anticipate
+no obstacles beyond that.  We chose to implement our type-derived generators in
+OCaml simply because none of the authors are Scala experts: we are much more
+familiar with OCaml, so we chose to focus our implementation efforts there.
 
 
 # Reviewer B:
 
-> Typos on l379, l475, l621, l653, l718, l824
+> Typos and formatting issues on p4, l379, l475, l621, l653, l718, l824, l996
 
 Thank you! We'll fix these for the camera ready.
 
