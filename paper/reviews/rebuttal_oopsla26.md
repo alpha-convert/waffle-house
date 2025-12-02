@@ -91,10 +91,10 @@ The second criticism is with the evaluation. It is unclear to me if, in the soft
 
 # Reviewer C
 
-1. Can you provide an example of how the recursive generator API in Section 3.6 is used?
+> 1. Can you provide an example of how the recursive generator API in Section 3.6 is used?
 Yes, it's used in Figure 3 --- we can include a figure down at section 3.6 with a small example in the camera ready.
 
-2. How were the experimental benchmarks chosen?
+> 2. How were the experimental benchmarks chosen?
 
 We used the subset of the pre-existing Etna suite of benchmarks. Etna was
 designed exactly for this purpose: to test the bugfinding capabilities of
@@ -107,7 +107,7 @@ in OCaml, and second, we felt this would be redundant with the STLC
 evals. The FSub generator is even more complex with more combinators than the STLC one, but the testing code and properties are essentially the same:
 we would see an exaggerated version of the speedups in the STLC eval.
 
-3. What do you mean by "semantically identical", and are the generators also syntactically similar?
+> 3. What do you mean by "semantically identical", and are the generators also syntactically similar?
 
 Yes, the AllegrOCaml and Base_quickcheck generors are as you imagine: essentially syntactically identical, modulo
 some extra syntactic cruft for staging. We plan to submit all of our code with the artifact evaluation, but for now, we
@@ -167,3 +167,7 @@ let staged_quickcheck_generator (lo: int code) (hi: int code) : tree code G.t =
       ]
   )
 ```
+
+> 4. Why was BST (Repeated Insert) not used for the ScAllegro experiments in Figure 16?
+
+We picked a representative from each category of generators: trees, lists, and STLC terms, representing low, medium, and high numbers of binds, respectively. We anticipate BST (Repeated Insert) would see a slightly smaller speedup due to its lower number of binds, and we would be happy to include this information in a revision.
