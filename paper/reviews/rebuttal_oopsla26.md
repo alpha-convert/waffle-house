@@ -28,7 +28,7 @@ rare example of staging "for free."
 solution?
 
 [JWC: reframe this to be more about the eval.]
-
+<!-- 
 The effectiveness depends on (a) the complexity 
 of the inputs being generated, and (b) the amount of time generation takes 
 relative to other parts of the testing process—most obviously, running the 
@@ -46,7 +46,7 @@ major speedup. Our end-to-end tests on bug-finding speed, shown in Fig. 17 and
 Fig. 18, show the time it takes for PBTs to find bugs in mutated programs. In 
 these examples, faster input generation has a measurable end-to-end impact on 
 all of our benchmarks—up to 2.65X using staging alone, and 3.40X in combination 
-with fast randomness.
+with fast randomness. -->
 
 As for the compilation time of the emitted generator code, we do not believe
 that this is an issue, for two reasons. The first is that our metaprogrammed

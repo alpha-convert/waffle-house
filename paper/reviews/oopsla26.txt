@@ -62,12 +62,8 @@ Q1) Can you clarify the novelty of your paper? Does it introduce any optimizatio
 
 Q2) Can you elaborate on the end-to-end effectiveness of your proposed solution?
 
-<<<<<<< HEAD
 Q3) What would it take to implement type-derived generators in Scala? 
 Why did you decide not to implement it?
-=======
-Q3) What would it take to implement type-derived generators in Scala? Why did you decide not to implement it?
->>>>>>> 095361f450cc41290fcf4e76439bad7e6ab020a7
 
 
 
@@ -140,10 +136,6 @@ worthwhile to perform further experiments with it. I wonder to what
 extent it would be possible to disable some of GHC's aggressive
 inlining, both in order to assess how much it is really paying off,
 and to compare its robustness to your staging approach.
-<<<<<<< HEAD
-=======
-
->>>>>>> 095361f450cc41290fcf4e76439bad7e6ab020a7
 l996: "that is sometimes to build"
 
 Questions for authors to answer in their response
@@ -156,10 +148,6 @@ top of generic PBT libraries which perform as well as the hand-coded
 fuzzers used in practice? Does your work shed any light on how to
 tackle this question?
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 095361f450cc41290fcf4e76439bad7e6ab020a7
 
 Review #387C
 ===========================================================================
