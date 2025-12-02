@@ -114,10 +114,10 @@ Testing and Parsing Randomness may provide paths forward in those domains as wel
 
 > 1. Can you provide an example of how the recursive generator API in Section 3.6 is used?
 
-> 1. Can you provide an example of how the recursive generator API in Section 3.6 is used?
 Yes, it's used in Figure 3 --- we can include a figure down at Section 3.6 with a small example in the camera-ready version.
 
 > 2. How were the experimental benchmarks chosen?
+
 We used the subset of the pre-existing Etna suite of benchmarks. Etna was
 designed exactly for this purpose: to test the bugfinding capabilities of
 competing PBT generators.  There are two benchmarks from the original Etna we
