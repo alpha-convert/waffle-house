@@ -248,16 +248,15 @@ camera-ready version.
 
 # Generator Compilation Times
 
-[BCP: Format for easy reading in ascii too?]
 
-| Generator | Compilation Time |
-|---|---|
-|Bool List|33.183ms|
-|BST Repeated Insert|45.453ms|
-|BST Type|46.051ms|
-|BST Single Pass|50.147ms|
-|STLC Type|44.663ms|
-|STLC Bespoke|53.699ms|
+|     Generator     | Compilation Time |
+|-------------------|------------------|
+|Bool List          |33.183ms          |
+|BST Repeated Insert|45.453ms          |
+|BST Type           |46.051ms          |
+|BST Single Pass    |50.147ms          |
+|STLC Type          |44.663ms          |
+|STLC Bespoke       |53.699ms          |
 
 -------
 
