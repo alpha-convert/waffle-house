@@ -35,7 +35,7 @@ Allegro.  Of course, real world uses of PBT vary even more wildly than those in
 Etna.  Characterizing what proportion of testing time real-world PBT workloads
 spend on generation is an interesting question that merits further study, though
 we view this as future work.  We did omit two Etna of the benchmarks: Red-Black
-trees–which we thougth were redundant with our BST evaluation–and System
+trees–which we thought were redundant with our BST evaluation–and System
 FSub–redundant with STLC, and not implemented in OCaml.
 
 ## Reviewer A asks about compilation time overhead.
@@ -145,7 +145,7 @@ insist on using the present tense.
 
 Thanks for the feedback, we'll workshop this prose to make it less awkward.
 
-> l989: You have conjectured that because GHC is set up to perform aggressive optimisations without staging then it is likely to benefit less from the kind of optimisations you exploit. It would be worth investigating to what extent this is indeed the case. Given that GHC’s QuickCheck is the canonical PBT framework it seems particularly worthwhile to perform further experiments with it. I wonder to what extent it would be possible to disable some of GHC’s aggressive inlining, both in order to assess how much it is really paying off, and to compare its robustness to your staging approach.
+> l989: You have conjectured that because GHC is set up to perform aggressive optimizations without staging then it is likely to benefit less from the kind of optimizations you exploit. It would be worth investigating to what extent this is indeed the case. Given that GHC’s QuickCheck is the canonical PBT framework it seems particularly worthwhile to perform further experiments with it. I wonder to what extent it would be possible to disable some of GHC’s aggressive inlining, both in order to assess how much it is really paying off, and to compare its robustness to your staging approach.
 
 This is a fair point. Our conjecture is based on anecdotal evidence; one of the authors — an experienced Haskell developer — manually applied some of Allegro’s optimizations to a few Haskell generators, and they found that they could really only manage to make performance identical or worse. This is nowhere near a proof, but it discouraged us from exploring that path in the short term. We would be happy to mention this anecdotal experience and/or go into more detail about wanting to do this experiment as future work.
 
@@ -200,8 +200,8 @@ We anticipate BST (Repeated Insert) would see a slightly smaller than the other
 generators speedup due to its lower number of binds, and we would be happy to
 include this information in a revision. Our goal in this evaluation subsection
 was not to point-by-point reproduce the AllegrOCaml evaluation in ScAllegro, but
-simply to demonstrate that the performance improvments of the Allegro technique
-are portable across languges.
+simply to demonstrate that the performance improvements of the Allegro technique
+are portable across languages.
 
 > I found the repeated shifting of focus between OCaml and Scala to be distracting. An alternative approach might have been to describe the entirety of the approach for OCaml, and then summarize the Scala-specific differences.
 
@@ -218,7 +218,7 @@ This is a great idea: we'll do it with the extra space in the camera-ready versi
 | Generator | Compilation Time |
 |---|---|
 |Bool List|33.183ms|
-|BST Repated Insert|45.453ms|
+|BST Repeated Insert|45.453ms|
 |BST Type|46.051ms|
 |BST Single Pass|50.147ms|
 |STLC Type|44.663ms|
