@@ -1,14 +1,63 @@
 Thank you for your comments and questions! We start by summarizing our responses to some high-level concerns, and then discuss all reviewer questions in detail after the fold.
 
-Reviewr A about novelty
+## Reviewer A asks us to clarify the novelty of our paper.
+The first novel contribution is our identification of previously unrecognized
+sources of inefficiency in PBT: DSL abstraction overhead and sampling costs.
+Prior work on speeding up PBT has never targeted these; even production-grade
+PBT libraries like Base_quickcheck retain monadic combinators and expensive
+randomness. Our second source of novelty is the application of staging to PBT
+generators.  While using staging to eliminate the abstraction overhead of DSLs
+is well-studied, it has never before been applied to PBT. Last, we provide a way
+to synthesize staged generators from type definitions (type-deriving).
+Type-derived generators are standard, but type-derived *staged* generators are a
+two-level metaprogram: based on the type, we generate code that generates a generator.
 
-Reviewrs A and C about generality and choice of our benchmarks.
+## Reviewers A and C ask about our benchmarks, how we chose them, and the balance between testing time versus generation time in practice
 
-Reviewer A further about compilation time
+Our evaluation uses Etna, the standard benchmark suite for comparing the
+bug-finding speed of PBT generators.  Etna includes generators from simple BST
+generators to sophisticated well-typed STLC term generators, paired with
+properties ranging from very cheap to check --- BST operations maintain the
+invariant --- to more expensive --- well typed STLC programs don't get stuck.
+In all of these cases, we find a consistent bug-finding speed improvement from
+Allegro.  Of course, real world uses of PBT vary even more wildly than those in
+Etna.  Characterizing what proportion of testing time real-world PBT workloads
+spend on generation is an interesting question that merits further study, though
+we view this as future work.  We did omit two Etna of the benchmarks: Red-Black
+trees --- which we thougth were redundant with our BST evaluation --- and System
+FSub --- redundant with STLC, and not implemented in OCaml.
 
-Reviewer B about fuzzing
+## Reviewer A asks about compilation time overhead.
+All the generators from the eval compile in under 55ms, which is amortized
+across all the tests, each of which takes on the order of seconds. Moreover,
+generators change very infrequently compared to application code, so
+recompilation is rare. A production-ready Allegro implementation could cache
+compiled generators to disk, avoiding compilation at test time entirely.
 
-Reviewer C about sematnically identical
+## Reviewer B asks if our work can be used to bridge the performance gap between PBT and fast hand-rolled fuzzers
+
+We think that our work speaks 
+directly to part of this question. Hand-coded fuzzers that construct 
+inputs satisfying specific structural and semantic constraints are performing 
+precisely the same task that PBT generators are designed for. Hand-coded fuzzers 
+might be faster than PBT generators if users choose to optimize them aggressively, 
+but ideally those optimizations should not need to be done manually. Our hope is 
+that Allegro (and other advances from the PBT literature) can make PBT generators 
+fast enough that developers could use them as highly-performant fuzzers, even 
+though they are expressed in a higher-level language that is easier to write 
+in and reason about. The question gets a bit less clear when considering fuzzers 
+that use mutation and other techniques to obtain interesting inputs, rather than 
+a hand-coded program, although ideas in papers like Coverage Guided Property-Based 
+Testing and Parsing Randomness may provide paths forward in those domains as well.
+
+## Reviewer C inquires if the staged generators are syntactically similar to their unstaged counterparts, and asks for clarification about the term "semantically identical"
+Indeed, the staged and unstaged generators are syntactically very similar,
+modulo some extra cruft required by MetaOCaml and Scala to write staged code. By
+"semantically identical," we mean that given the same random seeds, both produce
+the same outputs. This guarantees our speedups come purely from faster
+generation, not from lucky outputs that happen to find bugs sooner.
+
+------------------------------------------------------
 
 # Reviewer A
 
@@ -17,19 +66,19 @@ Reviewer C about sematnically identical
 The main novelties are (1) identifying previously unrecognized sources of inefficiency in PBT, and (2) applying staging to address them.
 
 Prior to this work, neither DSL abstraction overhead nor sampling costs were viewed as optimization targets in PBT. As evidence, SOTA libraries like `Base_quickcheck` use imperative features (mutable arrays, stateful instead of functional RNG) to try to improve performance, yet retain design choices (monadic combinators, relatively expensive randomness) that introduce significant overhead.
-[BCP: Yes!]
-While our staging techniques are well established, their application to PBT has not been explored. This paper promotes staging as a tool for PBT developers by showing it can erase abstraction overhead, yielding substantial performance improvements.
-[BCP: ... but was it hard?]
+
+While staging techniques for optimizing DSLs are well established, their
+application to PBT is novel. Doing so was not easy, and posed some technical
+challenges --- Sections 3.5 and 3.6 describe how simply applying naive staging
+is not sufficient, and more sophisticated techniques must be used to make
+programming in a staged generator DSL ergonomic.
 
 Additional novelty lies in Section 3.7, where we stage type-derived generators.
-Unlike most staged libraries, which require users to understand metaprogramming,
-our approach is fully automatic. Since type-derived generators are constructed
-at compile time, they can be staged without altering user experience. This is a
-rare example of staging "for free."
+Unlike most staged DSLs, which require users to understand metaprogramming,
+type-deriving a staged generator is fully automatic. Since type-derived
+generators are constructed at compile time, they can be staged without altering
+user experience. This is a rare example of staging "for free."
 
-<!-- We say more after the fold After the fold -->
-<!-- 
-[JWC can we also say that this is an instance of two-level metaprogramming? It's a metaprogram that generates metaprograms!] -->
 
 >  Q2) Can you elaborate on the end-to-end effectiveness of your proposed 
 solution?
@@ -46,15 +95,15 @@ on generation across real-world PBT workloads is an interesting question
 that merits further study, and doing so would be an important research 
 contribution in itself; we view this as future work outside 
 the scope of this paper.
-[BCP: Maybe explain why it's not easy?]
 
 As for compilation time of emitted generator code, we do not believe this is an
 issue for two reasons. First, our metaprogrammed generators compile extremely
-quickly: a average of 33ms for Bool List up to 54ms for STLC, plus or minus 5ms for each (full table after the fold).
-Amortized across testing multiple properties (which usually take seconds each),
-this is negligible. Second, generators change infrequently compared to code
-being tested, and the generator only needs to be recompiled when it changes.
-Indeed, we anticipate that a production-ready instantiation of Allegro could let
+quickly: a average of 33ms for Bool List up to 54ms for STLC, plus or minus 5ms
+for each (a full table can be found at the bottom of our response).  Amortized
+across testing multiple properties (which usually take seconds each), this is
+negligible. Second, generators change infrequently compared to code being
+tested, and the generator only needs to be recompiled when it changes.  Indeed,
+we anticipate that a production-ready instantiation of Allegro could let
 programmers cache generator code to disk, to avoid compilation at testing-time
 altogether.
 
@@ -78,8 +127,6 @@ generators in AllegrOCaml.
 
 Thank you! We'll fix these for the camera ready.
 
-[BCP: IMO we can elide low-level comments and responses.]
-
 > l119: I'm curious whether OCaml 5 might benefit from using it's native
 effect handlers in place of a monadic generator DSL.
 
@@ -99,7 +146,6 @@ We were not aware that MetaOCaml was now compatible with OCaml 5 -- this is good
 to know!  When we began the project earlier this year, the MetaOCaml homepage
 instructed users to install a version compatible with OCaml 4.14.1, which is
 what we did (it has since been updated to recommend 5.3.0).
-[BCP: How hard would it be to upgrade?]
 
 > l824: The text reads a bit oddly to me at this point, as you are
 talking about an experiment you performed in the past and yet you
@@ -111,12 +157,13 @@ Thanks for the feedback, we'll workshop this prose to make it less awkward.
 
 This is a fair point. Our conjecture is based on anecdotal evidence; one of the authors — an experienced Haskell developer — manually applied some of Allegro’s optimizations to a few Haskell generators, and they found that they could really only manage to make performance identical or worse. This is nowhere near a proof, but it discouraged us from exploring that path in the short term. We would be happy to mention this anecdotal experience and/or go into more detail about wanting to do this experiment as future work.
 
+<!-- 
 > Can we can bridge the performance gap between bespoke
 highly-optimised fuzzing approaches and the much more generic PBT
 libraries exemplified by QuickCheck?
 
-This is a really interesting question, and we think that our work speaks 
-directly to part of it.[BCP: Blah.] Specifically, hand-coded fuzzers that construct 
+We think that our work speaks 
+directly to part of this question. Hand-coded fuzzers that construct 
 inputs satisfying specific structural and semantic constraints are performing 
 precisely the same task that PBT generators are designed for. Hand-coded fuzzers 
 might be faster than PBT generators if users choose to optimize them aggressively, 
@@ -127,9 +174,9 @@ though they are expressed in a higher-level language that is easier to write
 in and reason about. The question gets a bit less clear when considering fuzzers 
 that use mutation and other techniques to obtain interesting inputs, rather than 
 a hand-coded program, although ideas in papers like Coverage Guided Property-Based 
-Testing and Parsing Randomness may provide paths forward in those domains as well.
+Testing and Parsing Randomness may provide paths forward in those domains as well. -->
 
-``we think so, making tenerators more performmant increases the chance they can be used in fuzzing workflows --- we say more belowt he fold''
+<!-- ``we think so, making tenerators more performmant increases the chance they can be used in fuzzing workflows --- we say more belowt he fold'' -->
 
 # Reviewer C
 
@@ -156,7 +203,7 @@ speedups in the STLC eval.
 Yes, the AllegrOCaml and Base_quickcheck generors are as you imagine:
 essentially identical syntactically, modulo
 some extra cruft for staging. We plan to submit all of our code with the artifact evaluation, but for now, we
-include an example from our evals of a generator and its staged counterpart below.
+include an example from our evals of a generator and its staged counterpart at the bottom of this response.
 
 By "semantically identical", we mean that, given the same random seeds, the two
 generators produce the same generated output.  This property is important
@@ -174,46 +221,7 @@ prints once, the latter twice). Section 3.4 is essentially about ensuring that
 programmers need not worry about this and can write their generators in a
 manner that is syntactically as similar as possible to the non-staged versions.
 
-[BCP: Brief reminder what this is:]
-```
-let rec gen ~(lo: int) ~(hi: int)  =
-  let%bind sz = size in
-  let should_stop = lo >= hi || sz <= 1  in
-  if should_stop
-    then return E
-  else
-    weighted_union [
-      (1., return E);
-      (float_of_int sz , (
-        let%bind k = int_inclusive ~lo ~hi in
-        let%bind v = Nat.quickcheck_generator_parameterized bst_bespoke_limits in
-        let%bind left = with_size ~size_c:(sz / 2) (gen ~lo:lo ~hi:(k - 1))  in
-        let%bind right = with_size ~size_c:(sz / 2) (gen ~lo:(k + 1) ~hi:hi) in
-        return (T (left, k, v, right))  
-      ))
-    ]
-
-let staged_quickcheck_generator (lo: int code) (hi: int code) : tree code G.t =
-  recursive (.< (.~lo, .~hi ) >.) 
-  (fun go lohi -> 
-    let%bind sz = size in
-    let%bind (lo, hi) = split_pair lohi in
-    let%bind should_stop = split_bool .< .~hi <= .~lo || .~sz <= 1 >. in
-    if should_stop
-      then return .< E >.
-    else
-      weighted_union [
-        (.< 1. >., return .< E >.);
-        ((G.C.i2f sz), (
-          let%bind k = int_inclusive ~lo ~hi in
-          let%bind v = Nat.staged_quickcheck_generator_sr_t (G.C.lift bst_bespoke_limits) in
-          let%bind left = with_size ~size_c:(G.C.div2 sz) (recurse go .<(.~lo, .~k - 1) >.) in
-          let%bind right = with_size ~size_c:(G.C.div2 sz) (recurse go .<(.~k + 1, .~hi) >.) in
-          return (.< T (.~left, .~k, .~v, .~right) >.)))
-      ]
-  )
-```
-
+`
 > 4. Why was BST (Repeated Insert) not used for the ScAllegro experiments in Figure 16?
 
 We picked a representative from each category of generators: trees, lists, and
@@ -233,7 +241,7 @@ Thanks for this feedback. We'll try to further isolate the discussion of Scala t
 
 This is a great idea: we'll do it with the extra space in the camera-ready version.
 
-----
+-------
 
 Generator Compilation Times
 
@@ -243,3 +251,46 @@ BST Type: 46.051ms
 BST Single Pass: 50.147ms
 STLC Type: 44.663ms
 STLC Bespoke: 53.699ms
+
+-------
+
+Unstaged and Staged Single-Pass BST Generator
+
+```
+let rec gen ~(lo: int) ~(hi: int)  =
+  let%bind sz = size in
+  let should_stop = lo >= hi || sz <= 1  in
+  if should_stop
+    then return E
+  else
+    weighted_union [
+      (1., return E);
+      (float_of_int sz , (
+        let%bind k = int_inclusive ~lo ~hi in
+        let%bind v = Nat.quickcheck_generator_parameterized 1000 in
+        let%bind left = with_size ~size_c:(sz / 2) (gen ~lo:lo ~hi:(k - 1))  in
+        let%bind right = with_size ~size_c:(sz / 2) (gen ~lo:(k + 1) ~hi:hi) in
+        return (T (left, k, v, right))  
+      ))
+    ]
+
+let gen (lo: int code) (hi: int code) : tree code G.t =
+  recursive (.< (.~lo, .~hi ) >.) 
+  (fun go lohi -> 
+    let%bind sz = size in
+    let%bind (lo, hi) = split_pair lohi in
+    let%bind should_stop = split_bool .< .~hi <= .~lo || .~sz <= 1 >. in
+    if should_stop
+      then return .< E >.
+    else
+      weighted_union [
+        (.< 1. >., return .< E >.);
+        ((G.C.i2f sz), (
+          let%bind k = int_inclusive ~lo ~hi in
+          let%bind v = Nat.staged_quickcheck_generator_sr_t (G.C.lift 1000) in
+          let%bind left = with_size ~size_c:(G.C.div2 sz) (recurse go .<(.~lo, .~k - 1) >.) in
+          let%bind right = with_size ~size_c:(G.C.div2 sz) (recurse go .<(.~k + 1, .~hi) >.) in
+          return (.< T (.~left, .~k, .~v, .~right) >.)))
+      ]
+  )
+```
