@@ -1,12 +1,12 @@
-Thank you for your comments and questions! We start by summarizing our responses to some high-level concerns, and then discuss all reviewer questions in detail after the fold.
+Thank you for your comments and questions! We begin by summarizing our responses to some high-level concerns, then discuss all reviewer questions in detail after the fold.
 
 ## Reviewer A asks us to clarify the novelty of our paper (Q1).
 
-The first novel contribution is our identification of previously unrecognized
+Our first novel contribution is our identification of previously unrecognized
 sources of inefficiency in PBT: DSL abstraction overhead and sampling costs.
 Prior work on speeding up PBT has never targeted these. Indeed, even
-production-grade PBT libraries like Base_quickcheck are optimized for
-performance using imperative language features yet retain monadic combinators and
+production-grade PBT libraries like Base_quickcheck, which are optimized for
+performance using imperative language features, retain monadic combinators and
 expensive randomness.
 
 Our second source of novelty is the application of staging to PBT
@@ -15,32 +15,20 @@ is well-studied, it has never before been applied to PBT.
 While staging techniques for optimizing DSLs are well established, their
 application to PBT is novel. Doing so was not easy, and posed some technical
 challenges–Sections 3.5 and 3.6 describe how simply applying naive staging
-is not sufficient, and more sophisticated techniques must be used to make
+is not sufficient, and more sophisticated techniques must be employed to make
 programming in a staged generator DSL ergonomic.
 
-Last, we provide a way
-to synthesize staged generators from type definitions (type-deriving).
-Type-derived generators are standard in the PBT literature, but type-derived *staged* generators are a
-two-level metaprogram: based on a type, we generate code that generates a PBT generator.
+Last, we provide a way to synthesize staged generators from type definitions (type-deriving). Type-derived generators are standard in the PBT literature, but type-derived *staged* generators are a two-level metaprogram: based on a type, we generate code that generates a PBT generator.
 
 ## Reviewers A and C ask about our benchmarks, how we chose them, and the balance between testing time versus generation time in practice
 
 Our evaluation uses Etna, the standard benchmark suite for comparing the
-bug-finding speed of PBT generators. Etna includes generators ranging from simple (BST)
-to sophisticated (well-typed STLC terms), and properties
-from very cheap to check (BST operations maintain the
-invariant) to more expensive (well typed STLC programs don't get stuck).
-In all of these cases, we find a consistent bug-finding speed improvement from
-Allegro.  Of course, real world uses of PBT vary even more wildly than those in
-Etna.  Characterizing what proportion of testing time real-world PBT workloads
-spend on generation is an interesting question that merits further study, though
-we view this as future work.  We did omit two Etna of the benchmarks: Red-Black
-trees–which we thought were redundant with our BST evaluation–and System
+bug-finding speed of PBT generators. Etna includes both simple generators (e.g., BST) and sophisticated ones (well-typed STLC terms), as well as properties that range from cheap to check (BST operations maintain the invariant) to expensive (well-typed STLC programs don't get stuck). In all of these cases, we find a consistent bug-finding speed improvement from Allegro.  Of course, real world uses of PBT vary even more widely than those in Etna.  Characterizing what proportion of testing time real-world PBT workloads spend on generation is an interesting question that merits further study, though we view this as future work.  We did omit two Etna of the benchmarks: Red-Black trees–which we thought were redundant with our BST evaluation–and System
 FSub–redundant with STLC, and not implemented in OCaml.
 
 ## Reviewer A asks about compilation time overhead.
-All the generators from the eval compile in under 55ms, which is amortized
-across all the tests, each of which takes on the order of seconds. Moreover,
+All the generators from the evaluation compile in under 55ms, which is amortized
+across all the tests, each of which take on the order of seconds. Moreover,
 generators change very infrequently compared to application code, so
 recompilation is rare. A production-ready Allegro implementation could cache
 compiled generators to disk, avoiding compilation at test time entirely.
@@ -88,22 +76,22 @@ that merits further study, and doing so would be an important research
 contribution in itself; we view this as future work outside 
 the scope of this paper.
 
-As for compilation time of emitted generator code, we do not believe this is an
+As for the compilation time of emitted generator code, we do not believe this is an
 issue for two reasons. First, our metaprogrammed generators compile extremely
 quickly: a average of 33ms for Bool List up to 54ms for STLC, plus or minus 5ms
 for each (a full table can be found at the bottom of our response).  Amortized
 across testing multiple properties (which usually take seconds each), this is
 negligible. Second, generators change infrequently compared to code being
-tested, and the generator only needs to be recompiled when it changes.  Indeed,
-we anticipate that a production-ready instantiation of Allegro could let
-programmers cache generator code to disk, to avoid compilation at testing-time
+tested, and the generator only needs to be recompiled when it changes.
+We anticipate that a production-ready instantiation of Allegro could let
+programmers cache generator code to disk, avoiding compilation at testing-time
 altogether.
 
 > Q3) What would it take to implement type-derived generators in Scala? 
 Why did you decide not to implement it?
 
 We see no fundamental barrier to implementing type-derived staged generators in
-Scala. Indeed, the scalacheck-derived project already uses Scala's reflection
+Scala. Indeed, the ScalaCheck-derived project already uses Scala's reflection
 features to type-derive standard (unstaged) ScalaCheck generators. Adapting this
 approach to emit ScAllegro would require engineering effort, but we anticipate
 no obstacles beyond that. We chose to implement our type-derived generators in
@@ -157,14 +145,14 @@ Yes, it's used in Figure 3–we can include a figure down at Section 3.6 with a 
 
 > 2. How were the experimental benchmarks chosen?
 
-We used benchmarks from Etna, which was specifically designed to test the
-bugfinding capabilities of competing PBT generators.  There are two benchmarks
+We used benchmarks from Etna, a platform specifically designed to test the
+bug-finding capabilities of competing PBT generators.  There are two benchmarks
 from the original Etna we did not use. One tests Red-Black trees, and the other
-tests a lambda calculus typed with System FSub, a more sophisticated type
-system.  We felt that the RBT eval was redundant with the BTS eval we already
-used: the generators are very similar.  We chose not to use the FSub eval for
-two reasons. First, it had not been implemented in OCaml, and second, we felt
-this would be redundant with the STLC evals. The FSub generator is even more
+tests a lambda calculus typed with System FSub—a more sophisticated type
+system. We felt that the RBT eval was redundant with the BTS eval we already
+used: the generators are very similar, and so were the results. We chose not to use the FSub eval for
+two reasons: first, it had not been implemented in OCaml; second, we felt
+it would be redundant with the STLC evals. The FSub generator is even more
 complex with more combinators than the STLC one, but the testing code and
 properties are essentially the same: we would see an exaggerated version of the
 speedups in the STLC eval.
