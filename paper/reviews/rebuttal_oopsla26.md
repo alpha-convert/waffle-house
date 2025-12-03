@@ -1,13 +1,23 @@
 Thank you for your comments and questions! We start by summarizing our responses to some high-level concerns, and then discuss all reviewer questions in detail after the fold.
 
-## Reviewer A asks us to clarify the novelty of our paper.
+## Reviewer A asks us to clarify the novelty of our paper (Q1).
+
 The first novel contribution is our identification of previously unrecognized
 sources of inefficiency in PBT: DSL abstraction overhead and sampling costs.
 Prior work on speeding up PBT has never targeted these; even production-grade
 PBT libraries like Base_quickcheck retain monadic combinators and expensive
-randomness. Our second source of novelty is the application of staging to PBT
-generators.  While using staging to eliminate the abstraction overhead of DSLs
-is well-studied, it has never before been applied to PBT. Last, we provide a way
+randomness.
+
+Our second source of novelty is the application of staging to PBT
+generators. While using staging to eliminate the abstraction overhead of DSLs
+is well-studied, it has never before been applied to PBT. 
+While staging techniques for optimizing DSLs are well established, their
+application to PBT is novel. Doing so was not easy, and posed some technical
+challenges --- Sections 3.5 and 3.6 describe how simply applying naive staging
+is not sufficient, and more sophisticated techniques must be used to make
+programming in a staged generator DSL ergonomic.
+
+Last, we provide a way
 to synthesize staged generators from type definitions (type-deriving).
 Type-derived generators are standard, but type-derived *staged* generators are a
 two-level metaprogram: based on the type, we generate code that generates a generator.
@@ -15,10 +25,10 @@ two-level metaprogram: based on the type, we generate code that generates a gene
 ## Reviewers A and C ask about our benchmarks, how we chose them, and the balance between testing time versus generation time in practice
 
 Our evaluation uses Etna, the standard benchmark suite for comparing the
-bug-finding speed of PBT generators.  Etna includes generators from simple BST
-generators to sophisticated well-typed STLC term generators, paired with
-properties ranging from very cheap to check --- BST operations maintain the
-invariant --- to more expensive --- well typed STLC programs don't get stuck.
+bug-finding speed of PBT generators. Etna includes generators ranging from simple (BST)
+to sophisticated (well-typed STLC terms), and properties
+from very cheap to check (BST operations maintain the
+invariant) to more expensive (well typed STLC programs don't get stuck).
 In all of these cases, we find a consistent bug-finding speed improvement from
 Allegro.  Of course, real world uses of PBT vary even more wildly than those in
 Etna.  Characterizing what proportion of testing time real-world PBT workloads
@@ -60,25 +70,6 @@ generation, not from lucky outputs that happen to find bugs sooner.
 ------------------------------------------------------
 
 # Reviewer A
-
-> Q1) Can you clarify the novelty of your paper? Does it introduce any optimization from the multi-stage programming not known before?
-
-The main novelties are (1) identifying previously unrecognized sources of inefficiency in PBT, and (2) applying staging to address them.
-
-Prior to this work, neither DSL abstraction overhead nor sampling costs were viewed as optimization targets in PBT. As evidence, SOTA libraries like `Base_quickcheck` use imperative features (mutable arrays, stateful instead of functional RNG) to try to improve performance, yet retain design choices (monadic combinators, relatively expensive randomness) that introduce significant overhead.
-
-While staging techniques for optimizing DSLs are well established, their
-application to PBT is novel. Doing so was not easy, and posed some technical
-challenges --- Sections 3.5 and 3.6 describe how simply applying naive staging
-is not sufficient, and more sophisticated techniques must be used to make
-programming in a staged generator DSL ergonomic.
-
-Additional novelty lies in Section 3.7, where we stage type-derived generators.
-Unlike most staged DSLs, which require users to understand metaprogramming,
-type-deriving a staged generator is fully automatic. Since type-derived
-generators are constructed at compile time, they can be staged without altering
-user experience. This is a rare example of staging "for free."
-
 
 >  Q2) Can you elaborate on the end-to-end effectiveness of your proposed 
 solution?
