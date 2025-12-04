@@ -1,4 +1,4 @@
-Thank you for your comments and questions! We begin with brief to some
+Thank you for the comments and questions! We begin with brief to some
 high-level concerns, then address all reviewer questions in detail
 "below the fold."
 
@@ -58,34 +58,40 @@ entirely.
 
 ## Reviewer B asks if our work can be used to bridge the performance gap between PBT and fast hand-rolled fuzzers
 
-[BCP: This part of the response still feels mushy, in part because I
-don't think we've really gotten clear in our minds what the real
-question is or what our real answer is.]
+We're not 100% sure we understand the phrasing of the question, but we
+think the reviewer is probably asking about the gap between PBT
+generators, which are generally expressed in a high-level, often
+monadic domain-specific language, and hand-coded fuzzers that are
+written in a lower-level language and more heavily optimized for a
+particular use-case. If so, then our work represents (we believe) a
+significant step in closing that gap. Our hope is that Allegro can
+make monadic PBT generators fast enough that developers could use them
+as highly-performant fuzzers, even though they are expressed in a
+higher-level language that is easier to write in and reason about.
 
-Our work speaks to part of this question. 
+Alternatively, the reviewer may also be asking about the gap between
+standard PBT generators and fuzzers that use mutation, coverage
+feedback, and other techniques to obtain interesting inputs. Allegro
+doesn't directly impact these kinds of approaches, although ideas in
+papers like _Coverage Guided Property-Based Testing_ and _Parsing
+Randomness_ may provide paths forward in those domains as well.
 
-Hand-coded fuzzers that construct inputs satisfying specific
-structural and semantic constraints are performing precisely the same
-task that PBT generators are designed for. Hand-coded fuzzers might be
-faster than PBT generators if users choose to optimize them
-aggressively, but ideally such optimizations should not need to be
-done manually. Our hope is that Allegro (and other advances from the
-PBT literature) can make PBT generators fast enough that developers
-could use them as highly-performant fuzzers, even though they are
-expressed in a higher-level language that is easier to write in and
-reason about. 
-
-(The question gets a bit less clear when considering fuzzers that use
-mutation and other techniques to obtain interesting inputs, rather
-than a hand-coded program, although ideas in papers like Coverage
-Guided Property-Based Testing and Parsing Randomness may provide paths
-forward in those domains as well.)
+Or (covering all the bases we can think of :-) the reviewer might be
+wondering about the gap between the "cheap but generic" generators
+that Haskell QuickCheck can synthesize automatically from the types of
+the data being generated and the hand-build generators that
+sophisticated users write to achieve maximum testing
+effectiveness. This gap can be arbitrarily large, so it probably can't
+pbe closed in general, but there has been a ton of work already on
+_generating good generators_ automatically from formal descriptions of
+test data satisfying given preconditions, and we believe there is much
+more to do in this direction.
 
 ## Reviewer C inquires if the staged generators are syntactically similar to their unstaged counterparts, and asks for clarification about the term "semantically identical"
 
 Indeed, the staged and unstaged generators are syntactically very
 similar, modulo some extra cruft required by MetaOCaml and Scala to
-write staged code. 
+write staged code.
 
 By "semantically identical" we mean that, given the same random seed,
 both produce the same outputs. This ensures that our speedups come
@@ -141,8 +147,7 @@ implemented type-derived generators in AllegrOCaml.
 
 # Reviewer B:
 
-## l119: I'm curious whether OCaml 5 might benefit from using it's native
-effect handlers in place of a monadic generator DSL.
+## l119: I'm curious whether OCaml 5 might benefit from using it's native effect handlers in place of a monadic generator DSL.
 
 Now we are also curious about this!  It's a very interesting idea:
 direct-style generators could potentially be very performant and more
