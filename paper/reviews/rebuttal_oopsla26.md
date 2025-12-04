@@ -1,32 +1,29 @@
 Thank you for the comments and questions! We begin with brief to some
-high-level concerns, then address all reviewer questions in detail
+high-level concerns, then address all questions in detail
 "below the fold."
 
 ## Reviewer A asks us to clarify the novelty of our paper (Q1).
 
 Our first novel contribution is the identification of previously
 unrecognized sources of inefficiency in PBT: DSL abstraction overhead
-and sampling costs.  Prior work on speeding up PBT has never targeted
+and sampling costs. Prior work on speeding up PBT has never targeted
 these. Indeed, even production-grade PBT libraries like
 Base_quickcheck, which are optimized for performance using imperative
 language features, retain monadic combinators and expensive
 randomness.
 
 A second source of novelty is the application of staging to PBT
-generators. While using staging to eliminate the abstraction overhead
-of DSLs is well studied, it has never before been applied to PBT.
-While staging techniques for optimizing DSLs are well established,
-their application to PBT is novel. Indeed, doing so posed some
-nontrivial technical challenges. Sections 3.5 and 3.6 describe how
+generators. While using staging to eliminate abstraction overhead
+of DSLs is well studied, it has never been applied to PBT.
+Indeed, doing so posed nontrivial technical challenges. Sections 3.5 and 3.6 describe how
 simply applying naive staging is not sufficient: more sophisticated
 techniques must be employed to make programming in a staged generator
 DSL ergonomic.
 
-Finally, our method for synthesizing staged generators from type
-definitions deploys multi-stage programming in an unusually strong
-form. Type-derived generators are standard in the PBT literature, but
-type-derived *staged* generators are two-level metaprograms: from a
-type we generate code that generates a PBT generator.
+Finally, our method for synthesizing staged generators from type definitions is
+novel and technically interesting. Type-derived generators are standard in the
+PBT literature, but type-derived *staged* generators are two-level metaprograms:
+from a type we generate code that generates a PBT generator.
 
 ## Reviewers A and C ask about our benchmarks, how we chose them, and the balance between testing time versus generation time in practice
 
@@ -69,29 +66,17 @@ make monadic PBT generators fast enough that developers could use them
 as highly-performant fuzzers, even though they are expressed in a
 higher-level language that is easier to write in and reason about.
 
-Alternatively, the reviewer may also be asking about the gap between
-standard PBT generators and fuzzers that use mutation, coverage
-feedback, and other techniques to obtain interesting inputs. Allegro
-doesn't directly impact these kinds of approaches, although ideas in
-papers like _Coverage Guided Property-Based Testing_ and _Parsing
-Randomness_ may provide paths forward in those domains as well.
+In case the reviewer had another question in mind, we answer some alternate
+interpretations below the fold.
 
-Or (covering all the bases we can think of :-) the reviewer might be
-wondering about the gap between the "cheap but generic" generators
-that Haskell QuickCheck can synthesize automatically from the types of
-the data being generated and the hand-build generators that
-sophisticated users write to achieve maximum testing
-effectiveness. This gap can be arbitrarily large, so it probably can't
-pbe closed in general, but there has been a ton of work already on
-_generating good generators_ automatically from formal descriptions of
-test data satisfying given preconditions, and we believe there is much
-more to do in this direction.
+
 
 ## Reviewer C inquires if the staged generators are syntactically similar to their unstaged counterparts, and asks for clarification about the term "semantically identical"
 
-Indeed, the staged and unstaged generators are syntactically very
-similar, modulo some extra cruft required by MetaOCaml and Scala to
-write staged code.
+Indeed, the staged and unstaged generators are syntactically very similar,
+modulo some extra cruft required by MetaOCaml and Scala to write staged code ---
+we give a full example of a generator in its staged and unstaged forms at the
+bottom of this response.
 
 By "semantically identical" we mean that, given the same random seed,
 both produce the same outputs. This ensures that our speedups come
@@ -174,6 +159,26 @@ identical or worse. This is nowhere near a proof, but it discouraged
 us from exploring that path in the short term. We would be happy to
 mention this anecdotal experience and/or go into more detail about
 wanting to do this experiment as future work.
+
+## ... to what extent we can bridge the performance gap between bespoke highly-optimised fuzzing approaches and the much more generic PBT libraries exemplified by QuickCheck. Can we hope to build fuzzers on top of generic PBT libraries which perform as well as the hand-coded fuzzers used in practice? Does your work shed any light on how to tackle this question?
+
+We believe the reviewer may also be asking about the gap between
+standard PBT generators and fuzzers that use mutation, coverage
+feedback, and other techniques to obtain interesting inputs. Allegro
+doesn't directly impact these kinds of approaches, although ideas in
+papers like _Coverage Guided Property-Based Testing_ and _Parsing
+Randomness_ may provide paths forward in those domains as well.
+
+Or (covering all the bases we can think of :-)) the reviewer might be
+wondering about the gap between the "cheap but generic" generators
+that Haskell QuickCheck can synthesize automatically from the types of
+the data being generated and the hand-build generators that
+sophisticated users write to achieve maximum testing
+effectiveness. This gap can be arbitrarily large, so it probably can't
+be closed in general, but there has been a ton of work already on
+_generating good generators_ automatically from formal descriptions of
+test data satisfying given preconditions, and we believe there is much
+more to do in this direction.
 
 -------------------------------------------------------------------------
 
