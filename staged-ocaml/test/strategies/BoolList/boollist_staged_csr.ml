@@ -15,6 +15,6 @@ let staged_generator =
     )
 
 let make_quickcheck_generator () =
-  G.jit ~extra_cmi_paths:["/ff_artifact/artifact/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"; "/ff_artifact/artifact/waffle-house/staged-ocaml/_build/default/test/strategies/BoolList/.BoolList.objs/byte"] staged_generator
+  G.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/staged-ocaml/_build/default/lib/.fast_gen.objs/byte"; "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"; "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/strategies/BoolList/.BoolList.objs/byte"] staged_generator
 
 let quickcheck_generator = make_quickcheck_generator ()

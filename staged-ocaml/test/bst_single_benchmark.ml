@@ -6,7 +6,4 @@ let () =
       "baseSingleBespoke", BST.Bst_baseSingleBespoke.quickcheck_generator;
       "baseSingleBespoke_Staged_SR", BST.Bst_baseSingleBespoke_Staged_SR.quickcheck_generator;
       "baseSingleBespoke_Staged_CSR", BST.Bst_baseSingleBespoke_Staged_CSR.quickcheck_generator;
-      "baseType", BST.Bst_baseType.quickcheck_generator;
-      "baseType_Staged_SR", BST.Bst_baseType_Staged_SR.quickcheck_generator;
-      "baseType_Staged_CSR", BST.Bst_baseType_Staged_CSR.quickcheck_generator;
     ]

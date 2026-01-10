@@ -10,7 +10,7 @@ authors: [
 license: "LICENSE"
 tags: ["add topics" "to describe" "your" "project"]
 depends: [
-  "dune" {>= "3.17"}
+  "dune" {>= "3.14"}
   "ocaml"
   "alcotest" {with-test}
   "core"
@@ -18,6 +18,7 @@ depends: [
   "odoc" {with-doc}
 ]
 build: [
+  ["dune" "subst"] {dev}
   [
     "dune"
     "build"

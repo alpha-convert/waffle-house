@@ -1,0 +1,1078 @@
+[info] welcome to sbt 1.10.7 (Eclipse Adoptium Java 11.0.26)
+[info] loading settings for project staged-scala-build from plugins.sbt...
+[info] loading project definition from /home/ubuntu/waffle-house/staged-scala/project
+[info] loading settings for project root from build.sbt...
+[info] set current project to staged-scala (in build file:/home/ubuntu/waffle-house/staged-scala/)
+[warn] sbt 0.13 shell syntax is deprecated; use slash syntax instead: Jmh / run
+[info] compiling 21 Scala sources to /home/ubuntu/waffle-house/staged-scala/target/scala-3.6.3/classes ...
+[warn] -- Warning: /home/ubuntu/waffle-house/staged-scala/src/main/scala/BoolList/Bespoke.scala:19:2 
+[warn] 19 |  val gen = go()
+[warn]    |  ^
+[warn]    |  Line is indented too far to the left, or a `}` is missing
+[warn] -- Warning: /home/ubuntu/waffle-house/staged-scala/src/main/scala/Main.scala:18:38 
+[warn] 18 |  val Some(a) = STLC.Bespoke.gen.apply(Gen.Parameters.default,seed)
+[warn]    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[warn]    |pattern's type Some[STLC.Term] is more specialized than the right hand side expression's type Option[STLC.Term]
+[warn]    |
+[warn]    |If the narrowing is intentional, this can be communicated by adding `: @unchecked` after the expression,
+[warn]    |which may result in a MatchError at runtime.
+[warn]    |This patch can be rewritten automatically under -rewrite -source 3.2-migration.
+[warn] two warnings found
+[warn] two warnings found
+[info] done compiling
+[info] compiling 1 Scala source to /home/ubuntu/waffle-house/staged-scala/target/scala-3.6.3/test-classes ...
+[info] running (fork) org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator /home/ubuntu/waffle-house/staged-scala/target/scala-3.6.3/classes /home/ubuntu/waffle-house/staged-scala/target/scala-3.6.3/src_managed/jmh /home/ubuntu/waffle-house/staged-scala/target/scala-3.6.3/resource_managed/jmh default
+[info] Processing 93 classes from /home/ubuntu/waffle-house/staged-scala/target/scala-3.6.3/classes with "reflection" generator
+[info] Writing out Java source to /home/ubuntu/waffle-house/staged-scala/target/scala-3.6.3/src_managed/jmh and resources to /home/ubuntu/waffle-house/staged-scala/target/scala-3.6.3/resource_managed/jmh
+[info] done compiling
+[info] compiling 44 Java sources to /home/ubuntu/waffle-house/staged-scala/target/scala-3.6.3/classes ...
+[info] done compiling
+[info] running (fork) org.openjdk.jmh.Main 
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBoolListBespoke10
+[info] # Run progress: 0.00% complete, ETA 00:26:40
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 5016.329 ns/op
+[info] # Warmup Iteration   2: 4019.537 ns/op
+[info] # Warmup Iteration   3: 3844.296 ns/op
+[info] Iteration   1: 3945.802 ns/op
+[info] Iteration   2: 3932.463 ns/op
+[info] Iteration   3: 3993.506 ns/op
+[info] Iteration   4: 3850.254 ns/op
+[info] Iteration   5: 3898.423 ns/op
+[info] Result "benchmark.GenBm.generateBoolListBespoke10":
+[info]   3924.090 ±(99.9%) 206.204 ns/op [Average]
+[info]   (min, avg, max) = (3850.254, 3924.090, 3993.506), stdev = 53.550
+[info]   CI (99.9%): [3717.886, 4130.293] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBoolListBespoke100
+[info] # Run progress: 2.50% complete, ETA 00:26:13
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 48341.058 ns/op
+[info] # Warmup Iteration   2: 38183.559 ns/op
+[info] # Warmup Iteration   3: 36819.316 ns/op
+[info] Iteration   1: 36916.136 ns/op
+[info] Iteration   2: 37917.056 ns/op
+[info] Iteration   3: 37436.525 ns/op
+[info] Iteration   4: 37510.926 ns/op
+[info] Iteration   5: 37008.974 ns/op
+[info] Result "benchmark.GenBm.generateBoolListBespoke100":
+[info]   37357.923 ±(99.9%) 1563.142 ns/op [Average]
+[info]   (min, avg, max) = (36916.136, 37357.923, 37917.056), stdev = 405.943
+[info]   CI (99.9%): [35794.781, 38921.065] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBoolListBespoke1000
+[info] # Run progress: 5.00% complete, ETA 00:25:33
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 478846.133 ns/op
+[info] # Warmup Iteration   2: 381613.208 ns/op
+[info] # Warmup Iteration   3: 365302.843 ns/op
+[info] Iteration   1: 366475.322 ns/op
+[info] Iteration   2: 375632.988 ns/op
+[info] Iteration   3: 369250.996 ns/op
+[info] Iteration   4: 370177.465 ns/op
+[info] Iteration   5: 366198.534 ns/op
+[info] Result "benchmark.GenBm.generateBoolListBespoke1000":
+[info]   369547.061 ±(99.9%) 14684.514 ns/op [Average]
+[info]   (min, avg, max) = (366198.534, 369547.061, 375632.988), stdev = 3813.522
+[info]   CI (99.9%): [354862.547, 384231.575] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBoolListBespoke10000
+[info] # Run progress: 7.50% complete, ETA 00:24:52
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 6736553.630 ns/op
+[info] # Warmup Iteration   2: 8143702.571 ns/op
+[info] # Warmup Iteration   3: 4382500.785 ns/op
+[info] Iteration   1: 8915103.930 ns/op
+[info] Iteration   2: 6906709.814 ns/op
+[info] Iteration   3: 6159219.212 ns/op
+[info] Iteration   4: 4473999.444 ns/op
+[info] Iteration   5: 3998286.817 ns/op
+[info] Result "benchmark.GenBm.generateBoolListBespoke10000":
+[info]   6090663.843 ±(99.9%) 7614091.702 ns/op [Average]
+[info]   (min, avg, max) = (3998286.817, 6090663.843, 8915103.930), stdev = 1977355.435
+[info]   CI (99.9%): [≈ 0, 13704755.545] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBoolListBespokeStaged10
+[info] # Run progress: 10.00% complete, ETA 00:24:17
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 671.864 ns/op
+[info] # Warmup Iteration   2: 582.406 ns/op
+[info] # Warmup Iteration   3: 568.039 ns/op
+[info] Iteration   1: 567.980 ns/op
+[info] Iteration   2: 571.341 ns/op
+[info] Iteration   3: 575.378 ns/op
+[info] Iteration   4: 580.270 ns/op
+[info] Iteration   5: 565.156 ns/op
+[info] Result "benchmark.GenBm.generateBoolListBespokeStaged10":
+[info]   572.025 ±(99.9%) 23.044 ns/op [Average]
+[info]   (min, avg, max) = (565.156, 572.025, 580.270), stdev = 5.984
+[info]   CI (99.9%): [548.981, 595.069] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBoolListBespokeStaged100
+[info] # Run progress: 12.50% complete, ETA 00:23:35
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 5277.511 ns/op
+[info] # Warmup Iteration   2: 4658.147 ns/op
+[info] # Warmup Iteration   3: 4607.526 ns/op
+[info] Iteration   1: 4690.515 ns/op
+[info] Iteration   2: 4700.476 ns/op
+[info] Iteration   3: 4658.675 ns/op
+[info] Iteration   4: 4611.587 ns/op
+[info] Iteration   5: 4610.708 ns/op
+[info] Result "benchmark.GenBm.generateBoolListBespokeStaged100":
+[info]   4654.392 ±(99.9%) 163.227 ns/op [Average]
+[info]   (min, avg, max) = (4610.708, 4654.392, 4700.476), stdev = 42.390
+[info]   CI (99.9%): [4491.165, 4817.620] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBoolListBespokeStaged1000
+[info] # Run progress: 15.00% complete, ETA 00:22:54
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 51951.226 ns/op
+[info] # Warmup Iteration   2: 45259.057 ns/op
+[info] # Warmup Iteration   3: 44645.750 ns/op
+[info] Iteration   1: 45406.346 ns/op
+[info] Iteration   2: 45511.071 ns/op
+[info] Iteration   3: 45124.391 ns/op
+[info] Iteration   4: 44694.570 ns/op
+[info] Iteration   5: 44665.134 ns/op
+[info] Result "benchmark.GenBm.generateBoolListBespokeStaged1000":
+[info]   45080.302 ±(99.9%) 1509.830 ns/op [Average]
+[info]   (min, avg, max) = (44665.134, 45080.302, 45511.071), stdev = 392.098
+[info]   CI (99.9%): [43570.472, 46590.133] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBoolListBespokeStaged10000
+[info] # Run progress: 17.50% complete, ETA 00:22:13
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 525388.915 ns/op
+[info] # Warmup Iteration   2: 455474.980 ns/op
+[info] # Warmup Iteration   3: 449768.546 ns/op
+[info] Iteration   1: 461756.726 ns/op
+[info] Iteration   2: 459314.573 ns/op
+[info] Iteration   3: 449543.984 ns/op
+[info] Iteration   4: 449801.774 ns/op
+[info] Iteration   5: 450092.271 ns/op
+[info] Result "benchmark.GenBm.generateBoolListBespokeStaged10000":
+[info]   454101.866 ±(99.9%) 22870.939 ns/op [Average]
+[info]   (min, avg, max) = (449543.984, 454101.866, 461756.726), stdev = 5939.510
+[info]   CI (99.9%): [431230.927, 476972.805] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstBespoke10
+[info] # Run progress: 20.00% complete, ETA 00:21:32
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 4865.978 ns/op
+[info] # Warmup Iteration   2: 3640.644 ns/op
+[info] # Warmup Iteration   3: 3496.475 ns/op
+[info] Iteration   1: 3462.900 ns/op
+[info] Iteration   2: 3496.094 ns/op
+[info] Iteration   3: 3580.763 ns/op
+[info] Iteration   4: 3612.911 ns/op
+[info] Iteration   5: 3572.313 ns/op
+[info] Result "benchmark.GenBm.generateBstBespoke10":
+[info]   3544.996 ±(99.9%) 241.773 ns/op [Average]
+[info]   (min, avg, max) = (3462.900, 3544.996, 3612.911), stdev = 62.788
+[info]   CI (99.9%): [3303.223, 3786.769] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstBespoke100
+[info] # Run progress: 22.50% complete, ETA 00:20:51
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 44078.397 ns/op
+[info] # Warmup Iteration   2: 32685.174 ns/op
+[info] # Warmup Iteration   3: 31386.539 ns/op
+[info] Iteration   1: 31177.135 ns/op
+[info] Iteration   2: 32299.399 ns/op
+[info] Iteration   3: 32004.743 ns/op
+[info] Iteration   4: 31965.930 ns/op
+[info] Iteration   5: 31057.768 ns/op
+[info] Result "benchmark.GenBm.generateBstBespoke100":
+[info]   31700.995 ±(99.9%) 2116.726 ns/op [Average]
+[info]   (min, avg, max) = (31057.768, 31700.995, 32299.399), stdev = 549.707
+[info]   CI (99.9%): [29584.269, 33817.721] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstBespoke1000
+[info] # Run progress: 25.00% complete, ETA 00:20:11
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 366755.205 ns/op
+[info] # Warmup Iteration   2: 273471.838 ns/op
+[info] # Warmup Iteration   3: 262057.233 ns/op
+[info] Iteration   1: 259422.815 ns/op
+[info] Iteration   2: 260826.211 ns/op
+[info] Iteration   3: 265930.346 ns/op
+[info] Iteration   4: 266134.599 ns/op
+[info] Iteration   5: 266244.069 ns/op
+[info] Result "benchmark.GenBm.generateBstBespoke1000":
+[info]   263711.608 ±(99.9%) 12760.442 ns/op [Average]
+[info]   (min, avg, max) = (259422.815, 263711.608, 266244.069), stdev = 3313.846
+[info]   CI (99.9%): [250951.167, 276472.050] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstBespoke10000
+[info] # Run progress: 27.50% complete, ETA 00:19:31
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 4929454.455 ns/op
+[info] # Warmup Iteration   2: 3741418.438 ns/op
+[info] # Warmup Iteration   3: 3597597.583 ns/op
+[info] Iteration   1: 3537673.448 ns/op
+[info] Iteration   2: 3586743.687 ns/op
+[info] Iteration   3: 3634887.400 ns/op
+[info] Iteration   4: 3607812.597 ns/op
+[info] Iteration   5: 3644599.422 ns/op
+[info] Result "benchmark.GenBm.generateBstBespoke10000":
+[info]   3602343.311 ±(99.9%) 164501.262 ns/op [Average]
+[info]   (min, avg, max) = (3537673.448, 3602343.311, 3644599.422), stdev = 42720.455
+[info]   CI (99.9%): [3437842.049, 3766844.573] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstBespokeStaged10
+[info] # Run progress: 30.00% complete, ETA 00:18:50
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 899.174 ns/op
+[info] # Warmup Iteration   2: 747.823 ns/op
+[info] # Warmup Iteration   3: 712.613 ns/op
+[info] Iteration   1: 714.486 ns/op
+[info] Iteration   2: 733.349 ns/op
+[info] Iteration   3: 736.438 ns/op
+[info] Iteration   4: 720.409 ns/op
+[info] Iteration   5: 720.884 ns/op
+[info] Result "benchmark.GenBm.generateBstBespokeStaged10":
+[info]   725.113 ±(99.9%) 35.970 ns/op [Average]
+[info]   (min, avg, max) = (714.486, 725.113, 736.438), stdev = 9.341
+[info]   CI (99.9%): [689.143, 761.084] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstBespokeStaged100
+[info] # Run progress: 32.50% complete, ETA 00:18:10
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 6862.975 ns/op
+[info] # Warmup Iteration   2: 5749.517 ns/op
+[info] # Warmup Iteration   3: 5493.203 ns/op
+[info] Iteration   1: 5507.145 ns/op
+[info] Iteration   2: 5709.986 ns/op
+[info] Iteration   3: 5618.640 ns/op
+[info] Iteration   4: 5492.147 ns/op
+[info] Iteration   5: 5505.834 ns/op
+[info] Result "benchmark.GenBm.generateBstBespokeStaged100":
+[info]   5566.750 ±(99.9%) 365.498 ns/op [Average]
+[info]   (min, avg, max) = (5492.147, 5566.750, 5709.986), stdev = 94.919
+[info]   CI (99.9%): [5201.252, 5932.249] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstBespokeStaged1000
+[info] # Run progress: 35.00% complete, ETA 00:17:29
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 52463.038 ns/op
+[info] # Warmup Iteration   2: 42068.756 ns/op
+[info] # Warmup Iteration   3: 40248.890 ns/op
+[info] Iteration   1: 40216.062 ns/op
+[info] Iteration   2: 40260.146 ns/op
+[info] Iteration   3: 40720.204 ns/op
+[info] Iteration   4: 41016.344 ns/op
+[info] Iteration   5: 40474.519 ns/op
+[info] Result "benchmark.GenBm.generateBstBespokeStaged1000":
+[info]   40537.455 ±(99.9%) 1287.069 ns/op [Average]
+[info]   (min, avg, max) = (40216.062, 40537.455, 41016.344), stdev = 334.248
+[info]   CI (99.9%): [39250.386, 41824.524] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstBespokeStaged10000
+[info] # Run progress: 37.50% complete, ETA 00:16:49
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 685073.703 ns/op
+[info] # Warmup Iteration   2: 572246.670 ns/op
+[info] # Warmup Iteration   3: 546957.287 ns/op
+[info] Iteration   1: 547491.597 ns/op
+[info] Iteration   2: 555613.428 ns/op
+[info] Iteration   3: 561878.602 ns/op
+[info] Iteration   4: 561209.788 ns/op
+[info] Iteration   5: 556757.682 ns/op
+[info] Result "benchmark.GenBm.generateBstBespokeStaged10000":
+[info]   556590.219 ±(99.9%) 22210.113 ns/op [Average]
+[info]   (min, avg, max) = (547491.597, 556590.219, 561878.602), stdev = 5767.896
+[info]   CI (99.9%): [534380.106, 578800.333] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstType10
+[info] # Run progress: 40.00% complete, ETA 00:16:09
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 5993.403 ns/op
+[info] # Warmup Iteration   2: 4650.250 ns/op
+[info] # Warmup Iteration   3: 4509.880 ns/op
+[info] Iteration   1: 4494.194 ns/op
+[info] Iteration   2: 4538.397 ns/op
+[info] Iteration   3: 4646.570 ns/op
+[info] Iteration   4: 4577.978 ns/op
+[info] Iteration   5: 4626.840 ns/op
+[info] Result "benchmark.GenBm.generateBstType10":
+[info]   4576.796 ±(99.9%) 241.024 ns/op [Average]
+[info]   (min, avg, max) = (4494.194, 4576.796, 4646.570), stdev = 62.593
+[info]   CI (99.9%): [4335.771, 4817.820] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstType100
+[info] # Run progress: 42.50% complete, ETA 00:15:28
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 61816.826 ns/op
+[info] # Warmup Iteration   2: 45205.813 ns/op
+[info] # Warmup Iteration   3: 42868.290 ns/op
+[info] Iteration   1: 42046.540 ns/op
+[info] Iteration   2: 43330.730 ns/op
+[info] Iteration   3: 45145.217 ns/op
+[info] Iteration   4: 43846.855 ns/op
+[info] Iteration   5: 45370.467 ns/op
+[info] Result "benchmark.GenBm.generateBstType100":
+[info]   43947.962 ±(99.9%) 5259.881 ns/op [Average]
+[info]   (min, avg, max) = (42046.540, 43947.962, 45370.467), stdev = 1365.974
+[info]   CI (99.9%): [38688.081, 49207.843] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstType1000
+[info] # Run progress: 45.00% complete, ETA 00:14:48
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 560591.633 ns/op
+[info] # Warmup Iteration   2: 494769.248 ns/op
+[info] # Warmup Iteration   3: 341718.229 ns/op
+[info] Iteration   1: 365814.496 ns/op
+[info] Iteration   2: 551793.202 ns/op
+[info] Iteration   3: 506411.035 ns/op
+[info] Iteration   4: 658740.904 ns/op
+[info] Iteration   5: 416744.670 ns/op
+[info] Result "benchmark.GenBm.generateBstType1000":
+[info]   499900.861 ±(99.9%) 442654.348 ns/op [Average]
+[info]   (min, avg, max) = (365814.496, 499900.861, 658740.904), stdev = 114955.929
+[info]   CI (99.9%): [57246.513, 942555.209] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstType10000
+[info] # Run progress: 47.50% complete, ETA 00:14:08
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 206438312.831 ns/op
+[info] # Warmup Iteration   2: 3775575.775 ns/op
+[info] # Warmup Iteration   3: 25288376.341 ns/op
+[info] Iteration   1: 2886210.097 ns/op
+[info] Iteration   2: 15839636.915 ns/op
+[info] Iteration   3: 14320707.387 ns/op
+[info] Iteration   4: 15645293.848 ns/op
+[info] Iteration   5: 5681219.978 ns/op
+[info] Result "benchmark.GenBm.generateBstType10000":
+[info]   10874613.645 ±(99.9%) 23585967.069 ns/op [Average]
+[info]   (min, avg, max) = (2886210.097, 10874613.645, 15839636.915), stdev = 6125200.747
+[info]   CI (99.9%): [≈ 0, 34460580.714] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstTypeStaged10
+[info] # Run progress: 50.00% complete, ETA 00:14:58
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 991.473 ns/op
+[info] # Warmup Iteration   2: 842.715 ns/op
+[info] # Warmup Iteration   3: 821.830 ns/op
+[info] Iteration   1: 822.495 ns/op
+[info] Iteration   2: 827.964 ns/op
+[info] Iteration   3: 839.030 ns/op
+[info] Iteration   4: 841.933 ns/op
+[info] Iteration   5: 818.216 ns/op
+[info] Result "benchmark.GenBm.generateBstTypeStaged10":
+[info]   829.928 ±(99.9%) 39.610 ns/op [Average]
+[info]   (min, avg, max) = (818.216, 829.928, 841.933), stdev = 10.287
+[info]   CI (99.9%): [790.318, 869.538] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstTypeStaged100
+[info] # Run progress: 52.50% complete, ETA 00:14:09
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 8346.541 ns/op
+[info] # Warmup Iteration   2: 7091.676 ns/op
+[info] # Warmup Iteration   3: 6956.710 ns/op
+[info] Iteration   1: 7085.250 ns/op
+[info] Iteration   2: 7080.499 ns/op
+[info] Iteration   3: 7060.324 ns/op
+[info] Iteration   4: 6997.440 ns/op
+[info] Iteration   5: 7015.093 ns/op
+[info] Result "benchmark.GenBm.generateBstTypeStaged100":
+[info]   7047.721 ±(99.9%) 152.020 ns/op [Average]
+[info]   (min, avg, max) = (6997.440, 7047.721, 7085.250), stdev = 39.479
+[info]   CI (99.9%): [6895.701, 7199.741] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstTypeStaged1000
+[info] # Run progress: 55.00% complete, ETA 00:13:20
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 84790.005 ns/op
+[info] # Warmup Iteration   2: 74026.883 ns/op
+[info] # Warmup Iteration   3: 72053.284 ns/op
+[info] Iteration   1: 69113.556 ns/op
+[info] Iteration   2: 65151.902 ns/op
+[info] Iteration   3: 69477.503 ns/op
+[info] Iteration   4: 72255.303 ns/op
+[info] Iteration   5: 60266.460 ns/op
+[info] Result "benchmark.GenBm.generateBstTypeStaged1000":
+[info]   67252.945 ±(99.9%) 17923.028 ns/op [Average]
+[info]   (min, avg, max) = (60266.460, 67252.945, 72255.303), stdev = 4654.553
+[info]   CI (99.9%): [49329.917, 85175.973] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateBstTypeStaged10000
+[info] # Run progress: 57.50% complete, ETA 00:12:33
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 2215078.677 ns/op
+[info] # Warmup Iteration   2: 579409.262 ns/op
+[info] # Warmup Iteration   3: 258491.167 ns/op
+[info] Iteration   1: 302966.902 ns/op
+[info] Iteration   2: 918944.493 ns/op
+[info] Iteration   3: 411511.610 ns/op
+[info] Iteration   4: 1205025.447 ns/op
+[info] Iteration   5: 4862953.075 ns/op
+[info] Result "benchmark.GenBm.generateBstTypeStaged10000":
+[info]   1540280.305 ±(99.9%) 7291779.572 ns/op [Average]
+[info]   (min, avg, max) = (302966.902, 1540280.305, 4862953.075), stdev = 1893651.999
+[info]   CI (99.9%): [≈ 0, 8832059.877] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateRbtType10
+[info] # Run progress: 60.00% complete, ETA 00:11:53
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 8453.076 ns/op
+[info] # Warmup Iteration   2: 6335.313 ns/op
+[info] # Warmup Iteration   3: 6022.371 ns/op
+[info] Iteration   1: 5994.688 ns/op
+[info] Iteration   2: 5996.919 ns/op
+[info] Iteration   3: 6107.374 ns/op
+[info] Iteration   4: 6050.148 ns/op
+[info] Iteration   5: 6158.621 ns/op
+[info] Result "benchmark.GenBm.generateRbtType10":
+[info]   6061.550 ±(99.9%) 274.318 ns/op [Average]
+[info]   (min, avg, max) = (5994.688, 6061.550, 6158.621), stdev = 71.239
+[info]   CI (99.9%): [5787.232, 6335.868] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateRbtType100
+[info] # Run progress: 62.50% complete, ETA 00:11:06
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 83367.470 ns/op
+[info] # Warmup Iteration   2: 61045.864 ns/op
+[info] # Warmup Iteration   3: 59230.455 ns/op
+[info] Iteration   1: 57290.594 ns/op
+[info] Iteration   2: 56448.765 ns/op
+[info] Iteration   3: 58995.575 ns/op
+[info] Iteration   4: 58559.604 ns/op
+[info] Iteration   5: 61733.480 ns/op
+[info] Result "benchmark.GenBm.generateRbtType100":
+[info]   58605.604 ±(99.9%) 7777.683 ns/op [Average]
+[info]   (min, avg, max) = (56448.765, 58605.604, 61733.480), stdev = 2019.839
+[info]   CI (99.9%): [50827.921, 66383.286] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateRbtType1000
+[info] # Run progress: 65.00% complete, ETA 00:10:19
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 852797.259 ns/op
+[info] # Warmup Iteration   2: 697552.041 ns/op
+[info] # Warmup Iteration   3: 608021.528 ns/op
+[info] Iteration   1: 557813.177 ns/op
+[info] Iteration   2: 462026.221 ns/op
+[info] Iteration   3: 627138.337 ns/op
+[info] Iteration   4: 523912.840 ns/op
+[info] Iteration   5: 776978.278 ns/op
+[info] Result "benchmark.GenBm.generateRbtType1000":
+[info]   589573.771 ±(99.9%) 464158.417 ns/op [Average]
+[info]   (min, avg, max) = (462026.221, 589573.771, 776978.278), stdev = 120540.467
+[info]   CI (99.9%): [125415.354, 1053732.187] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateRbtType10000
+[info] # Run progress: 67.50% complete, ETA 00:09:34
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 4362841.565 ns/op
+[info] # Warmup Iteration   2: 4898385.889 ns/op
+[info] # Warmup Iteration   3: 1139981.738 ns/op
+[info] Iteration   1: 14613101.868 ns/op
+[info] Iteration   2: 10249313.463 ns/op
+[info] Iteration   3: 1605343.641 ns/op
+[info] Iteration   4: 7224276.272 ns/op
+[info] Iteration   5: 5624215.603 ns/op
+[info] Result "benchmark.GenBm.generateRbtType10000":
+[info]   7863250.169 ±(99.9%) 18848179.632 ns/op [Average]
+[info]   (min, avg, max) = (1605343.641, 7863250.169, 14613101.868), stdev = 4894812.395
+[info]   CI (99.9%): [≈ 0, 26711429.801] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateRbtTypeStaged10
+[info] # Run progress: 70.00% complete, ETA 00:09:12
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 1204.969 ns/op
+[info] # Warmup Iteration   2: 1024.465 ns/op
+[info] # Warmup Iteration   3: 996.750 ns/op
+[info] Iteration   1: 997.049 ns/op
+[info] Iteration   2: 997.678 ns/op
+[info] Iteration   3: 1015.785 ns/op
+[info] Iteration   4: 1020.455 ns/op
+[info] Iteration   5: 1012.917 ns/op
+[info] Result "benchmark.GenBm.generateRbtTypeStaged10":
+[info]   1008.777 ±(99.9%) 41.444 ns/op [Average]
+[info]   (min, avg, max) = (997.049, 1008.777, 1020.455), stdev = 10.763
+[info]   CI (99.9%): [967.333, 1050.221] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateRbtTypeStaged100
+[info] # Run progress: 72.50% complete, ETA 00:08:24
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 10417.580 ns/op
+[info] # Warmup Iteration   2: 8941.154 ns/op
+[info] # Warmup Iteration   3: 8707.981 ns/op
+[info] Iteration   1: 8675.834 ns/op
+[info] Iteration   2: 8809.950 ns/op
+[info] Iteration   3: 8794.812 ns/op
+[info] Iteration   4: 8831.393 ns/op
+[info] Iteration   5: 8552.212 ns/op
+[info] Result "benchmark.GenBm.generateRbtTypeStaged100":
+[info]   8732.840 ±(99.9%) 453.066 ns/op [Average]
+[info]   (min, avg, max) = (8552.212, 8732.840, 8831.393), stdev = 117.660
+[info]   CI (99.9%): [8279.774, 9185.907] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateRbtTypeStaged1000
+[info] # Run progress: 75.00% complete, ETA 00:07:36
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 105043.904 ns/op
+[info] # Warmup Iteration   2: 94229.521 ns/op
+[info] # Warmup Iteration   3: 82858.071 ns/op
+[info] Iteration   1: 70633.984 ns/op
+[info] Iteration   2: 83174.809 ns/op
+[info] Iteration   3: 95497.956 ns/op
+[info] Iteration   4: 77917.076 ns/op
+[info] Iteration   5: 87787.417 ns/op
+[info] Result "benchmark.GenBm.generateRbtTypeStaged1000":
+[info]   83002.248 ±(99.9%) 36423.879 ns/op [Average]
+[info]   (min, avg, max) = (70633.984, 83002.248, 95497.956), stdev = 9459.166
+[info]   CI (99.9%): [46578.370, 119426.127] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateRbtTypeStaged10000
+[info] # Run progress: 77.50% complete, ETA 00:06:49
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 677439.243 ns/op
+[info] # Warmup Iteration   2: 193435.449 ns/op
+[info] # Warmup Iteration   3: 637910.258 ns/op
+[info] Iteration   1: 1006823.908 ns/op
+[info] Iteration   2: 1201232.902 ns/op
+[info] Iteration   3: 795177.635 ns/op
+[info] Iteration   4: 1846257.918 ns/op
+[info] Iteration   5: 1014854.351 ns/op
+[info] Result "benchmark.GenBm.generateRbtTypeStaged10000":
+[info]   1172869.343 ±(99.9%) 1551584.366 ns/op [Average]
+[info]   (min, avg, max) = (795177.635, 1172869.343, 1846257.918), stdev = 402941.533
+[info]   CI (99.9%): [≈ 0, 2724453.709] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateTerm10
+[info] # Run progress: 80.00% complete, ETA 00:06:06
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 7279.994 ns/op
+[info] # Warmup Iteration   2: 5471.300 ns/op
+[info] # Warmup Iteration   3: 5187.072 ns/op
+[info] Iteration   1: 5137.301 ns/op
+[info] Iteration   2: 5161.809 ns/op
+[info] Iteration   3: 5256.070 ns/op
+[info] Iteration   4: 5192.385 ns/op
+[info] Iteration   5: 5304.411 ns/op
+[info] Result "benchmark.GenBm.generateTerm10":
+[info]   5210.395 ±(99.9%) 265.059 ns/op [Average]
+[info]   (min, avg, max) = (5137.301, 5210.395, 5304.411), stdev = 68.835
+[info]   CI (99.9%): [4945.336, 5475.454] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateTerm100
+[info] # Run progress: 82.50% complete, ETA 00:05:19
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 60586.952 ns/op
+[info] # Warmup Iteration   2: 45506.379 ns/op
+[info] # Warmup Iteration   3: 43138.754 ns/op
+[info] Iteration   1: 42994.996 ns/op
+[info] Iteration   2: 42699.198 ns/op
+[info] Iteration   3: 43084.330 ns/op
+[info] Iteration   4: 43844.233 ns/op
+[info] Iteration   5: 44187.016 ns/op
+[info] Result "benchmark.GenBm.generateTerm100":
+[info]   43361.955 ±(99.9%) 2408.038 ns/op [Average]
+[info]   (min, avg, max) = (42699.198, 43361.955, 44187.016), stdev = 625.360
+[info]   CI (99.9%): [40953.916, 45769.993] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateTerm1000
+[info] # Run progress: 85.00% complete, ETA 00:04:32
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 466129.880 ns/op
+[info] # Warmup Iteration   2: 346421.980 ns/op
+[info] # Warmup Iteration   3: 332787.249 ns/op
+[info] Iteration   1: 331714.530 ns/op
+[info] Iteration   2: 334708.530 ns/op
+[info] Iteration   3: 337598.894 ns/op
+[info] Iteration   4: 339783.973 ns/op
+[info] Iteration   5: 333765.967 ns/op
+[info] Result "benchmark.GenBm.generateTerm1000":
+[info]   335514.379 ±(99.9%) 12285.881 ns/op [Average]
+[info]   (min, avg, max) = (331714.530, 335514.379, 339783.973), stdev = 3190.604
+[info]   CI (99.9%): [323228.498, 347800.259] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateTerm10000
+[info] # Run progress: 87.50% complete, ETA 00:03:46
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 7135106.290 ns/op
+[info] # Warmup Iteration   2: 5328066.949 ns/op
+[info] # Warmup Iteration   3: 4977463.287 ns/op
+[info] Iteration   1: 5052309.577 ns/op
+[info] Iteration   2: 5166719.708 ns/op
+[info] Iteration   3: 5071492.310 ns/op
+[info] Iteration   4: 5015856.147 ns/op
+[info] Iteration   5: 5205121.906 ns/op
+[info] Result "benchmark.GenBm.generateTerm10000":
+[info]   5102299.930 ±(99.9%) 308309.754 ns/op [Average]
+[info]   (min, avg, max) = (5015856.147, 5102299.930, 5205121.906), stdev = 80067.064
+[info]   CI (99.9%): [4793990.176, 5410609.684] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateTermStaged10
+[info] # Run progress: 90.00% complete, ETA 00:03:00
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 1126.223 ns/op
+[info] # Warmup Iteration   2: 1006.844 ns/op
+[info] # Warmup Iteration   3: 948.558 ns/op
+[info] Iteration   1: 949.813 ns/op
+[info] Iteration   2: 966.046 ns/op
+[info] Iteration   3: 969.089 ns/op
+[info] Iteration   4: 963.306 ns/op
+[info] Iteration   5: 947.120 ns/op
+[info] Result "benchmark.GenBm.generateTermStaged10":
+[info]   959.075 ±(99.9%) 38.288 ns/op [Average]
+[info]   (min, avg, max) = (947.120, 959.075, 969.089), stdev = 9.943
+[info]   CI (99.9%): [920.787, 997.363] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateTermStaged100
+[info] # Run progress: 92.50% complete, ETA 00:02:15
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 8216.947 ns/op
+[info] # Warmup Iteration   2: 7049.698 ns/op
+[info] # Warmup Iteration   3: 6948.863 ns/op
+[info] Iteration   1: 7078.695 ns/op
+[info] Iteration   2: 7177.949 ns/op
+[info] Iteration   3: 6936.348 ns/op
+[info] Iteration   4: 6939.601 ns/op
+[info] Iteration   5: 7148.619 ns/op
+[info] Result "benchmark.GenBm.generateTermStaged100":
+[info]   7056.242 ±(99.9%) 438.322 ns/op [Average]
+[info]   (min, avg, max) = (6936.348, 7056.242, 7177.949), stdev = 113.831
+[info]   CI (99.9%): [6617.920, 7494.564] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateTermStaged1000
+[info] # Run progress: 95.00% complete, ETA 00:01:29
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 50493.566 ns/op
+[info] # Warmup Iteration   2: 43164.436 ns/op
+[info] # Warmup Iteration   3: 42684.248 ns/op
+[info] Iteration   1: 43425.785 ns/op
+[info] Iteration   2: 43441.833 ns/op
+[info] Iteration   3: 42557.865 ns/op
+[info] Iteration   4: 42773.428 ns/op
+[info] Iteration   5: 43609.714 ns/op
+[info] Result "benchmark.GenBm.generateTermStaged1000":
+[info]   43161.725 ±(99.9%) 1789.932 ns/op [Average]
+[info]   (min, avg, max) = (42557.865, 43161.725, 43609.714), stdev = 464.840
+[info]   CI (99.9%): [41371.793, 44951.657] (assumes normal distribution)
+[info] # JMH version: 1.37
+[info] # VM version: JDK 11.0.26, OpenJDK 64-Bit Server VM, 11.0.26+4
+[info] # VM invoker: /home/ubuntu/.cache/coursier/arc/https/github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.26%252B4/OpenJDK11U-jdk_x64_linux_hotspot_11.0.26_4.tar.gz/jdk-11.0.26+4/bin/java
+[info] # VM options: -Xss200m
+[info] # Blackhole mode: full + dont-inline hint (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+[info] # Warmup: 3 iterations, 5 s each
+[info] # Measurement: 5 iterations, 5 s each
+[info] # Timeout: 10 min per iteration
+[info] # Threads: 1 thread, will synchronize iterations
+[info] # Benchmark mode: Average time, time/op
+[info] # Benchmark: benchmark.GenBm.generateTermStaged10000
+[info] # Run progress: 97.50% complete, ETA 00:00:44
+[info] # Fork: 1 of 1
+[info] # Warmup Iteration   1: 600054.087 ns/op
+[info] # Warmup Iteration   2: 513176.279 ns/op
+[info] # Warmup Iteration   3: 513208.417 ns/op
+[info] Iteration   1: 528869.762 ns/op
+[info] Iteration   2: 521924.381 ns/op
+[info] Iteration   3: 516122.631 ns/op
+[info] Iteration   4: 531873.231 ns/op
+[info] Iteration   5: 532009.432 ns/op
+[info] Result "benchmark.GenBm.generateTermStaged10000":
+[info]   526159.887 ±(99.9%) 26739.730 ns/op [Average]
+[info]   (min, avg, max) = (516122.631, 526159.887, 532009.432), stdev = 6944.223
+[info]   CI (99.9%): [499420.157, 552899.617] (assumes normal distribution)
+[info] # Run complete. Total time: 00:29:47
+[info] REMEMBER: The numbers below are just data. To gain reusable insights, you need to follow up on
+[info] why the numbers are the way they are. Use profilers (see -prof, -lprof), design factorial
+[info] experiments, perform baseline and negative tests that provide experimental control, make sure
+[info] the benchmarking environment is safe on JVM/OS/HW level, ask for reviews from the domain experts.
+[info] Do not assume the numbers tell you what you want them to tell.
+[info] Benchmark                                 Mode  Cnt         Score          Error  Units
+[info] GenBm.generateBoolListBespoke10           avgt    5      3924.090 ±      206.204  ns/op
+[info] GenBm.generateBoolListBespoke100          avgt    5     37357.923 ±     1563.142  ns/op
+[info] GenBm.generateBoolListBespoke1000         avgt    5    369547.061 ±    14684.514  ns/op
+[info] GenBm.generateBoolListBespoke10000        avgt    5   6090663.843 ±  7614091.702  ns/op
+[info] GenBm.generateBoolListBespokeStaged10     avgt    5       572.025 ±       23.044  ns/op
+[info] GenBm.generateBoolListBespokeStaged100    avgt    5      4654.392 ±      163.227  ns/op
+[info] GenBm.generateBoolListBespokeStaged1000   avgt    5     45080.302 ±     1509.830  ns/op
+[info] GenBm.generateBoolListBespokeStaged10000  avgt    5    454101.866 ±    22870.939  ns/op
+[info] GenBm.generateBstBespoke10                avgt    5      3544.996 ±      241.773  ns/op
+[info] GenBm.generateBstBespoke100               avgt    5     31700.995 ±     2116.726  ns/op
+[info] GenBm.generateBstBespoke1000              avgt    5    263711.608 ±    12760.442  ns/op
+[info] GenBm.generateBstBespoke10000             avgt    5   3602343.311 ±   164501.262  ns/op
+[info] GenBm.generateBstBespokeStaged10          avgt    5       725.113 ±       35.970  ns/op
+[info] GenBm.generateBstBespokeStaged100         avgt    5      5566.750 ±      365.498  ns/op
+[info] GenBm.generateBstBespokeStaged1000        avgt    5     40537.455 ±     1287.069  ns/op
+[info] GenBm.generateBstBespokeStaged10000       avgt    5    556590.219 ±    22210.113  ns/op
+[info] GenBm.generateBstType10                   avgt    5      4576.796 ±      241.024  ns/op
+[info] GenBm.generateBstType100                  avgt    5     43947.962 ±     5259.881  ns/op
+[info] GenBm.generateBstType1000                 avgt    5    499900.861 ±   442654.348  ns/op
+[info] GenBm.generateBstType10000                avgt    5  10874613.645 ± 23585967.069  ns/op
+[info] GenBm.generateBstTypeStaged10             avgt    5       829.928 ±       39.610  ns/op
+[info] GenBm.generateBstTypeStaged100            avgt    5      7047.721 ±      152.020  ns/op
+[info] GenBm.generateBstTypeStaged1000           avgt    5     67252.945 ±    17923.028  ns/op
+[info] GenBm.generateBstTypeStaged10000          avgt    5   1540280.305 ±  7291779.572  ns/op
+[info] GenBm.generateRbtType10                   avgt    5      6061.550 ±      274.318  ns/op
+[info] GenBm.generateRbtType100                  avgt    5     58605.604 ±     7777.683  ns/op
+[info] GenBm.generateRbtType1000                 avgt    5    589573.771 ±   464158.417  ns/op
+[info] GenBm.generateRbtType10000                avgt    5   7863250.169 ± 18848179.632  ns/op
+[info] GenBm.generateRbtTypeStaged10             avgt    5      1008.777 ±       41.444  ns/op
+[info] GenBm.generateRbtTypeStaged100            avgt    5      8732.840 ±      453.066  ns/op
+[info] GenBm.generateRbtTypeStaged1000           avgt    5     83002.248 ±    36423.879  ns/op
+[info] GenBm.generateRbtTypeStaged10000          avgt    5   1172869.343 ±  1551584.366  ns/op
+[info] GenBm.generateTerm10                      avgt    5      5210.395 ±      265.059  ns/op
+[info] GenBm.generateTerm100                     avgt    5     43361.955 ±     2408.038  ns/op
+[info] GenBm.generateTerm1000                    avgt    5    335514.379 ±    12285.881  ns/op
+[info] GenBm.generateTerm10000                   avgt    5   5102299.930 ±   308309.754  ns/op
+[info] GenBm.generateTermStaged10                avgt    5       959.075 ±       38.288  ns/op
+[info] GenBm.generateTermStaged100               avgt    5      7056.242 ±      438.322  ns/op
+[info] GenBm.generateTermStaged1000              avgt    5     43161.725 ±     1789.932  ns/op
+[info] GenBm.generateTermStaged10000             avgt    5    526159.887 ±    26739.730  ns/op
+[success] Total time: 1798 s (29:58), completed Mar 21, 2025, 7:52:21 PM

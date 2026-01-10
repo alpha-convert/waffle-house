@@ -9,6 +9,6 @@ let staged_code =
   ~f:(fun l -> G.return .< repeat_insert .~l >.)
 
 let make_quickcheck_generator () =
-  G.jit ~extra_cmi_paths:["/ff_artifact/artifact/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"; "/ff_artifact/artifact/waffle-house/staged-ocaml/_build/default/test/strategies/BST/.BST.objs/byte"] staged_code
+  G.jit ~extra_cmi_paths:["/home/ubuntu/waffle-house/staged-ocaml/_build/default/lib/.fast_gen.objs/byte"; "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"; "/home/ubuntu/waffle-house/staged-ocaml/_build/default/test/strategies/BST/.BST.objs/byte"] staged_code
 
 let quickcheck_generator = make_quickcheck_generator ()
