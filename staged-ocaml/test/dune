@@ -1,10 +1,42 @@
 (test
 (preprocess (pps ppx_jane ppx_deriving.eq ppx_deriving.show))
+ (modules test_fast_gen difftest count_binds trace_generator)
  (libraries fast_gen alcotest core core_bench BST BoolList STLC)
   (foreign_stubs
   (language c)
-  (names stop_stubs)) 
+  (names stop_stubs))
  (name test_fast_gen))
+
+(executable
+ (name bst_benchmark)
+ (modules bst_benchmark benchmark)
+ (libraries fast_gen core core_bench BST))
+
+(executable
+ (name bst_type_benchmark)
+ (modules bst_type_benchmark benchmark)
+ (libraries fast_gen core core_bench BST))
+
+(executable
+ (name bst_single_benchmark)
+ (modules bst_single_benchmark benchmark)
+ (libraries fast_gen core core_bench BST))
+
+(executable
+ (name stlc_benchmark)
+ (modules stlc_benchmark benchmark)
+ (libraries fast_gen core core_bench STLC))
+
+(executable
+ (name stlc_benchmark_type)
+ (modules stlc_benchmark_type benchmark)
+ (libraries fast_gen core core_bench STLC))
+
+(executable
+ (name boollist_benchmark)
+ (modules boollist_benchmark benchmark)
+ (libraries fast_gen core core_bench BoolList))
+
 (include_subdirs unqualified)
 
 (env
