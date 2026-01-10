@@ -388,6 +388,8 @@ let () = Gc.full_major ()
 open Bst_single_benchmark
 let () = Gc.full_major ()
 open Stlc_benchmark
+let () = Gc.full_major ()
+open Stlc_benchmark_type
 
 open Test_compile_time
 
