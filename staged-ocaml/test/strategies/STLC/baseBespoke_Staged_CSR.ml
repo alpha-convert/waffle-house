@@ -94,7 +94,7 @@ let genExpr =
   genExactExpr n .<[]>. t
 
 let make_quickcheck_generator () =
-  G.jit ~extra_cmi_paths:["/home/jcutler/Documents/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"; "/home/jcutler/Documents/waffle-house/staged-ocaml/_build/default/test/strategies/STLC/.STLC.objs/byte"] genExpr
+  G.jit ~extra_cmi_paths:["/ff_artifact/artifact/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"; "/ff_artifact/artifact/waffle-house/staged-ocaml/_build/default/test/strategies/STLC/.STLC.objs/byte"] genExpr
 
 let quickcheck_generator = make_quickcheck_generator ()
 

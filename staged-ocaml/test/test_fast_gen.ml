@@ -377,9 +377,17 @@ module Bm = Benchmark
   let g4 = G_C_SR.jit M4.gen in
   Benchmark.bm ~bench_name:"int" ~named_gens:["BQ",g1; "Staged SR",g2; "Staged C", g3; "Staged CSR", g4] ~sizes:[10;50;100;1000] ~seeds:[100] ~quota:(Core_bench.Bench.Quota.Num_calls 10000) *)
 
-(* open Boollist_benchmark *)
-(* open Bst_benchmark *)
-(* open Stlc_benchmark *)
+
+let () = Gc.full_major ()
+open Boollist_benchmark
+let () = Gc.full_major ()
+open Bst_benchmark
+let () = Gc.full_major ()
+open Bst_type_benchmark
+let () = Gc.full_major ()
+open Bst_single_benchmark
+let () = Gc.full_major ()
+open Stlc_benchmark
 
 open Test_compile_time
 

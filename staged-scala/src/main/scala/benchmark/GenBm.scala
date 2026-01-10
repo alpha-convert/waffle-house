@@ -363,7 +363,7 @@ val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parame
   def generateBstBespokeStaged10000(): Bst = {
     BST.SingleBespokeStaged.gen(10000)(Seed.random())
   }
-
+/*
 // RBT Type Derived - unstaged benchmarks
 @Benchmark
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -446,7 +446,7 @@ val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parame
   def generateRbtTypeStaged10000(): Rbt = {
     RBT.TypeDerivedStaged.gen(10000)(Seed.random())
   }
-
+*/
 // STLC Term (Bespoke) - unstaged benchmarks
 @Benchmark
 @BenchmarkMode(Array(Mode.AverageTime))

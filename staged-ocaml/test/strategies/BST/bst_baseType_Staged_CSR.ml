@@ -47,7 +47,7 @@ module G = Fast_gen.Staged_generator.MakeStaged(Fast_gen.C_sr_dropin_random)
               ~f:(fun x -> G.if_z x _gen__002_ _gen__003_))
 
   let make_quickcheck_generator () =
-    G.jit ~extra_cmi_paths:["/home/jcutler/Documents/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"; "/home/jcutler/Documents/waffle-house/staged-ocaml/_build/default/test/strategies/BST/.BST.objs/byte"] staged_code
+    G.jit ~extra_cmi_paths:["/ff_artifact/artifact/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"; "/ff_artifact/artifact/waffle-house/staged-ocaml/_build/default/test/strategies/BST/.BST.objs/byte"] staged_code
 
   let quickcheck_generator = make_quickcheck_generator ()
 

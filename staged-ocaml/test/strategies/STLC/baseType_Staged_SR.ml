@@ -87,7 +87,7 @@ let staged_code =
            G.bind G.size
              ~f:(fun x -> G.if_z x _gen__040_ _gen__041_))
 let make_quickcheck_generator () =
-  G.jit ~extra_cmi_paths:["/home/jcutler/Documents/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"; "/home/jcutler/Documents/waffle-house/staged-ocaml/_build/default/test/strategies/STLC/.STLC.objs/byte"] staged_code
+  G.jit ~extra_cmi_paths:["/ff_artifact/artifact/waffle-house/staged-ocaml/_build/default/test/.test_fast_gen.eobjs/byte"; "/ff_artifact/artifact/waffle-house/staged-ocaml/_build/default/test/strategies/STLC/.STLC.objs/byte"] staged_code
 
 let quickcheck_generator = make_quickcheck_generator ()
 let sexp_of_t = sexp_of_t
