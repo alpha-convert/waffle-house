@@ -1,3 +1,4 @@
+let () = Gc.full_major ()
 let () =
   Benchmark.bm_nondet ~bench_name:"bst_bespoke"
     ~sizes:[10;100;1000;10000]
