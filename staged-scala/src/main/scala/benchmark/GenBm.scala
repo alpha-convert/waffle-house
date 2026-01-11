@@ -240,7 +240,7 @@ val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parame
   def generateBstType10000(): Option[Bst] = {
     BST.TypeDerived.gen.apply(size10000,Seed.random())
   }
-
+/*
 // BST Type Derived - staged benchmarks
 @Benchmark
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -281,7 +281,7 @@ val size10000 = Gen.Parameters.default.withSize(10000)  // Added new size parame
   def generateBstTypeStaged10000(): Bst = {
     BST.TypeDerivedStaged.gen(10000)(Seed.random())
   }
-
+*/
 // BST Bespoke - unstaged benchmarks
 @Benchmark
 @BenchmarkMode(Array(Mode.AverageTime))
