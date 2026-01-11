@@ -37,6 +37,11 @@
  (modules boollist_benchmark benchmark)
  (libraries fast_gen core core_bench BoolList))
 
+(executable
+ (name test_compile_time)
+ (modules test_compile_time)
+ (libraries fast_gen core BST BoolList STLC))
+
 (include_subdirs unqualified)
 
 (env
