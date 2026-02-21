@@ -1,4 +1,4 @@
-\documentclass[acmsmall,screen,review,anonymous]{acmart}
+\documentclass[acmsmall, review]{acmart}
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
   \providecommand\BibTeX{{%
@@ -352,7 +352,8 @@ that a DSL's choice of \rand{} has a dramatic effect on its performance. Based
 on the observation that the OCaml implementation of \bq{}'s \rand{} is slow in
 a way that is simple to fix, we perform a controlled experiment, comparing fast and slow
 versions of the library to analyze the impact of faster \rands{} on
-generator performance.
+generator performance. We perform this comparison in \camlname{}.
+
 
 Both interventions preserve semantics on the nose: given the same
 random seed, generators written using \camlname or \scalaname produce
@@ -398,7 +399,7 @@ generality (Section~\ref{section:faster-generators}).
 %       in which the performance benefit of each intervention can be 
 %       attributed to the interventions themselves, as opposed to 
 %       random chance (Section~\ref{section:eval}).
-\item We demonstrate that writing generators using \name{} and fast
+\item We demonstrate that writing generators using the \name{} technique combined with fast
 \rands{} yields substantial performance improvements, both separately
 and in combination, and we show that these performance improvements
 extend to significantly improved bug-finding speed (Section~\ref{section:eval}).
@@ -498,7 +499,7 @@ let int_pair : (int * int) Bq.t =
 \end{figure}
 
 Most languages in which monadic APIs are common expose some sort of syntactic
-sugar for them. In OCaml, \footnote{OCaml actually has a few ways to implement
+sugar for them. In OCaml \footnote{OCaml actually has a few ways to implement
 monadic syntax; this is the one provided by Jane Street's libraries.}, this
 looks like \texttt{let\%bind x = e in e'} which desugars to
 \texttt{bind e (fun x => e')}. Figure~\ref{fig:simple-macro} shows the same
@@ -838,7 +839,7 @@ let eta (f : 'a code -> 'b code) : ('a -> 'b) code = .<fun x -> .~(f .<x>.)>.
 
 This program is known as ``The Trick'' in the partial evaluation and multi-stage programming literature~\cite{metaocamlimpl}.
 % USE THIS: https://arxiv.org/pdf/2309.08207
-It returns a code for a function that takes an argument \texttt{x} and splices in the result of calling \texttt{f} on just
+It returns code for a function that takes an argument \texttt{x} and splices in the result of calling \texttt{f} on just
 the quoted \texttt{x}.
 %
 For example, the following program
@@ -996,7 +997,7 @@ While the techniques in the previous section eliminates monadic
 DSL overhead using standard ideas in staging, it cannot address some of the
 more subtle and domain-specific performance issues identified in Section~\ref{section:motiv},
 like hot-path allocations induced by generator combinators such as \texttt{weighted\_union}.
-Removing these allocations requires a observation that transcends simple 
+Removing these allocations requires an observation that transcends simple 
 inlining: though the \emph{elements} of the lists may be dynamic, their
 \emph{spine}---the structure of the list itself---is in practice always statically
 known. This is an instance of \emph{partially-static data} \cite{partially-static}:
@@ -1224,7 +1225,7 @@ always in \texttt{code}.\footnote{This is an instance of the \emph{codensity} mo
 The monad instance for this type is the standard instance for a CPS monad with polymorphic return type.
 In prior work, this type is often referred to as the ``code generation'' monad.
 This is because a value of type \texttt{('a code) CodeCps.t} is like an ``action'' that generates \texttt{code}:
-\texttt{CodeCps.run} passes the continuation transformer the identity continuation to produce a \texttt{'a code}.
+\texttt{CodeCps.run} passes the continuation transformer the identity continuation to produce a value of type \texttt{'a code}.
 To avoid confusion with random data generators, we refer to this type as \texttt{CodeCps.t}.
 Most importantly, the \texttt{CodeCps} type supports a function \texttt{let\_insert}, which, given \texttt{cx : 'a code},
 let-binds \texttt{let x = .\~{}cx}, and then passes \texttt{.<x>.} to the
@@ -1417,7 +1418,7 @@ at run time as a \emph{pointer} to an unscanned block of memory containing (amon
 a 64-bit integer~\cite{realworldocaml}. This means that all operations that return an \texttt{int64} must allocate this block of memory,
 which has a significant impact on performance. A single call to
 one of the \bq library functions---like generating an arbitrary integer---may call into the \texttt{Splittable\_random}
-library times. Each call into \texttt{Splittable\_random}
+library many times. Each call into \texttt{Splittable\_random}
 may sample many times from the core SplitMix sampling routine \texttt{next\_int64}, i.e., using rejection sampling to find a value within a range.
 Finally, each call to \texttt{next\_int64} allocates 9 times, and each allocation brings us closer
 to the next garbage collection pause. While small allocations like these are \emph{very} fast to perform and subsequently
@@ -1728,7 +1729,7 @@ Next, we discuss language-by-language the degree to which the staging-related in
   complex enough programs, however, the heuristics GHC uses can degrade, leading
   to performance overheads for monadic code.  For this reason, Haskell does have
   a multi-stage programming system, Template Haskell~\cite{templatehaskell}, that is
-  sometimes to build eDSLs in contexts where one does not want to rely on the
+  sometimes used to build eDSLs in contexts where one does not want to rely on the
   optimizer's heuristics.  In short: it is possible to build an \name{} version of Haskell
   QuickCheck, but the benefits would be much less pronounced.
 
