@@ -1484,7 +1484,8 @@ values into an initially empty structure, and another that constructs the
 entire tree in a single pass by generating keys, values, and subtrees at each step;
 a boolean list generator that mirrors the single-pass BST strategy; and a
 generator for STLC terms that is correct by construction (i.e., it produces
-only well-typed terms).
+only well-typed terms). These microbenchmarks established in the literature\cite{etna} as reasonable proxies for
+real-world generators PBT users might write.
 
 % These strategies differ in their use of generator library combinators
 % and in how frequently they sample random values. The type-derived and
@@ -1511,7 +1512,8 @@ specific meaning of generation size is a domain-specific implementation
 detail---in a list generator, size might correspond to the desired length of the list,
 whereas in a tree generator it refer to number of nodes, number of leaves, depth of tree,
 etc. Regardless, our goal is to show that performance trends scale.}
-We run each treatment for 5 seconds and compute the average generation time of a value produced in that interval.
+We run each treatment for 5 seconds and compute the average generation time of a value produced in that interval. Compilation
+times are not included, but they are all under 55ms amortized over runs that last on the order of minutes.
 
 \begin{figure}[h]
   % \includegraphics[scale=0.33]{allocs.png}
@@ -1582,7 +1584,9 @@ complementary roles in generator performance. Sampling-heavy generators see
 greater improvements from faster randomness libraries, while combinator-heavy
 ones benefit more from staging. Since both factors influence performance
 significantly, generator libraries should use both in order to handle diverse
-workloads.
+workloads. Further, these results indicate the more complex and sampling-heavy a generator,
+the greater \name's benefit. We expect that these results would continue to scale for
+even more complicated real-world generators.
 
 In \scalaname, we implement a subset of the \camlname
 strategies: the boolean list generator, single-pass BST generator, and
@@ -1865,11 +1869,10 @@ or generating large buffers of random numbers ahead of time. Finally, we hope to
 matters in PBT, since some of these ideas trade statistical guarantees for speed.
 
 \subsection*{Data Availability Statement}
-For artifact evaluation we will submit (1) the source code of \camlname{} and \scalaname{} as well as (2) the code for our version of Etna,
+For artifact evaluation we have submitted (1) the source code of \camlname{} and \scalaname{} as well as (2) the code for our version of Etna,
 which we have modified slightly to (a) support parallelism, and (b) pass deterministic seeds to all versions of a single strategy.
-These programs are not available publicly or anonymized at the time of submission.
+These programs are publicly available.
 The dataset for our evaluation is produced by a combination of Etna and microbenchmarks in the \camlname{} and \scalaname{} sources.
-It is also not available publicly at the time of submission, but the artifact will contain the means and instructions to reproduce it.
 
 %%
 %% The next two lines define the bibliography style to be used, and
