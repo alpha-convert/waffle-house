@@ -426,7 +426,7 @@ and future work.
 Property-based testing~\cite{claessenQuickCheckLightweightTool2000} is an approach to software testing that centers around
 executable specifications of programs called {\em properties}. For example, if a
 programmer wants to test an invariant of a binary search tree (BST)
-implementation that they are working on, they may write a property like
+implementation they are working on, they may write a property like
 \begin{center}
   \texttt{prop\_insert\_invariant t x = isBST t ==> isBST (insert x t)}
 \end{center}
@@ -748,7 +748,7 @@ For example, significantly faster algorithms than SplitMix or JSF exist,
 such as the Lehmer algorithm~\cite{lehmerrng}, WyRand~\cite{wyrand}, and the xorshiro family of algorithms~\cite{xorshiro}.
 These all run between 1.2-1.6x faster per byte than SplitMix in microbenchmarks~\cite{lemiremicrobenchmarks}.
 Plenty of other known optimizations on top of algorithm choice could also be implemented,
-including pipelined or even ahead-of-time sampling.
+including pipelined or ahead-of-time sampling.
 % https://github.com/lemire/testingRNG/tree/master
 % https://github.com/wangyi-fudan/wyhash?tab=readme-ov-file
 
