@@ -1,16 +1,16 @@
-\documentclass[acmsmall, review]{acmart}
+\documentclass[acmsmall]{acmart}
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
   \providecommand\BibTeX{{%
     Bib\TeX}}}
-\newif\ifdraft\drafttrue{}
+\newif\ifdraft\draftfalse{}
 \newif\iflater\latertrue{}
 \newif\ifaftersubmission\aftersubmissionfalse{}
 \newif\ifsilly\sillytrue{}
 
 \PassOptionsToPackage{names,dvipsnames}{xcolor}
 
-\settopmatter{printfolios=false,printccs=false,printacmref=false}
+\settopmatter{printfolios=true,printccs=true,printacmref=true}
 \setcopyright{none}
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
@@ -58,10 +58,14 @@
 %% values in them; it is your responsibility as an author to replace
 %% the commands and values with those provided to you when you
 %% complete the rights form.
-\setcopyright{none}
-% \copyrightyear{2025}
-% \acmYear{2025}
-% \acmDOI{XXXXXXX.XXXXXXX}
+\setcopyright{cc}
+\setcctype{by}
+\acmJournal{PACMPL}
+\acmYear{2026} \acmVolume{10} \acmNumber{OOPSLA1} \acmArticle{155}
+\acmMonth{4} \acmDOI{10.1145/3798263}
+% \copyrightyear{2026}
+% \acmYear{2026}
+\acmDOI{10.1145/3798263}
 %% These commands are for a PROCEEDINGS abstract or paper.
 % \acmConference[Conference acronym 'XX]{Make sure to enter the correct
 %   conference title from your rights confirmation email}{June 03--05,
@@ -235,7 +239,7 @@ Together, these improvements find bugs up to $13\times$ faster.
 %%
 %% Keywords. The author(s) should pick words that accurately describe
 %% the work being presented. Separate the keywords with commas.
-% \keywords{Property-based testing, Generators, Staging, Meta-programming}
+\keywords{Property-based testing, Generators, Staging, Meta-programming}
 %% A "teaser" image appears between the author and affiliation
 %% information and the body of the document, and typically spans the
 %% page.
@@ -1860,7 +1864,7 @@ and variants of xoroshiro~\cite{xorshiro}. We also want to try techniques to spe
 or generating large buffers of random numbers ahead of time. Finally, we hope to investigate the degree to which statistical randomness
 matters in PBT, since some of these ideas trade statistical guarantees for speed.
 
-\subsection*{Data Availabilty Statement}
+\subsection*{Data Availability Statement}
 For artifact evaluation we will submit (1) the source code of \camlname{} and \scalaname{} as well as (2) the code for our version of Etna,
 which we have modified slightly to (a) support parallelism, and (b) pass deterministic seeds to all versions of a single strategy.
 These programs are not available publicly or anonymized at the time of submission.
