@@ -1688,7 +1688,8 @@ some tasks regularly hit the 60-second timeout, while others finish in a fractio
 find that ``easier'' tasks---those that run on the order of milliseconds---regularly achieve speedups in the
 range of $4-9\times$, whereas tasks that run on the order of seconds achieve more moderate speedups of up to $3.5\times$.
 Overall,
-these results give strong evidence that \camlname consistently benefits bug-finding speed, sometimes drastically.
+these results give strong evidence that \camlname consistently benefits bug-finding speed, sometimes drastically. We expect that these results would
+hold in real-world scenarios where generation time constitutes a significant proportion of total testing time.
 
 \begin{figure}[h]
 \ifsilly  \includegraphics[scale=0.36]{swarm.pdf} \fi
@@ -1703,7 +1704,7 @@ tractable ones. Out of 79 tasks that initially timed out,
 31 (38.4\%) completed successfully using \camlname alone, and
 51 (64.1\%) completed successfully after adding \csplitmix.
 This shows that staged type-derived generators can provide
-significant performance improvements for free, without
+significant performance improvements for "free"---that is, without
  any additional effort from the user.
  
 \section{Other Languages \& Libraries}
@@ -1871,7 +1872,7 @@ matters in PBT, since some of these ideas trade statistical guarantees for speed
 \subsection*{Data Availability Statement}
 For artifact evaluation we have submitted (1) the source code of \camlname{} and \scalaname{} as well as (2) the code for our version of Etna,
 which we have modified slightly to (a) support parallelism, and (b) pass deterministic seeds to all versions of a single strategy.
-These programs are publicly available.
+These programs are publicly available\cite{ff_artifact}.
 The dataset for our evaluation is produced by a combination of Etna and microbenchmarks in the \camlname{} and \scalaname{} sources.
 
 %%
