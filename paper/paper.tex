@@ -797,7 +797,7 @@ While embedded DSLs are powerful tools, they have a well-known drawback:
 the functional abstractions used to build eDSLs tend to prevent compilers from generating efficient machine code.
 This is \emph{abstraction overhead} \cite{carrette05, moller20}: the layers of abstraction that
 make eDSLs pleasant to use are precisely what prevents them from being fast.
-Indeed, the root causes of many of the performance issues we discovered in Section~\ref{section:motiv} are
+Indeed, the root causes of many performance issues we discovered in Section~\ref{section:motiv} are
 not unique to generator DSLs, but pervasive across eDSLs.
 In light of this issue, staging is often used as a lightweight compiler for DSLs. The compile-time evaluation stage
 transforms the DSL code, eliminating abstractions to produce code that the host language compiler can generate fast machine code for.
@@ -910,7 +910,7 @@ This leads us to define our library's generator type \texttt{'a
 \texttt{'a Gen.t} \ \ = \ \  \texttt{int code -> SR.t code -> 'a code}.
 \]
 That is, a \texttt{Gen.t} is a compile-time
-function from dynamically known size and seed to dynamically determined result.
+function from dynamically known size and seed to dynamically determined result. 
 
 The basic functionality of the staged monadic generator DSL can be
 found in Figure~\ref{fig:gen-staged-basic}.
@@ -1485,7 +1485,7 @@ entire tree in a single pass by generating keys, values, and subtrees at each st
 a boolean list generator that mirrors the single-pass BST strategy; and a
 generator for STLC terms that is correct by construction (i.e., it produces
 only well-typed terms). These microbenchmarks established in the literature\cite{etna} as reasonable proxies for
-real-world generators PBT users might write.
+real-world generators PBT users write.
 
 % These strategies differ in their use of generator library combinators
 % and in how frequently they sample random values. The type-derived and
