@@ -59,32 +59,16 @@
 %% complete the rights form.
 \setcopyright{cc}
 \setcctype{by}
-\acmJournal{PACMPL}
-\acmYear{2026} 
-\acmVolume{10} \acmNumber{OOPSLA1} \acmArticle{155}
-\acmMonth{4} 
 \acmDOI{10.1145/3798263}
-% \copyrightyear{2026}
-% \acmYear{2026}
-%% These commands are for a PROCEEDINGS abstract or paper.
-% \acmConference[Conference acronym 'XX]{Make sure to enter the correct
-%   conference title from your rights confirmation email}{June 03--05,
-%   2018}{Woodstock, NY}
-%%
-%%  Uncomment \acmBooktitle if the title of the proceedings is different
-%%  from ``Proceedings of ...''!
-%%
-%%\acmBooktitle{Woodstock '18: ACM Symposium on Neural Gaze Detection,
-%%  June 03--05, 2018, Woodstock, NY}
-% \acmISBN{978-1-4503-XXXX-X/2025/02}
-
-
-%%
-%% Submission ID.
-%% Use this when submitting an article to a sponsored event. You'll
-%% receive a unique submission ID from the organizers
-%% of the event, and this ID should be used as the parameter to this command.
-%%\acmSubmissionID{123-A56-BU3}
+\acmYear{2026}
+\acmJournal{PACMPL}
+\acmVolume{10}
+\acmNumber{OOPSLA1}
+\acmArticle{155}
+\acmMonth{4}
+\acmSubmissionID{oopslaa26main-p387-p}
+\received{2025-10-10}
+\received[accepted]{2026-02-17}
 
 %%
 %% For managing citations, it is recommended to use bibliography
@@ -138,6 +122,7 @@
   \state{Pennsylvania}
   \country{USA}
 }
+\email{lapwing@seas.upenn.edu}
 
 \author{Joseph W. Cutler}
 \authornotemark[1]
@@ -147,14 +132,16 @@
   \state{Pennsylvania}
   \country{USA}
 }
+\email{jwc@seas.upenn.edu}
 
 \author{Harrison Goldstein}
 \affiliation{%
-  \institution{University of Maryland}
-  \city{College Park}
-  \state{Maryland}
+  \institution{University at Buffalo}
+  \city{Buffalo}
+  \state{New York}
   \country{USA}
 }
+\email{hgoldste@buffalo.edu}
 
 \author{Benjamin C. Pierce}
 \affiliation{%
@@ -162,13 +149,14 @@
  \city{Philadelphia}
  \state{Pennsylvania}
  \country{USA}}
+\email{bcpierce@seas.upenn.edu}
 %%
 %% By default, the full list of authors will be used in the page
 %% headers. Often, this list is too long, and will overlap
 %% other information printed in the page headers. This command allows
 %% the author to define a more concise list
 %% of authors' names for this purpose.
-\renewcommand{\shortauthors}{Richey and Cutler et al.}
+\renewcommand{\shortauthors}{C. Richey, J. W. Cutler, H. Goldstein, and B. C. Pierce}
 
 %%
 %% The abstract is a short summary of the work to be presented in the
@@ -243,11 +231,6 @@ Together, these improvements find bugs up to $13\times$ faster.
 %% A "teaser" image appears between the author and affiliation
 %% information and the body of the document, and typically spans the
 %% page.
-
-\received{--}
-\received[revised]{--}
-\received[accepted]{--}
-
 %%
 %% This command processes the author and affiliation and title
 %% information and builds the first part of the formatted document.
@@ -416,7 +399,7 @@ languages---Racket, F\#, Haskell, Rust, Clojure, and Swift.
 Sections~\ref{section:related} and~\ref{section:concl} present related
 and future work.
 
-\section{What are Generator Libraries, and Why are They Slow?}
+\section{What Are Generator Libraries, and Why Are They Slow?}
 \label{section:motiv}
 % \jwc{In this section we answer: ``What are monadic generator libraries, and why are they slow?''}
 % \bcp{That's actually not a bad section title!}
@@ -1586,7 +1569,7 @@ ones benefit more from staging. Since both factors influence performance
 significantly, generator libraries should use both in order to handle diverse
 workloads. Further, these results indicate the more complex and sampling-heavy a generator,
 the greater \name's benefit. We expect that these results would continue to scale for
-even more complicated real-world generators.
+even more complicated generators in real-world applications.
 
 In \scalaname, we implement a subset of the \camlname
 strategies: the boolean list generator, single-pass BST generator, and
@@ -1868,11 +1851,14 @@ On the randomness side we plan to investigate fast \rands{} that are not equival
 and variants of xoroshiro~\cite{xorshiro}. We also want to try techniques to speed up sampling such as pipelining, using SIMD instructions,
 or generating large buffers of random numbers ahead of time. Finally, we hope to investigate the degree to which statistical randomness
 matters in PBT, since some of these ideas trade statistical guarantees for speed.
+\begin{acks}
+This work was partially funded by the U.S. National Science Foundation under Grant No.~2402449. Special thanks to Brett Saiki and Daniel Sainati for their time reviewing our paper.
+\end{acks}
 
 \subsection*{Data Availability Statement}
 For artifact evaluation we have submitted (1) the source code of \camlname{} and \scalaname{} as well as (2) the code for our version of Etna,
 which we have modified slightly to (a) support parallelism, and (b) pass deterministic seeds to all versions of a single strategy.
-These programs are publicly available\cite{ff_artifact}.
+These programs are publicly available~\cite{ffa}.
 The dataset for our evaluation is produced by a combination of Etna and microbenchmarks in the \camlname{} and \scalaname{} sources.
 
 %%
