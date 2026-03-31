@@ -492,16 +492,6 @@ looks like \texttt{let\%bind x = e in e'} which desugars to
 \texttt{bind e (fun x => e')}. Figure~\ref{fig:simple-macro} shows the same
 generator, written in the monadic syntax.
 
-Generator libraries also include other functions that make generator
-construction easier; some examples of these are included in
-Figure~\ref{fig:bq-api}.  The \texttt{weighted\_union} function is a
-particularly well-used one: it makes a weighted choice between different
-generators, allowing the developer to combine different sub-generators into a
-single program and tune the data distribution. Also important are functions like
-\texttt{size} and \texttt{with\_size} that are used to control the sizes of
-generated values and \texttt{fixed\_point} that is used to define recursive
-generators.
-
 \begin{wrapfigure}{r}{.49\textwidth}
   \vspace{1.5em}
 \begin{lstlisting}[
@@ -525,6 +515,16 @@ let tree_of g = fixed_point (fun rg ->
 \end{lstlisting}
 \caption{A generator using a variety of convenience functions.}\label{fig:tree_of}
 \end{wrapfigure}
+
+Generator libraries also include other functions that make generator
+construction easier; some examples of these are included in
+Figure~\ref{fig:bq-api}.  The \texttt{weighted\_union} function is a
+particularly well-used one: it makes a weighted choice between different
+generators, allowing the developer to combine different sub-generators into a
+single program and tune the data distribution. Also important are functions like
+\texttt{size} and \texttt{with\_size} that are used to control the sizes of
+generated values and \texttt{fixed\_point} that is used to define recursive
+generators.
 
 The generator in Figure~\ref{fig:tree_of} uses all of these
 features. It uses \texttt{fixed\_point} to define a recursive generator that
