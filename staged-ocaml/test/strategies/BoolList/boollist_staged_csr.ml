@@ -1,4 +1,4 @@
-module G = Fast_gen.Staged_generator.MakeStaged(Fast_gen.Sr_random)
+module G = Fast_gen.Staged_generator.MakeStaged(Fast_gen.C_sr_dropin_random)
 open G
 open Let_syntax
 
